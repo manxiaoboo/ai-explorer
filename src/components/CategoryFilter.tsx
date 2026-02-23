@@ -15,25 +15,40 @@ interface CategoryFilterProps {
 
 export function CategoryFilter({ categories }: CategoryFilterProps) {
   return (
-    <div className="bg-white border rounded-lg p-4">
-      <h3 className="font-semibold text-gray-900 mb-4">Categories</h3>
-      <nav className="space-y-1">
-        <Link
-          href="/tools"
-          className="block px-3 py-2 rounded-md text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-        >
-          All Categories
-        </Link>
-        {categories.map((category) => (
+    <nav 
+      className="bg-[var(--surface)] rounded-xl border border-[var(--border)] p-5"
+      aria-label="Category filter"
+    >
+      <h3 className="font-[family-name:var(--font-display)] text-lg font-semibold text-[var(--foreground)] mb-4"
+      >
+        Categories
+      </h3>
+      
+      <ul className="space-y-1">
+        <li>
           <Link
-            key={category.id}
-            href={`/category/${category.slug}`}
-            className="block px-3 py-2 rounded-md text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+            href="/tools"
+            className="block px-3 py-2 rounded-lg text-[var(--muted)] hover:text-[var(--foreground)]
+                     hover:bg-[var(--surface-elevated)] transition-all duration-200
+                     focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset"
           >
-            {category.name}
+            All Categories
           </Link>
+        </li>
+        {categories.map((category) => (
+          <li key={category.id}>
+            <Link
+              href={`/category/${category.slug}`}
+              className="block px-3 py-2 rounded-lg text-[var(--muted)] hover:text-[var(--foreground)]
+                       hover:bg-[var(--surface-elevated)] transition-all duration-200
+                       focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset"
+              aria-label={`Browse ${category.name} tools`}
+            >
+              {category.name}
+            </Link>
+          </li>
         ))}
-      </nav>
-    </div>
+      </ul>
+    </nav>
   );
 }

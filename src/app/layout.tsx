@@ -1,16 +1,32 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Playfair_Display, Source_Sans_3, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const sourceSans = Source_Sans_3({
+  subsets: ["latin"],
+  variable: "--font-body",
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://aitools.example.com"),
   title: {
-    default: "AI Tools Hub - Discover the Best AI Tools",
+    default: "AI Tools Hub — Discover the Best AI Tools",
     template: "%s | AI Tools Hub",
   },
-  description: "Discover, compare, and find the best AI tools for your needs. Browse 500+ AI tools with pricing, reviews, and trending scores.",
+  description: "Browse 500+ AI tools with pricing, reviews, and trending scores. Find free AI tools, compare features, and discover the best AI software.",
   keywords: ["AI tools", "artificial intelligence", "AI software", "machine learning tools", "AI apps"],
   authors: [{ name: "AI Tools Hub" }],
   creator: "AI Tools Hub",
@@ -31,25 +47,13 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://aitools.example.com",
     siteName: "AI Tools Hub",
-    title: "AI Tools Hub - Discover the Best AI Tools",
-    description: "Discover, compare, and find the best AI tools for your needs.",
-    images: [
-      {
-        url: "/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "AI Tools Hub",
-      },
-    ],
+    title: "AI Tools Hub — Discover the Best AI Tools",
+    description: "Browse 500+ AI tools with pricing, reviews, and trending scores.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "AI Tools Hub - Discover the Best AI Tools",
-    description: "Discover, compare, and find the best AI tools for your needs.",
-    images: ["/og-image.jpg"],
-  },
-  verification: {
-    google: "your-google-verification-code",
+    title: "AI Tools Hub — Discover the Best AI Tools",
+    description: "Browse 500+ AI tools with pricing, reviews, and trending scores.",
   },
   alternates: {
     canonical: "/",
@@ -62,11 +66,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${playfair.variable} ${sourceSans.variable} ${jetbrainsMono.variable}`}>
       <head>
         <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+        <meta name="theme-color" content="#0f0f12" />
       </head>
-      <body className={inter.className}>{children}</body>
+      <body className="min-h-screen antialiased">
+        {children}
+      </body>
     </html>
   );
 }
