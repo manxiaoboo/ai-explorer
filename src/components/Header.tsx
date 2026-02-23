@@ -8,14 +8,17 @@ export function Header() {
 
   const navItems = [
     { href: "/", label: "Home" },
-    { href: "/tools", label: "All Tools" },
+    { href: "/tools", label: "Tools" },
+    { href: "/news", label: "News" },
     { href: "/free-ai-tools", label: "Free Tools" },
     { href: "/trending", label: "Trending" },
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-[var(--background)]/80 backdrop-blur-md border-b border-[var(--border)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 bg-[var(--background)]/80 backdrop-blur-md border-b border-[var(--border)]"
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+      >
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link 
@@ -34,7 +37,8 @@ export function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
+          <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation"
+          >
             {navItems.map((item) => (
               <Link
                 key={item.href}

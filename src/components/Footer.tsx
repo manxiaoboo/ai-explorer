@@ -6,6 +6,7 @@ export function Footer() {
   const footerLinks = {
     "Browse": [
       { href: "/tools", label: "All Tools" },
+      { href: "/news", label: "AI News" },
       { href: "/free-ai-tools", label: "Free Tools" },
       { href: "/trending", label: "Trending" },
     ],
@@ -23,11 +24,15 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-[var(--surface)] border-t border-[var(--border)] mt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+    <footer className="bg-[var(--surface)] border-t border-[var(--border)] mt-20"
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
+      >
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8"
+        >
           {/* Brand */}
-          <div className="col-span-2 md:col-span-1">
+          <div className="col-span-2 md:col-span-1"
+          >
             <Link href="/" className="flex items-center gap-2 mb-4"
                   aria-label="AI Tools Hub"
             >
@@ -48,11 +53,15 @@ export function Footer() {
 
           {/* Link Columns */}
           {Object.entries(footerLinks).map(([title, links]) => (
-            <div key={title}>
-              <h3 className="font-semibold text-[var(--foreground)] mb-4">{title}</h3>
-              <ul className="space-y-2">
+            <div key={title}
+            >
+              <h3 className="font-semibold text-[var(--foreground)] mb-4"
+              >{title}</h3>
+              <ul className="space-y-2"
+              >
                 {links.map((link) => (
-                  <li key={link.href}>
+                  <li key={link.href}
+                  >
                     <Link
                       href={link.href}
                       className="text-[var(--muted)] hover:text-[var(--accent)] text-sm transition-colors
