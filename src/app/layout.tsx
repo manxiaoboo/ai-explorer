@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Source_Sans_3, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -69,10 +71,19 @@ export default function RootLayout({
     <html lang="en" className={`${playfair.variable} ${sourceSans.variable} ${jetbrainsMono.variable}`}>
       <head>
         <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
-        <meta name="theme-color" content="#0f0f12" />
+        <meta name="theme-color" content="#0a0a0c" />
       </head>
-      <body className="min-h-screen antialiased">
-        {children}
+      <body className="min-h-screen antialiased flex flex-col">
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
+        <Header />
+        
+        <main id="main-content" className="flex-1">
+          {children}
+        </main>
+        
+        <Footer />
       </body>
     </html>
   );

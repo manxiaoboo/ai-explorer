@@ -7,15 +7,15 @@
  */
 
 :root {
-  /* Color Palette: Deep ink with coral accents */
-  --background: #0f0f12;
-  --foreground: #f5f5f7;
-  --muted: #8b8b91;
-  --accent: #ff6b4a;
-  --accent-soft: #ff8f75;
-  --surface: #1a1a1f;
-  --surface-elevated: #25252c;
-  --border: #2a2a32;
+  /* Color Palette: Deep ink with coral accents - WCAG AA compliant */
+  --background: #0a0a0c;
+  --foreground: #ffffff;
+  --muted: #a1a1aa;
+  --accent: #ff7b5c;
+  --accent-soft: #ff9f8a;
+  --surface: #141418;
+  --surface-elevated: #1e1e24;
+  --border: #2e2e38;
   
   /* Typography Scale */
   --font-display: "Playfair Display", Georgia, serif;
@@ -164,4 +164,20 @@ h1, h2, h3, h4 {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Skip Link for Accessibility */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--accent);
+  color: var(--background);
+  padding: 8px;
+  text-decoration: none;
+  z-index: 100;
+}
+
+.skip-link:focus {
+  top: 0;
 }

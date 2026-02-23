@@ -39,17 +39,14 @@ export function PricingFilter() {
         </li>
         {pricingOptions.slice(1).map((option) => (
           <li key={option.value}>
-            <Link
-              href={`/pricing/${option.value.toLowerCase()}`}
+            <span
               className="flex items-center justify-between px-3 py-2.5 rounded-lg 
-                       text-[var(--muted)] hover:text-[var(--foreground)]
-                       hover:bg-[var(--surface-elevated)] transition-all duration-200
-                       focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset"
-              aria-label={`Browse ${option.label} tools`}
+                       text-[var(--muted)] cursor-default"
+              aria-label={`${option.label} tools - filter coming soon`}
             >
               <span className={option.class}>{option.label}</span>
               <span className="text-xs text-[var(--muted)] tabular-nums">{option.count}</span>
-            </Link>
+            </span>
           </li>
         ))}
       </ul>
