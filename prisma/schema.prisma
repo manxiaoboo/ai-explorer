@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tool {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  tagline     String
+  description String
+  website     String
+  logo        String?
+  
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+  ogImage         String?
+  
+  // Categorization
+  category    Category @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  tags        Tag[]
+  
+  // Pricing
+  pricingTier PricingTier @default(FREE)
+  priceStart  Float?
+  priceEnd    Float?
+  hasFreeTier Boolean     @default(false)
+  hasTrial    Boolean     @default(false)
+  
+  // Features
+  features    String[]
+  useCases    String[]
+  
+  // Metrics
+  githubStars     Int?
+  githubStarsGrowth7d Int?
+  productHuntVotes Int?
+  trendingScore   Float    @default(0)
+  
+  // Status
+  isActive    Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
+  
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Price history
+  priceHistory PriceHistory[]
+  
+  @@index([categoryId])
+  @@index([pricingTier])
+  @@index([trendingScore])
+  @@index([isActive])
+}
+
+model Category {
+  id          String @id @default(cuid())
+  slug        String @unique
+  name        String
+  description String
+  icon        String?
+  sortOrder   Int    @default(0)
+  tools       Tool[]
+  
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tag {
+  id    String @id @default(cuid())
+  name  String @unique
+  tools Tool[]
+}
+
+model PriceHistory {
+  id        String   @id @default(cuid())
+  tool      Tool     @relation(fields: [toolId], references: [id])
+  toolId    String
+  price     Float?
+  pricingTier PricingTier
+  recordedAt DateTime @default(now())
+  
+  @@index([toolId])
+  @@index([recordedAt])
+}
+
+enum PricingTier {
+  FREE
+  FREEMIUM
+  PAID
+  ENTERPRISE
+  OPEN_SOURCE
+}
