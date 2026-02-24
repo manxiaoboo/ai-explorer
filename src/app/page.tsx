@@ -2,10 +2,7 @@ import Link from "next/link";
 import { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { ToolCard } from "@/components/ToolCard";
-import { CategoryFilter } from "@/components/CategoryFilter";
-import { PricingFilter } from "@/components/PricingFilter";
 import { HeroSection } from "@/components/HeroSection";
-import { TrendingTools } from "@/components/TrendingTools";
 import { StructuredData } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
@@ -29,37 +26,22 @@ async function getTrendingTools() {
   return prisma.tool.findMany({
     where: { isActive: true },
     orderBy: { trendingScore: "desc" },
-    take: 10,
-    include: { category: true },
-  });
-}
-
-async function getCategories() {
-  return prisma.category.findMany({});
-}
-
-async function getFreeTools() {
-  return prisma.tool.findMany({
-    where: { 
-      isActive: true, 
-      OR: [
-        { pricingTier: "FREE" },
-        { pricingTier: "FREEMIUM" },
-        { hasFreeTier: true }
-      ]
-    },
-    orderBy: { trendingScore: "desc" },
     take: 8,
     include: { category: true },
   });
 }
 
+async function getCategories() {
+  return prisma.category.findMany({
+    orderBy: { sortOrder: "asc" },
+  });
+}
+
 export default async function HomePage() {
-  const [featuredTools, trendingTools, categories, freeTools] = await Promise.all([
+  const [featuredTools, trendingTools, categories] = await Promise.all([
     getFeaturedTools(),
     getTrendingTools(),
     getCategories(),
-    getFreeTools(),
   ]);
 
   const websiteStructuredData = {
@@ -74,94 +56,84 @@ export default async function HomePage() {
     },
   };
 
-  const organizationStructuredData = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: "AI Tools Hub",
-    url: "https://aitools.example.com",
-    logo: "https://aitools.example.com/logo.png",
-  };
-
   return (
     <>
       <StructuredData data={websiteStructuredData} />
-      <StructuredData data={organizationStructuredData} />
       
-      <HeroSection />
+      <HeroSection categories={categories} />
 
-      <section className="py-12 px-4 max-w-7xl mx-auto">
-        <div className="flex flex-col lg:flex-row gap-8">
-          <aside className="lg:w-64 flex-shrink-0">
-            <div className="sticky top-4 space-y-6">
-              <CategoryFilter categories={categories} />
-              <PricingFilter />
-            </div>
-          </aside>
+      {/* Featured Tools Section */}
+      <section className="py-16 px-4 max-w-7xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Featured AI Tools</h2>
+          <Link 
+            href="/tools" 
+            className="text-lime-600 hover:text-lime-700 font-medium"
+          >
+            View All →
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {featuredTools.map((tool) => (
+            <ToolCard key={tool.id} tool={tool} />
+          ))}
+        </div>
+      </section>
 
-          <main className="flex-1">
-            <section className="mb-12">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">Featured AI Tools</h2>
-                <Link 
-                  href="/tools" 
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                >
-                  View All →
-                </Link>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {featuredTools.map((tool) => (
-                  <ToolCard key={tool.id} tool={tool} />
-                ))}
-              </div>
-            </section>
+      {/* Trending Tools Section */}
+      <section className="py-16 px-4 max-w-7xl mx-auto bg-gray-50">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">🔥 Trending Now</h2>
+          <Link 
+            href="/trending" 
+            className="text-lime-600 hover:text-lime-700 font-medium"
+          >
+            See All Trending →
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {trendingTools.map((tool) => (
+            <ToolCard key={tool.id} tool={tool} compact />
+          ))}
+        </div>
+      </section>
 
-            <section className="mb-12">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">🔥 Trending Now</h2>
-                <Link 
-                  href="/trending" 
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                >
-                  See All Trending →
-                </Link>
+      {/* Categories Section */}
+      <section className="py-16 px-4 max-w-7xl mx-auto">
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8 text-center">
+          Browse by Category
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {categories.map((category) => (
+            <Link
+              key={category.id}
+              href={`/category/${category.slug}`}
+              className="group p-6 bg-white border-2 border-gray-100 rounded-2xl hover:border-lime-400 transition-all text-center"
+            >
+              <div className="text-3xl mb-3">{category.icon || "📁"}</div>
+              <div className="font-semibold text-gray-900 group-hover:text-lime-600 transition-colors">
+                {category.name}
               </div>
-              <TrendingTools tools={trendingTools} />
-            </section>
+            </Link>
+          ))}
+        </div>
+      </section>
 
-            <section className="mb-12">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">🆓 Popular Free AI Tools</h2>
-                <Link 
-                  href="/free-ai-tools" 
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                >
-                  Browse All Free →
-                </Link>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {freeTools.map((tool) => (
-                  <ToolCard key={tool.id} tool={tool} compact />
-                ))}
-              </div>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-bold mb-6">Browse by Category</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {categories.map((category) => (
-                  <Link
-                    key={category.id}
-                    href={`/category/${category.slug}`}
-                    className="p-4 border rounded-lg hover:shadow-md transition-shadow"
-                  >
-                    <div className="font-medium text-gray-900">{category.name}</div>
-                    <p className="text-sm text-gray-500 mt-1">{category.description}</p>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          </main>
+      {/* CTA Section */}
+      <section className="py-16 px-4 max-w-7xl mx-auto">
+        <div className="bg-lime-400 rounded-3xl p-8 md:p-12 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+            Can&apos;t find what you&apos;re looking for?
+          </h2>
+          <p className="text-gray-700 mb-8 max-w-xl mx-auto">
+            Browse our complete directory of AI tools and find the perfect solution for your needs.
+          </p>
+          <Link
+            href="/tools"
+            className="inline-block px-8 py-4 bg-gray-900 text-white font-semibold rounded-full hover:bg-gray-800 transition-colors"
+          >
+            Browse All Tools
+          </Link>
         </div>
       </section>
     </>
