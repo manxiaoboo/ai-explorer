@@ -1,78 +1,61 @@
-import { Metadata } from "next";
+"use client";
+
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { prisma } from "@/lib/db";
+import { useSearchParams } from "next/navigation";
 import { ToolCard } from "@/components/ToolCard";
 import { SearchBox } from "@/components/SearchBox";
 
-interface SearchPageProps {
-  searchParams: Promise<{ q?: string }>;
+interface Tool {
+  id: string;
+  slug: string;
+  name: string;
+  tagline: string;
+  description: string;
+  category: { name: string };
+  pricingTier: string;
+  trendingScore: number;
 }
 
-export async function generateMetadata({ searchParams }: SearchPageProps): Promise<Metadata> {
-  const { q } = await searchParams;
-  return {
-    title: q ? `Search: ${q} | AI Tools Hub` : "Search AI Tools",
-    description: "Search for AI tools by name, category, or use case.",
-  };
-}
+function SearchResults() {
+  const searchParams = useSearchParams();
+  const query = searchParams.get("q") || "";
+  const [tools, setTools] = useState<Tool[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-async function searchTools(query: string) {
-  if (!query || query.length < 2) {
-    return [];
+  useEffect(() => {
+    const fetchTools = async () => {
+      if (!query || query.length < 2) {
+        setTools([]);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        setTools(data.tools || []);
+      } catch (error) {
+        console.error("Search error:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTools();
+  }, [query]);
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-16">
+        <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-slate-600">Searching...</p>
+      </div>
+    );
   }
-
-  // Retry logic
-  const maxRetries = 3;
-  let lastError;
-  
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      const tools = await prisma.tool.findMany({
-        where: {
-          isActive: true,
-          OR: [
-            { name: { contains: query, mode: "insensitive" } },
-            { tagline: { contains: query, mode: "insensitive" } },
-            { description: { contains: query, mode: "insensitive" } },
-            { category: { name: { contains: query, mode: "insensitive" } } },
-            { features: { has: query } },
-            { useCases: { has: query } },
-          ],
-        },
-        include: {
-          category: true,
-        },
-        orderBy: {
-          trendingScore: "desc",
-        },
-      });
-      return tools;
-    } catch (error) {
-      lastError = error;
-      await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-    }
-  }
-  
-  console.error("Search failed:", lastError);
-  return [];
-}
-
-export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const { q } = await searchParams;
-  const query = q || "";
-  const tools = await searchTools(query);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      <header className="mb-12">
-        <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">
-          Search AI Tools
-        </h1>
-        <div className="max-w-2xl">
-          <SearchBox />
-        </div>
-      </header>
-
+    <>
       {query && (
         <>
           <div className="mb-8">
@@ -118,6 +101,29 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <p className="text-slate-600">Enter a search term to find AI tools</p>
         </div>
       )}
+    </>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-12">
+      <header className="mb-12">
+        <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">
+          Search AI Tools
+        </h1>
+        <div className="max-w-2xl">
+          <SearchBox />
+        </div>
+      </header>
+
+      <Suspense fallback={
+        <div className="text-center py-16">
+          <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        </div>
+      }>
+        <SearchResults />
+      </Suspense>
     </div>
   );
 }

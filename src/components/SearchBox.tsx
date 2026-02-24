@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -14,13 +14,19 @@ interface Tool {
   pricingTier: string;
 }
 
-export function SearchBox() {
+function SearchBoxInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [query, setQuery] = useState(searchParams.get("q") || "");
+  const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<Tool[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Initialize query from URL on client side
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (q) setQuery(q);
+  }, [searchParams]);
 
   // Fetch suggestions when query changes
   useEffect(() => {
@@ -126,5 +132,19 @@ export function SearchBox() {
         </div>
       )}
     </div>
+  );
+}
+
+export function SearchBox() {
+  return (
+    <Suspense fallback={
+      <div className="relative max-w-xl mx-auto">
+        <div className="w-full px-6 py-4 pr-14 text-slate-900 bg-white border-0 rounded-full shadow-lg">
+          Search AI tools, categories...
+        </div>
+      </div>
+    }>
+      <SearchBoxInner />
+    </Suspense>
   );
 }
