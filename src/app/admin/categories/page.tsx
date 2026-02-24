@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { deleteCategory } from "./actions";
+import { DeleteCategoryButton } from "./DeleteCategoryButton";
 
 export const metadata: Metadata = {
   title: "Manage Categories - Admin",
@@ -85,20 +85,10 @@ export default async function CategoriesPage() {
                         Edit
                       </Link>
                       {category._count.tools === 0 && (
-                        <form action={deleteCategory}>
-                          <input type="hidden" name="id" value={category.id} />
-                          <button
-                            type="submit"
-                            className="text-sm text-red-600 hover:text-red-800 px-3 py-1"
-                            onClick={(e) => {
-                              if (!confirm("Are you sure?")) {
-                                e.preventDefault();
-                              }
-                            }}
-                          >
-                            Delete
-                          </button>
-                        </form>
+                        <DeleteCategoryButton 
+                          categoryId={category.id} 
+                          categoryName={category.name} 
+                        />
                       )}
                     </div>
                   </td>
