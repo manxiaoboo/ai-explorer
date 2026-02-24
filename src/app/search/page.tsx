@@ -15,6 +15,9 @@ interface Tool {
   category: { name: string };
   pricingTier: string;
   trendingScore: number;
+  features: string[];
+  githubStars?: number | null;
+  productHuntVotes?: number | null;
 }
 
 function SearchResults() {
