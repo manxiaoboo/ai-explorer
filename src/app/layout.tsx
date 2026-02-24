@@ -74,7 +74,10 @@ export default function RootLayout({
         <meta name="theme-color" content="#0a0a0c" />
       </head>
       <body className="min-h-screen antialiased flex flex-col">
-        <a href="#main-content" className="skip-link">
+        <a 
+          href="#main-content" 
+          className="fixed top-4 left-4 z-[100] px-4 py-2 bg-orange-500 text-white font-medium rounded-lg shadow-lg transform -translate-y-20 focus:translate-y-0 transition-transform duration-200"
+        >
           Skip to main content
         </a>
         <Header />
