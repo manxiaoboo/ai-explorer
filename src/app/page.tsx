@@ -13,36 +13,67 @@ export const metadata: Metadata = {
   },
 };
 
+// Helper function with retry logic
+async function queryWithRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> {
+  let lastError;
+  
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      console.log(`Database query attempt ${i + 1} failed, retrying...`);
+      await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+    }
+  }
+  
+  throw lastError;
+}
+
 async function getFeaturedTools() {
-  return prisma.tool.findMany({
-    where: { isFeatured: true, isActive: true },
-    orderBy: { trendingScore: "desc" },
-    take: 6,
-    include: { category: true },
-  });
+  return queryWithRetry(() =>
+    prisma.tool.findMany({
+      where: { isFeatured: true, isActive: true },
+      orderBy: { trendingScore: "desc" },
+      take: 6,
+      include: { category: true },
+    })
+  );
 }
 
 async function getTrendingTools() {
-  return prisma.tool.findMany({
-    where: { isActive: true },
-    orderBy: { trendingScore: "desc" },
-    take: 8,
-    include: { category: true },
-  });
+  return queryWithRetry(() =>
+    prisma.tool.findMany({
+      where: { isActive: true },
+      orderBy: { trendingScore: "desc" },
+      take: 8,
+      include: { category: true },
+    })
+  );
 }
 
 async function getCategories() {
-  return prisma.category.findMany({
-    orderBy: { sortOrder: "asc" },
-  });
+  return queryWithRetry(() =>
+    prisma.category.findMany({
+      orderBy: { sortOrder: "asc" },
+    })
+  );
 }
 
 export default async function HomePage() {
-  const [featuredTools, trendingTools, categories] = await Promise.all([
-    getFeaturedTools(),
-    getTrendingTools(),
-    getCategories(),
-  ]);
+  let featuredTools: any[] = [];
+  let trendingTools: any[] = [];
+  let categories: any[] = [];
+  
+  try {
+    [featuredTools, trendingTools, categories] = await Promise.all([
+      getFeaturedTools(),
+      getTrendingTools(),
+      getCategories(),
+    ]);
+  } catch (error) {
+    console.error('Failed to load data:', error);
+  }
 
   const websiteStructuredData = {
     "@context": "https://schema.org",
@@ -63,61 +94,67 @@ export default async function HomePage() {
       <HeroSection categories={categories} />
 
       {/* Featured Tools Section */}
-      <section className="py-16 px-4 max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-slate-900">Featured AI Tools</h2>
-          <Link 
-            href="/tools" 
-            className="text-orange-600 hover:text-orange-700 font-medium"
-          >
-            View All →
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredTools.map((tool) => (
-            <ToolCard key={tool.id} tool={tool} />
-          ))}
-        </div>
-      </section>
+      {featuredTools.length > 0 && (
+        <section className="py-16 px-4 max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900">Featured AI Tools</h2>
+            <Link 
+              href="/tools" 
+              className="text-orange-600 hover:text-orange-700 font-medium"
+            >
+              View All →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {featuredTools.map((tool) => (
+              <ToolCard key={tool.id} tool={tool} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Trending Tools Section */}
-      <section className="py-16 px-4 max-w-7xl mx-auto bg-slate-50">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-slate-900">🔥 Trending Now</h2>
-          <Link 
-            href="/trending" 
-            className="text-orange-600 hover:text-orange-700 font-medium"
-          >
-            See All Trending →
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {trendingTools.map((tool) => (
-            <ToolCard key={tool.id} tool={tool} compact />
-          ))}
-        </div>
-      </section>
+      {trendingTools.length > 0 && (
+        <section className="py-16 px-4 max-w-7xl mx-auto bg-slate-50">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900">🔥 Trending Now</h2>
+            <Link 
+              href="/trending" 
+              className="text-orange-600 hover:text-orange-700 font-medium"
+            >
+              See All Trending →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {trendingTools.map((tool) => (
+              <ToolCard key={tool.id} tool={tool} compact />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Categories Section */}
-      <section className="py-16 px-4 max-w-7xl mx-auto">
-        <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-8 text-center">
-          Browse by Category
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {categories.map((category) => (
-            <Link
-              key={category.id}
-              href={`/category/${category.slug}`}
-              className="group p-6 bg-white border border-slate-200 rounded-2xl hover:border-orange-400 hover:shadow-lg transition-all text-center"
-            >
-              <div className="text-3xl mb-3">{category.icon || "📁"}</div>
-              <div className="font-semibold text-slate-900 group-hover:text-orange-600 transition-colors">
-                {category.name}
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
+      {categories.length > 0 && (
+        <section className="py-16 px-4 max-w-7xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-8 text-center">
+            Browse by Category
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {categories.map((category) => (
+              <Link
+                key={category.id}
+                href={`/category/${category.slug}`}
+                className="group p-6 bg-white border border-slate-200 rounded-2xl hover:border-orange-400 hover:shadow-lg transition-all text-center"
+              >
+                <div className="text-3xl mb-3">{category.icon || "📁"}</div>
+                <div className="font-semibold text-slate-900 group-hover:text-orange-600 transition-colors">
+                  {category.name}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* CTA Section */}
       <section className="py-16 px-4 max-w-7xl mx-auto">
