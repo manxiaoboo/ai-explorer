@@ -21,6 +21,7 @@ async function getFeaturedTools() {
     where: { isFeatured: true, isActive: true },
     orderBy: { trendingScore: "desc" },
     take: 6,
+    include: { category: true },
   });
 }
 
@@ -29,6 +30,7 @@ async function getTrendingTools() {
     where: { isActive: true },
     orderBy: { trendingScore: "desc" },
     take: 10,
+    include: { category: true },
   });
 }
 
@@ -48,6 +50,7 @@ async function getFreeTools() {
     },
     orderBy: { trendingScore: "desc" },
     take: 8,
+    include: { category: true },
   });
 }
 

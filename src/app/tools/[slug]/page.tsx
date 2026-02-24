@@ -13,6 +13,7 @@ interface ToolPageProps {
 async function getTool(slug: string) {
   return prisma.tool.findUnique({
     where: { slug },
+    include: { category: true },
   });
 }
 

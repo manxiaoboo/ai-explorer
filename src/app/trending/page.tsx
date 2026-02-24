@@ -16,6 +16,7 @@ async function getTrendingTools() {
     where: { isActive: true },
     orderBy: { trendingScore: "desc" },
     take: 50,
+    include: { category: true },
   });
 }
 

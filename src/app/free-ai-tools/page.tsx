@@ -22,6 +22,7 @@ async function getFreeTools() {
       ]
     },
     orderBy: { trendingScore: "desc" },
+    include: { category: true },
   });
 }
 

@@ -23,6 +23,7 @@ async function getToolsByCategory(categoryId: string) {
       categoryId,
     },
     orderBy: { trendingScore: "desc" },
+    include: { category: true },
   });
 }
 

@@ -15,6 +15,7 @@ async function getAllTools() {
   return prisma.tool.findMany({
     where: { isActive: true },
     orderBy: { trendingScore: "desc" },
+    include: { category: true },
   });
 }
 
