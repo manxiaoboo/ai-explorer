@@ -858,7 +858,7 @@ async function main() {
         trendingScore: tool.trendingScore,
         isFeatured: tool.isFeatured,
         isActive: tool.isActive,
-        Tag: {
+        tags: {
           connect: toolTagIds.map(id => ({ id })),
         },
       },
