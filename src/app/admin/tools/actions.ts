@@ -18,19 +18,22 @@ export async function deleteTool(formData: FormData) {
 }
 
 export async function createTool(formData: FormData) {
+  const rawSlug = formData.get("slug") as string;
+  const slug = rawSlug.trim().toLowerCase().replace(/\s+/g, "-");
+
   const data = {
-    slug: formData.get("slug") as string,
-    name: formData.get("name") as string,
-    tagline: formData.get("tagline") as string,
-    description: formData.get("description") as string,
-    website: formData.get("website") as string,
+    slug,
+    name: (formData.get("name") as string).trim(),
+    tagline: (formData.get("tagline") as string).trim(),
+    description: (formData.get("description") as string).trim(),
+    website: (formData.get("website") as string).trim(),
     categoryId: formData.get("categoryId") as string,
     pricingTier: formData.get("pricingTier") as PricingTier,
     priceStart: formData.get("priceStart") ? parseFloat(formData.get("priceStart") as string) : null,
     hasFreeTier: formData.get("hasFreeTier") === "on",
     hasTrial: formData.get("hasTrial") === "on",
-    features: (formData.get("features") as string).split("\n").filter(Boolean),
-    useCases: (formData.get("useCases") as string).split("\n").filter(Boolean),
+    features: (formData.get("features") as string).split("\n").map(f => f.trim()).filter(Boolean),
+    useCases: (formData.get("useCases") as string).split("\n").map(u => u.trim()).filter(Boolean),
     githubStars: formData.get("githubStars") ? parseInt(formData.get("githubStars") as string) : null,
     productHuntVotes: formData.get("productHuntVotes") ? parseInt(formData.get("productHuntVotes") as string) : null,
     trendingScore: parseFloat(formData.get("trendingScore") as string) || 50,
@@ -51,19 +54,22 @@ export async function createTool(formData: FormData) {
 export async function updateTool(formData: FormData) {
   const id = formData.get("id") as string;
   
+  const rawSlug = formData.get("slug") as string;
+  const slug = rawSlug.trim().toLowerCase().replace(/\s+/g, "-");
+
   const data = {
-    slug: formData.get("slug") as string,
-    name: formData.get("name") as string,
-    tagline: formData.get("tagline") as string,
-    description: formData.get("description") as string,
-    website: formData.get("website") as string,
+    slug,
+    name: (formData.get("name") as string).trim(),
+    tagline: (formData.get("tagline") as string).trim(),
+    description: (formData.get("description") as string).trim(),
+    website: (formData.get("website") as string).trim(),
     categoryId: formData.get("categoryId") as string,
     pricingTier: formData.get("pricingTier") as PricingTier,
     priceStart: formData.get("priceStart") ? parseFloat(formData.get("priceStart") as string) : null,
     hasFreeTier: formData.get("hasFreeTier") === "on",
     hasTrial: formData.get("hasTrial") === "on",
-    features: (formData.get("features") as string).split("\n").filter(Boolean),
-    useCases: (formData.get("useCases") as string).split("\n").filter(Boolean),
+    features: (formData.get("features") as string).split("\n").map(f => f.trim()).filter(Boolean),
+    useCases: (formData.get("useCases") as string).split("\n").map(u => u.trim()).filter(Boolean),
     githubStars: formData.get("githubStars") ? parseInt(formData.get("githubStars") as string) : null,
     productHuntVotes: formData.get("productHuntVotes") ? parseInt(formData.get("productHuntVotes") as string) : null,
     trendingScore: parseFloat(formData.get("trendingScore") as string) || 50,

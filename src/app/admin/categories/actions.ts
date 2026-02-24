@@ -16,11 +16,14 @@ export async function deleteCategory(formData: FormData) {
 }
 
 export async function createCategory(formData: FormData) {
+  const rawSlug = formData.get("slug") as string;
+  const slug = rawSlug.trim().toLowerCase().replace(/\s+/g, "-");
+
   const data = {
-    slug: formData.get("slug") as string,
-    name: formData.get("name") as string,
-    description: formData.get("description") as string,
-    icon: formData.get("icon") as string,
+    slug,
+    name: (formData.get("name") as string).trim(),
+    description: (formData.get("description") as string).trim(),
+    icon: (formData.get("icon") as string)?.trim() || null,
     sortOrder: parseInt(formData.get("sortOrder") as string) || 0,
   };
 
@@ -36,11 +39,14 @@ export async function createCategory(formData: FormData) {
 export async function updateCategory(formData: FormData) {
   const id = formData.get("id") as string;
   
+  const rawSlug = formData.get("slug") as string;
+  const slug = rawSlug.trim().toLowerCase().replace(/\s+/g, "-");
+
   const data = {
-    slug: formData.get("slug") as string,
-    name: formData.get("name") as string,
-    description: formData.get("description") as string,
-    icon: formData.get("icon") as string,
+    slug,
+    name: (formData.get("name") as string).trim(),
+    description: (formData.get("description") as string).trim(),
+    icon: (formData.get("icon") as string)?.trim() || null,
     sortOrder: parseInt(formData.get("sortOrder") as string) || 0,
   };
 

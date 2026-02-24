@@ -20,14 +20,18 @@ export async function createNews(formData: FormData) {
     ? new Date() 
     : null;
 
+  // Trim and normalize slug
+  const rawSlug = formData.get("slug") as string;
+  const slug = rawSlug.trim().toLowerCase().replace(/\s+/g, "-");
+
   const data = {
-    slug: formData.get("slug") as string,
-    title: formData.get("title") as string,
-    excerpt: formData.get("excerpt") as string,
+    slug,
+    title: (formData.get("title") as string).trim(),
+    excerpt: (formData.get("excerpt") as string).trim(),
     content: formData.get("content") as string,
-    coverImage: formData.get("coverImage") as string || null,
-    metaTitle: formData.get("metaTitle") as string || null,
-    metaDescription: formData.get("metaDescription") as string || null,
+    coverImage: (formData.get("coverImage") as string)?.trim() || null,
+    metaTitle: (formData.get("metaTitle") as string)?.trim() || null,
+    metaDescription: (formData.get("metaDescription") as string)?.trim() || null,
     isPublished: formData.get("isPublished") === "on",
     publishedAt,
   };
@@ -55,14 +59,18 @@ export async function updateNews(formData: FormData) {
     ? new Date()
     : currentNews?.publishedAt;
 
+  // Trim and normalize slug
+  const rawSlug = formData.get("slug") as string;
+  const slug = rawSlug.trim().toLowerCase().replace(/\s+/g, "-");
+
   const data = {
-    slug: formData.get("slug") as string,
-    title: formData.get("title") as string,
-    excerpt: formData.get("excerpt") as string,
+    slug,
+    title: (formData.get("title") as string).trim(),
+    excerpt: (formData.get("excerpt") as string).trim(),
     content: formData.get("content") as string,
-    coverImage: formData.get("coverImage") as string || null,
-    metaTitle: formData.get("metaTitle") as string || null,
-    metaDescription: formData.get("metaDescription") as string || null,
+    coverImage: (formData.get("coverImage") as string)?.trim() || null,
+    metaTitle: (formData.get("metaTitle") as string)?.trim() || null,
+    metaDescription: (formData.get("metaDescription") as string)?.trim() || null,
     isPublished,
     publishedAt,
   };
