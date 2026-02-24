@@ -13,8 +13,7 @@ export const metadata: Metadata = {
 
 async function getNewsArticles() {
   return prisma.news.findMany({
-    where: { isPublished: true },
-    orderBy: { publishedAt: "desc" },
+    orderBy: { createdAt: "desc" },
   });
 }
 

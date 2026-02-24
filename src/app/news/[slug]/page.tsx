@@ -12,7 +12,7 @@ interface NewsArticlePageProps {
 
 async function getArticle(slug: string) {
   return prisma.news.findUnique({
-    where: { slug, isPublished: true },
+    where: { slug },
   });
 }
 
