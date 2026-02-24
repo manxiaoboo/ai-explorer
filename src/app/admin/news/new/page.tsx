@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { createNews } from "./actions";
+import { createNews } from "../actions";
 
 export const metadata: Metadata = {
   title: "Add News - Admin",

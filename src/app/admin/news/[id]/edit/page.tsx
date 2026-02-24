@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { updateNews } from "../actions";
+import { updateNews } from "../../actions";
 
 interface EditNewsPageProps {
   params: Promise<{
