@@ -12,11 +12,11 @@ interface Tool {
   description: string;
   category: { name: string };
   pricingTier: 'FREE' | 'FREEMIUM' | 'PAID' | 'ENTERPRISE' | 'OPEN_SOURCE';
-  githubStars?: number;
-  productHuntVotes?: number;
+  githubStars?: number | null;
+  productHuntVotes?: number | null;
   trendingScore: number;
   features: string[];
-  logo?: string;
+  logo?: string | null;
 }
 
 interface ToolCardProps {

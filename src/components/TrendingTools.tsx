@@ -8,7 +8,7 @@ interface Tool {
   name: string;
   tagline: string;
   pricingTier: 'FREE' | 'FREEMIUM' | 'PAID' | 'ENTERPRISE' | 'OPEN_SOURCE';
-  githubStars?: number;
+  githubStars?: number | null;
   trendingScore: number;
 }
 
