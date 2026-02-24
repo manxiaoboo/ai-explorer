@@ -65,10 +65,10 @@ export default async function HomePage() {
       {/* Featured Tools Section */}
       <section className="py-16 px-4 max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Featured AI Tools</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-slate-900">Featured AI Tools</h2>
           <Link 
             href="/tools" 
-            className="text-lime-600 hover:text-lime-700 font-medium"
+            className="text-orange-600 hover:text-orange-700 font-medium"
           >
             View All →
           </Link>
@@ -81,12 +81,12 @@ export default async function HomePage() {
       </section>
 
       {/* Trending Tools Section */}
-      <section className="py-16 px-4 max-w-7xl mx-auto bg-gray-50">
+      <section className="py-16 px-4 max-w-7xl mx-auto bg-slate-50">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">🔥 Trending Now</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-slate-900">🔥 Trending Now</h2>
           <Link 
             href="/trending" 
-            className="text-lime-600 hover:text-lime-700 font-medium"
+            className="text-orange-600 hover:text-orange-700 font-medium"
           >
             See All Trending →
           </Link>
@@ -100,7 +100,7 @@ export default async function HomePage() {
 
       {/* Categories Section */}
       <section className="py-16 px-4 max-w-7xl mx-auto">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8 text-center">
+        <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-8 text-center">
           Browse by Category
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -108,10 +108,10 @@ export default async function HomePage() {
             <Link
               key={category.id}
               href={`/category/${category.slug}`}
-              className="group p-6 bg-white border-2 border-gray-100 rounded-2xl hover:border-lime-400 transition-all text-center"
+              className="group p-6 bg-white border border-slate-200 rounded-2xl hover:border-orange-400 hover:shadow-lg transition-all text-center"
             >
               <div className="text-3xl mb-3">{category.icon || "📁"}</div>
-              <div className="font-semibold text-gray-900 group-hover:text-lime-600 transition-colors">
+              <div className="font-semibold text-slate-900 group-hover:text-orange-600 transition-colors">
                 {category.name}
               </div>
             </Link>
@@ -121,16 +121,16 @@ export default async function HomePage() {
 
       {/* CTA Section */}
       <section className="py-16 px-4 max-w-7xl mx-auto">
-        <div className="bg-lime-400 rounded-3xl p-8 md:p-12 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+        <div className="bg-gradient-to-r from-orange-500 to-amber-500 rounded-3xl p-8 md:p-12 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
             Can&apos;t find what you&apos;re looking for?
           </h2>
-          <p className="text-gray-700 mb-8 max-w-xl mx-auto">
+          <p className="text-white/90 mb-8 max-w-xl mx-auto">
             Browse our complete directory of AI tools and find the perfect solution for your needs.
           </p>
           <Link
             href="/tools"
-            className="inline-block px-8 py-4 bg-gray-900 text-white font-semibold rounded-full hover:bg-gray-800 transition-colors"
+            className="inline-block px-8 py-4 bg-white text-orange-600 font-semibold rounded-full hover:bg-slate-50 transition-colors shadow-lg"
           >
             Browse All Tools
           </Link>
