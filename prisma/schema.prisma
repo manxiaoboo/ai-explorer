@@ -15,45 +15,45 @@ model Tool {
   description String
   website     String
   logo        String?
-  
+
   // SEO
   metaTitle       String?
   metaDescription String?
   ogImage         String?
-  
+
   // Categorization
   category    Category @relation(fields: [categoryId], references: [id])
   categoryId  String
   tags        Tag[]
-  
+
   // Pricing
   pricingTier PricingTier @default(FREE)
   priceStart  Float?
   priceEnd    Float?
   hasFreeTier Boolean     @default(false)
   hasTrial    Boolean     @default(false)
-  
+
   // Features
   features    String[]
   useCases    String[]
-  
+
   // Metrics
   githubStars     Int?
   githubStarsGrowth7d Int?
   productHuntVotes Int?
   trendingScore   Float    @default(0)
-  
+
   // Status
   isActive    Boolean  @default(true)
   isFeatured  Boolean  @default(false)
-  
+
   // Timestamps
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   // Price history
   priceHistory PriceHistory[]
-  
+
   @@index([categoryId])
   @@index([pricingTier])
   @@index([trendingScore])
@@ -68,11 +68,11 @@ model Category {
   icon        String?
   sortOrder   Int    @default(0)
   tools       Tool[]
-  
+
   // SEO
   metaTitle       String?
   metaDescription String?
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -90,9 +90,33 @@ model PriceHistory {
   price     Float?
   pricingTier PricingTier
   recordedAt DateTime @default(now())
-  
+
   @@index([toolId])
   @@index([recordedAt])
+}
+
+model News {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  excerpt     String
+  content     String
+  coverImage  String?
+  
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+  
+  // Status
+  isPublished Boolean @default(false)
+  publishedAt DateTime?
+  
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([isPublished])
+  @@index([publishedAt])
 }
 
 enum PricingTier {

@@ -56,7 +56,7 @@ export default async function EditToolPage({ params }: EditToolPageProps) {
                 name="name"
                 required
                 defaultValue={tool.name}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               />
             </div>
             <div>
@@ -66,7 +66,7 @@ export default async function EditToolPage({ params }: EditToolPageProps) {
                 name="slug"
                 required
                 defaultValue={tool.slug}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               />
             </div>
           </div>
@@ -78,7 +78,7 @@ export default async function EditToolPage({ params }: EditToolPageProps) {
               name="tagline"
               required
               defaultValue={tool.tagline}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
             />
           </div>
 
@@ -89,7 +89,7 @@ export default async function EditToolPage({ params }: EditToolPageProps) {
               required
               rows={4}
               defaultValue={tool.description}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
             />
           </div>
 
@@ -100,7 +100,7 @@ export default async function EditToolPage({ params }: EditToolPageProps) {
               name="website"
               required
               defaultValue={tool.website}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
             />
           </div>
 
@@ -111,7 +111,7 @@ export default async function EditToolPage({ params }: EditToolPageProps) {
                 name="categoryId"
                 required
                 defaultValue={tool.categoryId}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               >
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -124,7 +124,7 @@ export default async function EditToolPage({ params }: EditToolPageProps) {
                 name="pricingTier"
                 required
                 defaultValue={tool.pricingTier}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               >
                 <option value="FREE">Free</option>
                 <option value="FREEMIUM">Freemium</option>
@@ -143,7 +143,7 @@ export default async function EditToolPage({ params }: EditToolPageProps) {
                 name="priceStart"
                 step="0.01"
                 defaultValue={tool.priceStart || ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               />
             </div>
             <div>
@@ -152,7 +152,7 @@ export default async function EditToolPage({ params }: EditToolPageProps) {
                 type="number"
                 name="githubStars"
                 defaultValue={tool.githubStars || ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               />
             </div>
             <div>
@@ -161,7 +161,7 @@ export default async function EditToolPage({ params }: EditToolPageProps) {
                 type="number"
                 name="productHuntVotes"
                 defaultValue={tool.productHuntVotes || ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               />
             </div>
           </div>
@@ -174,7 +174,7 @@ export default async function EditToolPage({ params }: EditToolPageProps) {
               min="0"
               max="100"
               defaultValue={tool.trendingScore}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
             />
           </div>
 
@@ -184,7 +184,7 @@ export default async function EditToolPage({ params }: EditToolPageProps) {
               name="features"
               rows={3}
               defaultValue={tool.features.join("\n")}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
             />
           </div>
 
@@ -194,7 +194,7 @@ export default async function EditToolPage({ params }: EditToolPageProps) {
               name="useCases"
               rows={3}
               defaultValue={tool.useCases.join("\n")}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
             />
           </div>
 

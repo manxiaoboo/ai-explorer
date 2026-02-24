@@ -27,7 +27,7 @@ export default function NewCategoryPage() {
                 type="text"
                 name="name"
                 required
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-black"
                 placeholder="e.g., AI Writing"
               />
             </div>
@@ -37,7 +37,7 @@ export default function NewCategoryPage() {
                 type="text"
                 name="slug"
                 required
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-black"
                 placeholder="e.g., ai-writing"
               />
             </div>
@@ -49,7 +49,7 @@ export default function NewCategoryPage() {
               name="description"
               required
               rows={3}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-black"
               placeholder="Category description"
             />
           </div>
@@ -60,7 +60,7 @@ export default function NewCategoryPage() {
               <input
                 type="text"
                 name="icon"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-black"
                 placeholder="e.g., ✍️"
               />
             </div>
@@ -70,7 +70,7 @@ export default function NewCategoryPage() {
                 type="number"
                 name="sortOrder"
                 defaultValue="0"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-black"
               />
             </div>
           </div>

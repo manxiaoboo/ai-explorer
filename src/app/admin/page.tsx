@@ -7,12 +7,13 @@ export const metadata: Metadata = {
 };
 
 async function getStats() {
-  const [toolsCount, categoriesCount, tagsCount] = await Promise.all([
+  const [toolsCount, categoriesCount, tagsCount, newsCount] = await Promise.all([
     prisma.tool.count(),
     prisma.category.count(),
     prisma.tag.count(),
+    prisma.news.count(),
   ]);
-  return { toolsCount, categoriesCount, tagsCount };
+  return { toolsCount, categoriesCount, tagsCount, newsCount };
 }
 
 export default async function AdminPage() {
@@ -30,7 +31,7 @@ export default async function AdminPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-xl p-6 shadow-sm border">
             <div className="text-3xl font-bold text-blue-600">{stats.toolsCount}</div>
             <div className="text-gray-600 mt-1">AI Tools</div>
@@ -49,6 +50,13 @@ export default async function AdminPage() {
             <div className="text-3xl font-bold text-purple-600">{stats.tagsCount}</div>
             <div className="text-gray-600 mt-1">Tags</div>
             <div className="text-sm text-gray-400 mt-4">Managed via Tools</div>
+          </div>
+          <div className="bg-white rounded-xl p-6 shadow-sm border">
+            <div className="text-3xl font-bold text-orange-600">{stats.newsCount}</div>
+            <div className="text-gray-600 mt-1">News Articles</div>
+            <Link href="/admin/news" className="text-sm text-orange-600 mt-4 inline-block hover:underline">
+              Manage News →
+            </Link>
           </div>
         </div>
 
@@ -75,6 +83,16 @@ export default async function AdminPage() {
               <div>
                 <div className="font-medium">Add New Category</div>
                 <div className="text-sm text-gray-500">Create a new category</div>
+              </div>
+            </Link>
+            <Link
+              href="/admin/news/new"
+              className="flex items-center gap-3 p-4 rounded-lg border hover:border-orange-500 hover:bg-orange-50 transition-colors"
+            >
+              <span className="text-2xl">📰</span>
+              <div>
+                <div className="font-medium">Add News Article</div>
+                <div className="text-sm text-gray-500">Create a new blog post</div>
               </div>
             </Link>
           </div>

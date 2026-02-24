@@ -47,7 +47,7 @@ export default async function EditCategoryPage({ params }: EditCategoryPageProps
                 name="name"
                 required
                 defaultValue={category.name}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-black"
               />
             </div>
             <div>
@@ -57,7 +57,7 @@ export default async function EditCategoryPage({ params }: EditCategoryPageProps
                 name="slug"
                 required
                 defaultValue={category.slug}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-black"
               />
             </div>
           </div>
@@ -69,7 +69,7 @@ export default async function EditCategoryPage({ params }: EditCategoryPageProps
               required
               rows={3}
               defaultValue={category.description}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-black"
             />
           </div>
 
@@ -80,7 +80,7 @@ export default async function EditCategoryPage({ params }: EditCategoryPageProps
                 type="text"
                 name="icon"
                 defaultValue={category.icon || ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-black"
                 placeholder="e.g., ✍️"
               />
             </div>
@@ -90,7 +90,7 @@ export default async function EditCategoryPage({ params }: EditCategoryPageProps
                 type="number"
                 name="sortOrder"
                 defaultValue={category.sortOrder}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-black"
               />
             </div>
           </div>

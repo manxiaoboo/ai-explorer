@@ -36,7 +36,7 @@ export default async function NewToolPage() {
                 type="text"
                 name="name"
                 required
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
                 placeholder="e.g., ChatGPT"
               />
             </div>
@@ -46,7 +46,7 @@ export default async function NewToolPage() {
                 type="text"
                 name="slug"
                 required
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
                 placeholder="e.g., chatgpt"
               />
             </div>
@@ -58,7 +58,7 @@ export default async function NewToolPage() {
               type="text"
               name="tagline"
               required
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               placeholder="Short description"
             />
           </div>
@@ -69,7 +69,7 @@ export default async function NewToolPage() {
               name="description"
               required
               rows={4}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               placeholder="Full description"
             />
           </div>
@@ -80,7 +80,7 @@ export default async function NewToolPage() {
               type="url"
               name="website"
               required
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               placeholder="https://..."
             />
           </div>
@@ -91,7 +91,7 @@ export default async function NewToolPage() {
               <select
                 name="categoryId"
                 required
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               >
                 <option value="">Select category...</option>
                 {categories.map((cat) => (
@@ -104,7 +104,7 @@ export default async function NewToolPage() {
               <select
                 name="pricingTier"
                 required
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               >
                 <option value="FREE">Free</option>
                 <option value="FREEMIUM">Freemium</option>
@@ -122,7 +122,7 @@ export default async function NewToolPage() {
                 type="number"
                 name="priceStart"
                 step="0.01"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
                 placeholder="e.g., 20"
               />
             </div>
@@ -131,7 +131,7 @@ export default async function NewToolPage() {
               <input
                 type="number"
                 name="githubStars"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
                 placeholder="e.g., 50000"
               />
             </div>
@@ -140,7 +140,7 @@ export default async function NewToolPage() {
               <input
                 type="number"
                 name="productHuntVotes"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
                 placeholder="e.g., 5000"
               />
             </div>
@@ -154,7 +154,7 @@ export default async function NewToolPage() {
               min="0"
               max="100"
               defaultValue="50"
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
             />
           </div>
 
@@ -163,7 +163,7 @@ export default async function NewToolPage() {
             <textarea
               name="features"
               rows={3}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               placeholder="Feature 1&#10;Feature 2&#10;Feature 3"
             />
           </div>
@@ -173,7 +173,7 @@ export default async function NewToolPage() {
             <textarea
               name="useCases"
               rows={3}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               placeholder="Use case 1&#10;Use case 2&#10;Use case 3"
             />
           </div>
