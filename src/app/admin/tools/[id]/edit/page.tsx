@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { updateTool } from "../actions";
+import { updateTool } from "../../actions";
 
 interface EditToolPageProps {
   params: Promise<{

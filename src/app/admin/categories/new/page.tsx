@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { createCategory } from "./actions";
+import { createCategory } from "../actions";
 
 export const metadata: Metadata = {
   title: "Add New Category - Admin",
