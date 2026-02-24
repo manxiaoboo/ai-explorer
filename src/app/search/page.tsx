@@ -6,24 +6,10 @@ import { useSearchParams } from "next/navigation";
 import { ToolCard } from "@/components/ToolCard";
 import { SearchBox } from "@/components/SearchBox";
 
-interface Tool {
-  id: string;
-  slug: string;
-  name: string;
-  tagline: string;
-  description: string;
-  category: { name: string };
-  pricingTier: string;
-  trendingScore: number;
-  features: string[];
-  githubStars?: number | null;
-  productHuntVotes?: number | null;
-}
-
 function SearchResults() {
   const searchParams = useSearchParams();
   const query = searchParams.get("q") || "";
-  const [tools, setTools] = useState<Tool[]>([]);
+  const [tools, setTools] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -78,7 +64,7 @@ function SearchResults() {
 
           {tools.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {tools.map((tool) => (
+              {tools.map((tool: any) => (
                 <ToolCard key={tool.id} tool={tool} />
               ))}
             </div>
