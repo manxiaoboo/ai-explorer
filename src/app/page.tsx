@@ -252,7 +252,7 @@ export default async function HomePage() {
                     {categoryName}
                   </h2>
                   <Link 
-                    href={`/tools?category=${categoryName.toLowerCase()}`}
+                    href={`/tools?category=${tools[0]?.category.slug || categoryName.toLowerCase().replace(/\s+/g, '-')}`}
                     className="text-sm text-slate-400 hover:text-orange-600"
                   >
                     View all →
