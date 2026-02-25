@@ -1,6 +1,6 @@
 /**
  * ToolLogo component - displays tool logos
- * Uses database logo if available, falls back to generated logos
+ * Supports database logo or auto-generated from brand colors
  */
 
 import { getToolLogo } from '@/lib/logos';
@@ -28,9 +28,8 @@ export function ToolLogo({ name, logo, size = 'md', className = '' }: ToolLogoPr
       alt={`${name} logo`}
       className={`${sizeClasses[size]} rounded-lg object-cover ${className}`}
       onError={(e) => {
-        // Fallback to generated logo on error
         const target = e.target as HTMLImageElement;
-        target.src = getToolLogo(name);
+        target.src = getToolLogo('default');
       }}
     />
   );

@@ -14,7 +14,8 @@ model Tool {
   tagline     String
   description String
   website     String
-  logo        String?
+  logo        String?  // Logo URL or data URI
+  logoType    String?  // 'svg', 'url', 'base64'
 
   // SEO
   metaTitle       String?
