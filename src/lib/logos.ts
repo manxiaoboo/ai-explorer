@@ -44,6 +44,18 @@ export const toolLogos: Record<string, string> = {
 
 // Get logo for a tool
 export function getToolLogo(name: string): string {
-  const key = name.toLowerCase().replace(/\s+/g, '-');
-  return toolLogos[key] || toolLogos.default;
+  const lowerName = name.toLowerCase();
+  
+  // Check for specific tools
+  if (lowerName.includes('github') || lowerName.includes('copilot')) {
+    return toolLogos.github;
+  }
+  if (lowerName.includes('openai') || lowerName.includes('chatgpt') || lowerName.includes('gpt')) {
+    return toolLogos.openai;
+  }
+  if (lowerName.includes('anthropic') || lowerName.includes('claude')) {
+    return toolLogos.anthropic;
+  }
+  
+  return toolLogos.default;
 }
