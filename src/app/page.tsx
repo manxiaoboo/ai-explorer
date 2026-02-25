@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { StructuredData } from "@/components/StructuredData";
+import { HeroSection } from "@/components/HeroSection";
 
 export const metadata: Metadata = {
   title: "Tooli - Find the Perfect AI Tool for Your Workflow",
