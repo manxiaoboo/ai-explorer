@@ -247,13 +247,13 @@ export default async function HomePage() {
             {Object.entries(toolsByCategory).map(([categoryName, tools]) => (
               <section key={categoryName} className="mb-8">
                 {/* Category Header */}
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="px-3 py-1 text-sm font-semibold text-orange-700 bg-orange-100 rounded-full">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-slate-900">
                     {categoryName}
-                  </span>
+                  </h2>
                   <Link 
                     href={`/tools?category=${categoryName.toLowerCase()}`}
-                    className="text-xs text-slate-400 hover:text-orange-600"
+                    className="text-sm text-slate-400 hover:text-orange-600"
                   >
                     View all →
                   </Link>
