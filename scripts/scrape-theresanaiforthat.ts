@@ -36,7 +36,7 @@ async function scrapeTheresAnAIForThat(limit: number = 100): Promise<ScrapedTool
     await page.waitForSelector('[data-testid="tool-card"]', { timeout: 10000 });
     
     // Extract tools
-    const scrapedData = await page.evaluate((maxTools) => {
+    const scrapedData = await page.evaluate((maxTools: number) => {
       const results: ScrapedTool[] = [];
       const cards = document.querySelectorAll('[data-testid="tool-card"]');
       
@@ -81,8 +81,8 @@ async function saveTools(tools: ScrapedTool[]) {
   
   for (const tool of tools) {
     try {
-      // Skip if already exists
-      const existing = await prisma.tool.findUnique({
+      // Skip if already exists (check by website)
+      const existing = await prisma.tool.findFirst({
         where: { website: tool.website }
       });
       
