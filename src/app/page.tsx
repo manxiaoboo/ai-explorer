@@ -123,7 +123,7 @@ export default async function HomePage() {
       </section>
 
       {/* Featured Section - Podium Style */}
-      <{featuredTools.length > 0 && (
+      {featuredTools.length > 0 && (
         <section className="py-16 bg-white">
           <div className="max-w-5xl mx-auto px-4">
             <div className="text-center mb-10">
@@ -259,7 +259,7 @@ export default async function HomePage() {
       </section>
 
       {/* Trending Preview */}
-      <{trendingTools.length > 0 && (
+      {trendingTools.length > 0 && (
         <section className="py-16 bg-white">
           <div className="max-w-5xl mx-auto px-4">
             <div className="flex items-center justify-between mb-8">
