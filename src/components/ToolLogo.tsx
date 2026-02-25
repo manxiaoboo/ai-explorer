@@ -23,7 +23,7 @@ export function ToolLogo({ name, size = 'md', className = '' }: ToolLogoProps) {
   return (
     <img
       src={logoUrl}
-      alt={name}
+      alt={`${name} logo`}
       className={`${sizeClasses[size]} rounded-lg object-cover ${className}`}
       onError={(e) => {
         // Fallback to default on error
