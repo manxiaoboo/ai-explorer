@@ -105,23 +105,6 @@ export default async function HomePage() {
   return (
     <>
       <StructuredData data={websiteStructuredData} />
-      
-      {/* Minimal Header */}
-      <header className="border-b border-slate-200 bg-white">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-slate-900 rounded flex items-center justify-center text-white font-bold">T</div>
-            <span className="font-semibold text-slate-900">Tooli</span>
-          </div>
-          
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="/tools" className="text-sm text-slate-600 hover:text-slate-900">All Tools</Link>
-            <Link href="/trending" className="text-sm text-slate-600 hover:text-slate-900">Trending</Link>
-            <Link href="/free-ai-tools" className="text-sm text-slate-600 hover:text-slate-900">Free</Link>
-            <Link href="/submit" className="text-sm text-slate-600 hover:text-slate-900">Submit</Link>
-          </nav>
-        </div>
-      </header>
 
       <div className="max-w-6xl mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
