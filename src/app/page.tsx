@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { StructuredData } from "@/components/StructuredData";
 import { ToolLogo } from "@/components/ToolLogo";
+import type { Tool, Category } from "@prisma/client";
 
 export const metadata: Metadata = {
   title: "Tooli - AI Tools Directory",
@@ -100,10 +101,10 @@ function isNewTool(createdAt: Date): boolean {
 }
 
 export default async function HomePage() {
-  let latestTools: any[] = [];
-  let trendingTools: any[] = [];
-  let featuredTools: any[] = [];
-  let categories: any[] = [];
+  let latestTools: Tool[] = [];
+  let trendingTools: Tool[] = [];
+  let featuredTools: Tool[] = [];
+  let categories: Category[] = [];
   
   try {
     [latestTools, trendingTools, featuredTools, categories] = await Promise.all([
@@ -208,7 +209,6 @@ export default async function HomePage() {
             {/* Tool List */}
             <div className="space-y-3">
               {latestTools.map((tool) => {
-                const gradient = getGradient(tool.name);
                 const isTrending = isTrendingTool(tool.trendingScore);
                 return (
                   <Link
