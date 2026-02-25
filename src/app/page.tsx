@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { StructuredData } from "@/components/StructuredData";
 import { ToolLogo } from "@/components/ToolLogo";
+import { HeroSearch } from "@/components/HeroSearch";
 import type { Tool, Category, Prisma } from "@prisma/client";
 
 // Type for tool with category relation
@@ -207,6 +208,11 @@ export default async function HomePage() {
             <p className="text-lg text-slate-600 mb-6">
               Find the perfect tool for writing, images, code, and more. Updated daily.
             </p>
+
+            {/* Search Box */}
+            <div className="mb-6">
+              <HeroSearch />
+            </div>
 
             <div className="flex flex-wrap items-center gap-3">
               <Link
