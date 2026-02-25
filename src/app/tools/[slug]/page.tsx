@@ -257,14 +257,14 @@ export default async function ToolPage({ params }: ToolPageProps) {
               </h3>
               
               <div className="space-y-3">
-                {tool.githubStars > 0 && (
+                {tool.githubStars && tool.githubStars > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-[var(--muted)]">GitHub Stars</span>
                     <span className="text-[var(--foreground)]">{tool.githubStars.toLocaleString()}</span>
                   </div>
                 )}
                 
-                {tool.productHuntVotes > 0 && (
+                {tool.productHuntVotes && tool.productHuntVotes > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-[var(--muted)]">Product Hunt</span>
                     <span className="text-[var(--foreground)]">{tool.productHuntVotes}</span>
