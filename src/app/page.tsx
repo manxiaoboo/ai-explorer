@@ -29,7 +29,7 @@ async function getFeaturedTools() {
     prisma.tool.findMany({
       where: { isFeatured: true, isActive: true },
       orderBy: { trendingScore: "desc" },
-      take: 3,
+      take: 5,
       include: { category: true },
     })
   );
