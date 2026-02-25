@@ -3,10 +3,10 @@ import { SearchBox } from "./SearchBox";
 
 export function HeroSection() {
   const quickLinks = [
-    { label: "Writing", href: "/category/writing" },
-    { label: "Image", href: "/category/image" },
-    { label: "Code", href: "/category/code" },
-    { label: "Chat", href: "/category/chat" },
+    { label: "Writing", href: "/tools?category=writing" },
+    { label: "Image", href: "/tools?category=image" },
+    { label: "Code", href: "/tools?category=code" },
+    { label: "Chat", href: "/tools?category=chat" },
     { label: "Free Tools", href: "/free-ai-tools" },
   ];
 
