@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "API - AI Tools Hub",
-  description: "Access our API to programmatically retrieve AI tool data.",
+  title: "API - Tooli",
+  description: "Build with our data. Simple endpoints, no nonsense.",
 };
 
 export default function APIPage() {
@@ -14,7 +14,7 @@ export default function APIPage() {
           API
         </h1>
         <p className="text-lg text-[var(--muted)]">
-          Access our data programmatically. Coming soon.
+          Build with our data. RESTful, simple, no API keys needed (for now).
         </p>
       </header>
 
@@ -31,7 +31,7 @@ export default function APIPage() {
             <span className="text-[var(--accent)]">GET</span>{' '}
             <span className="text-[var(--foreground)]">/api/tools</span>
             <p className="text-[var(--muted)] mt-2 font-[family-name:var(--font-body)]">
-              List all tools
+              Get all tools, paginated
             </p>
           </div>
 
@@ -40,7 +40,7 @@ export default function APIPage() {
             <span className="text-[var(--accent)]">GET</span>{' '}
             <span className="text-[var(--foreground)]">/api/tools/:slug</span>
             <p className="text-[var(--muted)] mt-2 font-[family-name:var(--font-body)]">
-              Get a specific tool
+              Get a single tool by slug
             </p>
           </div>
 
@@ -49,17 +49,17 @@ export default function APIPage() {
             <span className="text-[var(--accent)]">GET</span>{' '}
             <span className="text-[var(--foreground)]">/api/categories</span>
             <p className="text-[var(--muted)] mt-2 font-[family-name:var(--font-body)]">
-              List all categories
+              Get all categories
             </p>
           </div>
         </div>
 
         <p className="mt-6 text-[var(--muted)]"
         >
-          Contact us for API access:{' '}
-          <a href="mailto:api@aitools.example.com" className="text-[var(--accent)] hover:underline"
+          Need higher limits or have questions? Email{' '}
+          <a href="mailto:hello@tooli.ai" className="text-[var(--accent)] hover:underline"
           >
-            api@aitools.example.com
+            hello@tooli.ai
           </a>
         </p>
       </div>

@@ -27,46 +27,45 @@ export function ToolCard({ tool, compact = false }: ToolCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   
   const pricingConfig = {
-    FREE: { label: "Free", class: "bg-emerald-100 text-emerald-700" },
-    FREEMIUM: { label: "Freemium", class: "bg-amber-100 text-amber-700" },
-    PAID: { label: "Paid", class: "bg-rose-100 text-rose-700" },
-    ENTERPRISE: { label: "Enterprise", class: "bg-violet-100 text-violet-700" },
-    OPEN_SOURCE: { label: "Open Source", class: "bg-sky-100 text-sky-700" },
+    FREE: { label: "Free", class: "text-[var(--success)] bg-[var(--success)]/10" },
+    FREEMIUM: { label: "Freemium", class: "text-[var(--warning)] bg-[var(--warning)]/10" },
+    PAID: { label: "Paid", class: "text-[var(--foreground)] bg-[var(--surface-subtle)]" },
+    ENTERPRISE: { label: "Enterprise", class: "text-[var(--foreground)] bg-[var(--surface-subtle)]" },
+    OPEN_SOURCE: { label: "Open Source", class: "text-[var(--success)] bg-[var(--success)]/10" },
   }[tool.pricingTier];
 
   if (compact) {
     return (
       <Link
         href={`/tools/${tool.slug}`}
-        className="group block p-5 bg-white rounded-xl border border-slate-200 
-                   hover:border-orange-400 hover:shadow-lg transition-all duration-300
-                   hover:-translate-y-0.5"
+        className="group block p-4 bg-[var(--surface-elevated)] rounded-lg border border-[var(--border)] 
+                   hover:border-[var(--border-strong)] card-hover"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <div className="flex items-start gap-4">
-          <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-500 
-                          rounded-xl flex items-center justify-center text-white font-bold text-lg
-                          group-hover:scale-105 transition-transform duration-300"
+        <div className="flex items-start gap-3">
+          <div className="flex-shrink-0 w-10 h-10 bg-[var(--surface)] 
+                          rounded-lg flex items-center justify-center text-[var(--foreground)] font-semibold text-base
+                          border border-[var(--border)]"
           >
             {tool.name[0]}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold text-slate-900 truncate group-hover:text-orange-600 
+              <h3 className="font-medium text-[var(--foreground)] truncate group-hover:text-[var(--accent)] 
                              transition-colors duration-200"
               >
                 {tool.name}
               </h3>
             </div>
-            <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">{tool.tagline}</p>
-            <div className="flex items-center gap-2 mt-3">
-              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${pricingConfig.class}`}>
+            <p className="text-sm text-[var(--muted)] line-clamp-2 leading-relaxed">{tool.tagline}</p>
+            <div className="flex items-center gap-2 mt-2">
+              <span className={`text-xs px-2 py-0.5 rounded font-medium ${pricingConfig.class}`}>
                 {pricingConfig.label}
               </span>
               {tool.trendingScore > 80 && (
-                <span className="text-xs text-orange-600 font-medium">
-                  🔥 Trending
+                <span className="text-xs text-[var(--accent)] font-medium">
+                  Trending
                 </span>
               )}
             </div>
@@ -79,41 +78,40 @@ export function ToolCard({ tool, compact = false }: ToolCardProps) {
   return (
     <Link
       href={`/tools/${tool.slug}`}
-      className="group block p-6 bg-white rounded-2xl border border-slate-200
-                 hover:border-orange-400 hover:shadow-xl transition-all duration-300
-                 hover:-translate-y-1"
+      className="group block p-5 bg-[var(--surface-elevated)] rounded-lg border border-[var(--border)]
+                 hover:border-[var(--border-strong)] card-hover"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="flex items-start gap-5">
-        <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-orange-500 to-amber-500 
-                        rounded-xl flex items-center justify-center text-white text-2xl font-bold
-                        group-hover:scale-110 transition-all duration-300"
+      <div className="flex items-start gap-4">
+        <div className="flex-shrink-0 w-12 h-12 bg-[var(--surface)] 
+                        rounded-lg flex items-center justify-center text-[var(--foreground)] text-lg font-semibold
+                        border border-[var(--border)]"
         >
           {tool.name[0]}
         </div>
         
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start justify-between gap-3">
             <div className="flex-1">
-              <h3 className="text-lg font-semibold text-slate-900 group-hover:text-orange-600 
-                             transition-colors duration-200 mb-1"
+              <h3 className="text-base font-medium text-[var(--foreground)] group-hover:text-[var(--accent)] 
+                             transition-colors duration-200 mb-0.5"
               >
                 {tool.name}
               </h3>
-              <p className="text-sm text-slate-500 mb-2">{tool.category.name}</p>
+              <p className="text-sm text-[var(--muted)]">{tool.category.name}</p>
             </div>
-            <span className={`flex-shrink-0 text-xs px-3 py-1.5 rounded-full font-medium ${pricingConfig.class}`}
+            <span className={`flex-shrink-0 text-xs px-2 py-1 rounded font-medium ${pricingConfig.class}`}
             >
               {pricingConfig.label}
             </span>
           </div>
           
-          <p className="text-slate-600 mt-3 line-clamp-2 leading-relaxed">{tool.description}</p>
+          <p className="text-[var(--muted)] mt-3 text-sm line-clamp-2 leading-relaxed">{tool.description}</p>
           
-          <div className="flex items-center gap-4 mt-4 text-sm">
+          <div className="flex items-center gap-4 mt-3 text-sm">
             {tool.githubStars && tool.githubStars > 0 && (
-              <span className="flex items-center gap-1.5 text-slate-500"
+              <span className="flex items-center gap-1 text-[var(--muted-foreground)]"
                     aria-label={`${tool.githubStars.toLocaleString()} GitHub stars`}>
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -122,30 +120,17 @@ export function ToolCard({ tool, compact = false }: ToolCardProps) {
               </span>
             )}
             {tool.productHuntVotes && tool.productHuntVotes > 0 && (
-              <span className="flex items-center gap-1.5 text-slate-500"
+              <span className="flex items-center gap-1 text-[var(--muted-foreground)]"
                     aria-label={`${tool.productHuntVotes} Product Hunt votes`}>
                 🚀 {tool.productHuntVotes}
               </span>
             )}
             {tool.trendingScore > 80 && (
-              <span className="text-orange-600 font-medium text-xs">
+              <span className="text-[var(--accent)] font-medium text-xs">
                 Trending
               </span>
             )}
           </div>
-          
-          {tool.features.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-slate-100">
-              {tool.features.slice(0, 3).map((feature) => (
-                <span
-                  key={feature}
-                  className="text-xs px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md"
-                >
-                  {feature}
-                </span>
-              ))}
-            </div>
-          )}
         </div>
       </div>
     </Link>

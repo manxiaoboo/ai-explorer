@@ -4,8 +4,8 @@ import { prisma } from "@/lib/db";
 import { StructuredData } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "AI News - Latest Updates in Artificial Intelligence",
-  description: "Stay updated with the latest AI news, trends, and insights. Expert analysis on AI tools, industry developments, and emerging technologies.",
+  title: "AI News & Insights - Tooli",
+  description: "The latest in AI — tools, trends, and what actually matters. Curated updates without the hype.",
   alternates: {
     canonical: "/news",
   },
@@ -38,13 +38,13 @@ export default async function NewsPage() {
     "@type": "CollectionPage",
     name: "AI News",
     description: "Latest updates in artificial intelligence",
-    url: "https://aitools.example.com/news",
+    url: "https://tooli.ai/news",
     mainEntity: {
       "@type": "ItemList",
       itemListElement: newsArticles.map((article, index) => ({
         "@type": "ListItem",
         position: index + 1,
-        url: `https://aitools.example.com/news/${article.slug}`,
+        url: `https://tooli.ai/news/${article.slug}`,
         name: article.title,
       })),
     },
@@ -65,11 +65,11 @@ export default async function NewsPage() {
           </div>
           <h1 className="font-[family-name:var(--font-display)] text-4xl md:text-5xl font-semibold text-[var(--foreground)] mb-4"
           >
-            AI News & Insights
+            News & Insights
           </h1>
           <p className="text-lg text-[var(--muted)] max-w-2xl">
-            Stay updated with the latest developments in artificial intelligence. 
-            Expert analysis, industry trends, and in-depth guides.
+            What&apos;s happening in AI — the tools worth knowing about, 
+            the trends that matter, and the noise to ignore.
           </p>
         </header>
 

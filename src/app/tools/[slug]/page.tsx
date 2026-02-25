@@ -120,13 +120,13 @@ export default async function ToolPage({ params }: ToolPageProps) {
             </header>
 
             <section className="prose max-w-none mb-8">
-              <h2 className="text-xl font-semibold mb-4">About</h2>
+              <h2 className="text-xl font-semibold mb-4">What it does</h2>
               <p className="text-gray-600">{tool.description}</p>
             </section>
 
             {tool.features.length > 0 && (
               <section className="mb-8">
-                <h2 className="text-xl font-semibold mb-4">Key Features</h2>
+                <h2 className="text-xl font-semibold mb-4">Features</h2>
                 <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {tool.features.map((feature) => (
                     <li key={feature} className="flex items-center gap-2">
@@ -151,7 +151,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
 
             {relatedTools.length > 0 && (
               <section>
-                <h2 className="text-xl font-semibold mb-4">Similar Tools</h2>
+                <h2 className="text-xl font-semibold mb-4">You might also like</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {relatedTools.map((relatedTool) => (
                     <ToolCard key={relatedTool.id} tool={{...relatedTool, category: tool.category}} compact />
@@ -169,7 +169,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
                 rel="noopener noreferrer"
                 className="block w-full py-3 bg-blue-600 text-white text-center rounded-lg font-semibold hover:bg-blue-700 transition-colors"
               >
-                Visit Website →
+                Try it →
               </a>
             </div>
 

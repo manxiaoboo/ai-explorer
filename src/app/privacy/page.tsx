@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy - AI Tools Hub",
-  description: "Privacy policy for AI Tools Hub. Learn how we handle your data.",
+  title: "Privacy - Tooli",
+  description: "How we handle your data. Short version: we collect as little as possible and don't sell it.",
 };
 
 export default function PrivacyPage() {
@@ -20,31 +20,42 @@ export default function PrivacyPage() {
 
         <section className="space-y-6 text-[var(--muted)]">
           <p>
-            At AI Tools Hub, we take your privacy seriously. This Privacy Policy describes 
-            how we collect, use, and protect your personal information.
+            We collect as little data as possible. Here&apos;s what you should know.
           </p>
 
           <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-[var(--foreground)] mt-8 mb-4"
           >
-            Information We Collect
+            What We Collect
           </h2>
 
           <ul className="list-disc list-inside space-y-2">
-            <li>Usage data and analytics</li>
-            <li>Information you provide when submitting tools</li>
-            <li>Cookies and similar technologies</li>
+            <li>Basic usage analytics (pages visited, time on site)</li>
+            <li>Your email if you submit a tool or contact us</li>
+            <li>Cookies to keep you logged in (if we add accounts)</li>
           </ul>
 
           <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-[var(--foreground)] mt-8 mb-4"
           >
-            How We Use Your Information
+            What We Don&apos;t Do
           </h2>
 
           <ul className="list-disc list-inside space-y-2">
-            <li>To provide and improve our services</li>
-            <li>To communicate with you about submissions</li>
-            <li>To analyze usage patterns and improve user experience</li>
+            <li>Sell your data to anyone</li>
+            <li>Track you across the web</li>
+            <li>Share info with third parties (except when legally required)</li>
           </ul>
+
+          <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-[var(--foreground)] mt-8 mb-4"
+          >
+            Questions?
+          </h2>
+
+          <p>
+            Email us at{' '}
+            <a href="mailto:hello@tooli.ai" className="text-[var(--accent)] hover:underline">
+              hello@tooli.ai
+            </a>
+          </p>
         </section>
       </article>
     </div>

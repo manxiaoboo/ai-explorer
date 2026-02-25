@@ -1,41 +1,64 @@
 @import "tailwindcss";
 
 /* 
- * Design System: Modern AI Tools Directory
- * Deep blue with orange accent - unique style
- * Light mode by default
+ * Tooli Design System
+ * Swiss-inspired, warm minimalism
+ * Reference: Dieter Rams, Swiss International Style
  */
 
 :root {
-  /* Color Palette: Deep blue with orange accent */
-  --background: #ffffff;
-  --foreground: #1e293b;
-  --muted: #64748b;
-  --accent: #f97316;
-  --accent-soft: #fb923c;
-  --surface: #f8fafc;
+  /* 
+   * Color System: Warm minimalism
+   * Primary: Warm charcoal (not cold blue-gray)
+   * Accent: Terracotta/copper (not generic orange)
+   */
+  --background: #fafaf9;
+  --foreground: #1c1917;
+  --muted: #78716c;
+  --muted-foreground: #a8a29e;
+  
+  /* Accent: Terracotta - earthy, warm, distinctive */
+  --accent: #c2410c;
+  --accent-soft: #ea580c;
+  --accent-muted: #fed7aa;
+  
+  --surface: #f5f5f4;
   --surface-elevated: #ffffff;
-  --border: #e2e8f0;
-  --primary: #0f172a;
-  --secondary: #334155;
+  --surface-subtle: #e7e5e4;
+  --border: #e7e5e4;
+  --border-strong: #d6d3d1;
   
-  /* Typography Scale */
-  --font-display: system-ui, -apple-system, sans-serif;
-  --font-body: system-ui, -apple-system, sans-serif;
-  --font-mono: ui-monospace, monospace;
+  /* Semantic */
+  --primary: #1c1917;
+  --secondary: #44403c;
   
-  /* Spacing */
-  --space-xs: 0.25rem;
-  --space-sm: 0.5rem;
-  --space-md: 1rem;
-  --space-lg: 1.5rem;
-  --space-xl: 2.5rem;
-  --space-2xl: 4rem;
-  --space-3xl: 6rem;
+  /* Status colors - muted */
+  --success: #15803d;
+  --warning: #a16207;
+  --error: #b91c1c;
   
-  /* Animation */
+  /* Typography Scale - Swiss precision */
+  --font-display: var(--font-playfair), Georgia, serif;
+  --font-body: var(--font-source), system-ui, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, monospace;
+  
+  /* Spacing - 4px base grid */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-24: 6rem;
+  
+  /* Animation - purposeful, not decorative */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out-sine: cubic-bezier(0.37, 0, 0.63, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 350ms;
 }
 
 @theme inline {
@@ -69,20 +92,26 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Typography */
+/* Typography - Swiss hierarchy */
 h1, h2, h3, h4 {
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.2;
   letter-spacing: -0.02em;
+  color: var(--foreground);
 }
 
-/* Selection */
+h1 {
+  font-family: var(--font-display);
+  font-weight: 500;
+}
+
+/* Selection - subtle accent */
 ::selection {
-  background: var(--accent);
-  color: white;
+  background: var(--accent-muted);
+  color: var(--accent);
 }
 
-/* Focus States */
+/* Focus States - visible but not loud */
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -100,19 +129,19 @@ h1, h2, h3, h4 {
   }
 }
 
-/* Scrollbar Styling */
+/* Scrollbar - minimal */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--surface);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 4px;
+  background: var(--border-strong);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -141,4 +170,22 @@ h1, h2, h3, h4 {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Tooli specific utilities */
+.gradient-text {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-soft) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.card-hover {
+  transition: transform var(--duration-normal) var(--ease-out-expo),
+              box-shadow var(--duration-normal) var(--ease-out-expo);
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.08);
 }

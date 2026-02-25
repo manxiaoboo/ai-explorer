@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms of Service - AI Tools Hub",
-  description: "Terms of service for AI Tools Hub.",
+  title: "Terms - Tooli",
+  description: "The rules. Don't be a jerk and we'll get along fine.",
 };
 
 export default function TermsPage() {
@@ -20,29 +20,41 @@ export default function TermsPage() {
 
         <section className="space-y-6 text-[var(--muted)]">
           <p>
-            By accessing and using AI Tools Hub, you accept and agree to be bound by 
-            these Terms of Service.
+            By using Tooli, you agree to these simple rules. Don&apos;t worry, 
+            they&apos;re pretty reasonable.
           </p>
 
           <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-[var(--foreground)] mt-8 mb-4"
           >
-            Use of Service
+            Do&apos;s
           </h2>
 
           <ul className="list-disc list-inside space-y-2">
-            <li>You may use our directory for personal or commercial purposes</li>
-            <li>You may not scrape or automate access to our content</li>
-            <li>You may not submit false or misleading information</li>
+            <li>Use the site for personal or commercial purposes</li>
+            <li>Share links to tools you find useful</li>
+            <li>Submit accurate information about tools</li>
           </ul>
 
           <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-[var(--foreground)] mt-8 mb-4"
           >
-            Disclaimer
+            Don&apos;ts
+          </h2>
+
+          <ul className="list-disc list-inside space-y-2">
+            <li>Scrape or abuse our API</li>
+            <li>Submit fake or misleading tool info</li>
+            <li>Try to break things (please)</li>
+          </ul>
+
+          <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-[var(--foreground)] mt-8 mb-4"
+          >
+            The Small Print
           </h2>
 
           <p>
-            AI Tools Hub provides information about third-party tools. We do not 
-            endorse or guarantee any tool listed in our directory. Use at your own risk.
+            We list third-party tools but don&apos;t control them. 
+            If something breaks, talk to them, not us. 
+            We do our best to keep info accurate, but mistakes happen.
           </p>
         </section>
       </article>

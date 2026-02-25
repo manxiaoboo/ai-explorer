@@ -23,16 +23,16 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://aitools.example.com"),
+  metadataBase: new URL("https://tooli.ai"),
   title: {
-    default: "AI Tools Hub — Discover the Best AI Tools",
-    template: "%s | AI Tools Hub",
+    default: "Tooli — Find the Perfect AI Tool",
+    template: "%s | Tooli",
   },
-  description: "Browse 500+ AI tools with pricing, reviews, and trending scores. Find free AI tools, compare features, and discover the best AI software.",
-  keywords: ["AI tools", "artificial intelligence", "AI software", "machine learning tools", "AI apps"],
-  authors: [{ name: "AI Tools Hub" }],
-  creator: "AI Tools Hub",
-  publisher: "AI Tools Hub",
+  description: "Discover 500+ AI tools with reviews, pricing, and trending scores. Find free AI tools, compare features, and find the perfect tool for your workflow.",
+  keywords: ["AI tools", "artificial intelligence", "AI software", "machine learning tools", "AI apps", "Tooli"],
+  authors: [{ name: "Tooli" }],
+  creator: "Tooli",
+  publisher: "Tooli",
   robots: {
     index: true,
     follow: true,
@@ -47,15 +47,15 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://aitools.example.com",
-    siteName: "AI Tools Hub",
-    title: "AI Tools Hub — Discover the Best AI Tools",
-    description: "Browse 500+ AI tools with pricing, reviews, and trending scores.",
+    url: "https://tooli.ai",
+    siteName: "Tooli",
+    title: "Tooli — Find the Perfect AI Tool",
+    description: "Discover 500+ AI tools with reviews, pricing, and trending scores.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "AI Tools Hub — Discover the Best AI Tools",
-    description: "Browse 500+ AI tools with pricing, reviews, and trending scores.",
+    title: "Tooli — Find the Perfect AI Tool",
+    description: "Discover 500+ AI tools with reviews, pricing, and trending scores.",
   },
   alternates: {
     canonical: "/",

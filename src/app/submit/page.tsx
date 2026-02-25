@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Submit Your Tool - AI Tools Hub",
-  description: "Submit your AI tool to our directory. Reach thousands of potential users looking for AI solutions.",
+  title: "Submit Your Tool - Get Listed on Tooli",
+  description: "Add your AI tool to Tooli. Reach thousands of people actively searching for solutions like yours.",
 };
 
 export default function SubmitPage() {
@@ -11,10 +11,10 @@ export default function SubmitPage() {
       <header className="text-center mb-12">
         <h1 className="font-[family-name:var(--font-display)] text-4xl font-semibold text-[var(--foreground)] mb-4"
         >
-          Submit Your Tool
+          List Your Tool
         </h1>
         <p className="text-lg text-[var(--muted)]">
-          Get your AI tool in front of thousands of potential users.
+          Get in front of people who are actively looking for tools like yours.
         </p>
       </header>
 

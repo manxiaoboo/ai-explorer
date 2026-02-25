@@ -74,14 +74,14 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
     "@type": "NewsArticle",
     headline: article.title,
     description: article.excerpt,
-    image: article.coverImage || "https://aitools.example.com/news-default.jpg",
+    image: article.coverImage || "https://tooli.ai/news-default.jpg",
     datePublished: article.publishedAt?.toISOString(),
     publisher: {
       "@type": "Organization",
-      name: "AI Tools Hub",
+      name: "Tooli",
       logo: {
         "@type": "ImageObject",
-        url: "https://aitools.example.com/logo.png",
+        url: "https://tooli.ai/logo.png",
       },
     },
   };

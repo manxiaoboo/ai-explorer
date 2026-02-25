@@ -4,8 +4,8 @@ import { ToolCard } from "@/components/ToolCard";
 import { StructuredData } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "All AI Tools - Complete Directory",
-  description: "Browse our complete directory of AI tools. Filter by category, pricing, and features to find the perfect tool for your needs.",
+  title: "Browse All AI Tools - Tooli",
+  description: "Explore 500+ AI tools curated by Tooli. Filter by category, pricing, and features to find exactly what you need.",
   alternates: {
     canonical: "/tools",
   },
@@ -43,15 +43,15 @@ export default async function ToolsPage() {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: "All AI Tools",
-    description: "Complete directory of AI tools",
-    url: "https://aitools.example.com/tools",
+    name: "Browse All AI Tools",
+    description: "Complete collection of AI tools curated by Tooli",
+    url: "https://tooli.ai/tools",
     mainEntity: {
       "@type": "ItemList",
       itemListElement: tools.map((tool, index) => ({
         "@type": "ListItem",
         position: index + 1,
-        url: `https://aitools.example.com/tools/${tool.slug}`,
+        url: `https://tooli.ai/tools/${tool.slug}`,
         name: tool.name,
       })),
     },
@@ -64,11 +64,11 @@ export default async function ToolsPage() {
       <div className="max-w-7xl mx-auto px-4 py-12">
         <header className="mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
-            All AI Tools
+            Browse All Tools
           </h1>
           <p className="text-lg text-slate-600 max-w-2xl">
-            Browse our complete directory of {tools.length} AI tools. 
-            Filter by category, pricing, and features.
+            {tools.length} AI tools, hand-picked and organized. 
+            Use filters to narrow down what you&apos;re looking for.
           </p>
         </header>
 

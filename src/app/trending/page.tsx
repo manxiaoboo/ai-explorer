@@ -4,8 +4,8 @@ import { ToolCard } from "@/components/ToolCard";
 import { StructuredData } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Trending AI Tools - What's Hot Right Now",
-  description: "Discover the fastest-growing AI tools. Updated daily based on GitHub stars, Product Hunt votes, and community buzz.",
+  title: "Trending AI Tools - What's Hot Right Now | Tooli",
+  description: "See what tools are gaining traction. Updated daily based on GitHub stars, Product Hunt votes, and community buzz.",
   alternates: {
     canonical: "/trending",
   },
@@ -28,13 +28,13 @@ export default async function TrendingPage() {
     "@type": "CollectionPage",
     name: "Trending AI Tools",
     description: "Discover the fastest-growing AI tools updated daily.",
-    url: "https://aitools.example.com/trending",
+    url: "https://tooli.ai/trending",
     mainEntity: {
       "@type": "ItemList",
       itemListElement: tools.map((tool, index) => ({
         "@type": "ListItem",
         position: index + 1,
-        url: `https://aitools.example.com/tools/${tool.slug}`,
+        url: `https://tooli.ai/tools/${tool.slug}`,
         name: tool.name,
       })),
     },
@@ -46,10 +46,10 @@ export default async function TrendingPage() {
       
       <div className="max-w-7xl mx-auto px-4 py-12">
         <header className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">🔥 Trending AI Tools</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">🔥 Trending Now</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Discover the fastest-growing AI tools. Updated daily based on 
-            GitHub stars, Product Hunt votes, and community buzz.
+            The tools everyone&apos;s talking about. 
+            Ranked by real activity across GitHub, Product Hunt, and our community.
           </p>
         </header>
 

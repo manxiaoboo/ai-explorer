@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 
 export async function GET() {
-  const baseUrl = "https://aitools.example.com";
+  const baseUrl = "https://tooli.ai";
 
   const [tools, categories] = await Promise.all([
     prisma.tool.findMany({

@@ -1,6 +1,6 @@
-# AI Tools Hub
+# Tooli
 
-A high-performance AI tools directory built with Next.js 14, optimized for SEO and speed.
+Find the perfect AI tool for your workflow. A high-performance AI tools directory built with Next.js 14, optimized for SEO and speed.
 
 ## Features
 

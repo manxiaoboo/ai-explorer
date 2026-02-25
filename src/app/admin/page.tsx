@@ -3,7 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 
 export const metadata: Metadata = {
-  title: "Admin Dashboard - AI Tools Hub",
+  title: "Admin Dashboard - Tooli",
 };
 
 async function getStats() {
