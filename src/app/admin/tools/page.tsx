@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { DeleteToolButton } from "./DeleteToolButton";
 import { FeaturedToggle } from "./FeaturedToggle";
+import { ToolLogo } from "@/components/ToolLogo";
 
 export const metadata: Metadata = {
   title: "Manage Tools - Admin",
@@ -68,10 +69,7 @@ export default async function ToolsPage() {
                 <tr key={tool.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold"
-                      >
-                        {tool.name[0]}
-                      </div>
+                      <ToolLogo name={tool.name} logo={tool.logo} size="sm" />
                       <div>
                         <div className="font-medium">{tool.name}</div>
                         <div className="text-sm text-gray-500 truncate max-w-xs">{tool.tagline}</div>
