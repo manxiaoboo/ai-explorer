@@ -93,34 +93,7 @@ export default async function HomePage() {
     <>
       <StructuredData data={websiteStructuredData} />
       
-      {/* Hero Section */}
-      <section className="bg-gradient-to-b from-slate-50 to-white border-b border-slate-200">
-        <div className="max-w-5xl mx-auto px-4 py-16 md:py-24 text-center">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
-            Find the perfect tool<br />
-            <span className="text-orange-600">for any task</span>
-          </h1>
-          
-          <p className="text-lg md:text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
-            500+ curated AI tools. No fluff, no paid placements — just honest info to help you decide.
-          </p>
-          
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <Link
-              href="/tools"
-              className="px-6 py-3 bg-slate-900 text-white font-medium rounded-lg hover:bg-slate-800 transition-colors"
-            >
-              Browse all tools
-            </Link>
-            <Link
-              href="/trending"
-              className="px-6 py-3 bg-white text-slate-700 font-medium rounded-lg border border-slate-300 hover:border-slate-400 transition-colors"
-            >
-              See trending
-            </Link>
-          </div>
-        </div>
-      </section>
+      <HeroSection />
 
       {/* Featured Section - Compact Carousel Style */}
       {featuredTools.length > 0 && (
