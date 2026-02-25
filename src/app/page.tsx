@@ -3,7 +3,10 @@ import { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { StructuredData } from "@/components/StructuredData";
 import { ToolLogo } from "@/components/ToolLogo";
-import type { Tool, Category } from "@prisma/client";
+import type { Tool, Category, Prisma } from "@prisma/client";
+
+// Type for tool with category relation
+type ToolWithCategory = Tool & { category: Category };
 
 export const metadata: Metadata = {
   title: "Tooli - AI Tools Directory",
@@ -101,9 +104,9 @@ function isNewTool(createdAt: Date): boolean {
 }
 
 export default async function HomePage() {
-  let latestTools: Tool[] = [];
-  let trendingTools: Tool[] = [];
-  let featuredTools: Tool[] = [];
+  let latestTools: ToolWithCategory[] = [];
+  let trendingTools: ToolWithCategory[] = [];
+  let featuredTools: ToolWithCategory[] = [];
   let categories: Category[] = [];
   
   try {

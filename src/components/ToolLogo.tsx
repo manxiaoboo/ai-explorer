@@ -1,7 +1,10 @@
 /**
  * ToolLogo component - displays tool logos
  * Uses database logo if available, falls back to generated logos
+ * Client Component for handling image errors
  */
+
+'use client';
 
 import { getToolLogo } from '@/lib/logos';
 
