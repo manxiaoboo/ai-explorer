@@ -37,10 +37,27 @@ model Tool {
   features    String[]
   useCases    String[]
 
+  // External platform IDs
+  githubRepo      String?  // owner/repo format
+  hfModelId       String?  // Hugging Face model ID
+  productHuntId   String?  // Product Hunt post ID
+
   // Metrics
   githubStars     Int?
   githubStarsGrowth7d Int?
   productHuntVotes Int?
+  
+  // Hugging Face metrics
+  hfDownloads     Int?
+  hfLikes         Int?
+  hfDownloadsGrowth7d Int?
+  
+  // Own platform metrics
+  clickCount      Int      @default(0)
+  clickCount7d    Int      @default(0)
+  saveCount       Int      @default(0)
+  avgTimeOnPage   Int      @default(0)  // seconds
+  
   trendingScore   Float    @default(0)
 
   // Status
@@ -53,11 +70,41 @@ model Tool {
 
   // Price history
   priceHistory PriceHistory[]
+  
+  // Click tracking
+  clicks ToolClick[]
+  saves ToolSave[]
 
   @@index([categoryId])
   @@index([pricingTier])
   @@index([trendingScore])
   @@index([isActive])
+  @@index([githubRepo])
+  @@index([hfModelId])
+}
+
+model ToolClick {
+  id        String   @id @default(cuid())
+  tool      Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  toolId    String
+  ipHash    String?  // Hashed IP for deduplication
+  userAgent String?
+  referrer  String?
+  createdAt DateTime @default(now())
+
+  @@index([toolId, createdAt])
+  @@index([createdAt])
+}
+
+model ToolSave {
+  id        String   @id @default(cuid())
+  tool      Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  toolId    String
+  ipHash    String   // For deduplication (one save per IP)
+  createdAt DateTime @default(now())
+
+  @@unique([toolId, ipHash])
+  @@index([toolId])
 }
 
 model Category {
