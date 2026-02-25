@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { ToolCard } from "@/components/ToolCard";
 import { StructuredData } from "@/components/StructuredData";
+import { ToolLogo } from "@/components/ToolLogo";
 import Link from "next/link";
 
 interface ToolPageProps {
@@ -106,10 +107,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
             {/* Header Card */}
             <div className="bg-[var(--surface)] rounded-lg p-6 mb-6">
               <div className="flex items-start gap-5">
-                <div className="w-16 h-16 bg-[var(--background)] border border-[var(--border)] rounded-lg flex items-center justify-center text-2xl font-semibold text-[var(--foreground)]"
-                >
-                  {tool.name[0]}
-                </div>
+                <ToolLogo name={tool.name} logo={tool.logo} size="lg" />
                 
                 <div className="flex-1">
                   <h1 className="text-2xl font-medium text-[var(--foreground)] mb-1">

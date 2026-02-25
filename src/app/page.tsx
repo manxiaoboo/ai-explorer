@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { StructuredData } from "@/components/StructuredData";
+import { ToolLogo } from "@/components/ToolLogo";
 
 export const metadata: Metadata = {
   title: "Tooli - AI Tools Directory",
@@ -231,15 +232,10 @@ export default async function HomePage() {
                     )}
 
                     <div className="flex items-stretch">
-                      {/* Icon with gradient */}
-                      <div className={`w-20 sm:w-24 bg-gradient-to-br ${gradient}
-                                      flex items-center justify-center flex-shrink-0
-                                      group-hover:scale-105 transition-transform duration-500`}
-                      >
-                        <span className="text-2xl sm:text-3xl font-bold text-slate-700
-                                         group-hover:rotate-3 transition-transform duration-300">
-                          {tool.name[0]}
-                        </span>
+                      {/* Logo */}
+                      <div className="w-20 sm:w-24 flex-shrink-0 bg-slate-50 flex items-center justify-center
+                                      group-hover:bg-slate-100 transition-colors duration-300">
+                        <ToolLogo name={tool.name} logo={tool.logo} size="md" />
                       </div>
 
                       {/* Content */}
@@ -319,10 +315,7 @@ export default async function HomePage() {
                   className="group block"
                 >
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-14 h-14 bg-white rounded-xl shadow-sm flex items-center justify-center text-2xl font-bold text-slate-700"
-                    >
-                      {featuredTools[0].name[0]}
-                    </div>
+                    <ToolLogo name={featuredTools[0].name} logo={featuredTools[0].logo} size="md" />
                     <div>
                       <h3 className="font-semibold text-slate-900 group-hover:text-orange-600">
                         {featuredTools[0].name}
