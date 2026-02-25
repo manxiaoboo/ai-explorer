@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { ToolLogo } from "./ToolLogo";
 
 interface Tool {
   id: string;
@@ -24,19 +25,6 @@ interface ToolCardProps {
   featured?: boolean;
 }
 
-// Generate a subtle gradient based on tool name
-function getGradient(name: string): string {
-  const gradients = [
-    "from-orange-400/20 to-amber-500/20",
-    "from-blue-400/20 to-cyan-500/20", 
-    "from-emerald-400/20 to-teal-500/20",
-    "from-violet-400/20 to-purple-500/20",
-    "from-rose-400/20 to-pink-500/20",
-  ];
-  const index = name.charCodeAt(0) % gradients.length;
-  return gradients[index];
-}
-
 export function ToolCard({ tool, compact = false, featured = false }: ToolCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const isTrending = tool.trendingScore > 80;
@@ -48,8 +36,6 @@ export function ToolCard({ tool, compact = false, featured = false }: ToolCardPr
     ENTERPRISE: { label: "Enterprise", class: "text-slate-600 bg-slate-100" },
     OPEN_SOURCE: { label: "Open Source", class: "text-sky-600 bg-sky-50" },
   }[tool.pricingTier];
-
-  const gradient = getGradient(tool.name);
 
   // Featured variant - horizontal layout for homepage
   if (featured) {
@@ -65,11 +51,9 @@ export function ToolCard({ tool, compact = false, featured = false }: ToolCardPr
       >
         {/* Trending badge - fixed top right */}
         {isTrending && (
-          <div className="absolute top-3 right-3 z-10"
-          >
+          <div className="absolute top-3 right-3 z-10">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium 
-                             bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full shadow-sm"
-            >
+                             bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full shadow-sm">
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
               </svg>
@@ -79,24 +63,17 @@ export function ToolCard({ tool, compact = false, featured = false }: ToolCardPr
         )}
 
         <div className="flex items-stretch">
-          {/* Icon with gradient background */}
-          <div className={`w-24 sm:w-28 bg-gradient-to-br ${gradient} 
-                          flex items-center justify-center flex-shrink-0
-                          group-hover:scale-105 transition-transform duration-500`}
-          >
-            <span className="text-3xl sm:text-4xl font-bold text-slate-700
-                             group-hover:rotate-3 transition-transform duration-300"
-            >
-              {tool.name[0]}
-            </span>
+          {/* Logo */}
+          <div className="w-24 sm:w-28 flex-shrink-0 bg-slate-50 flex items-center justify-center
+                          group-hover:bg-slate-100 transition-colors duration-300">
+            <ToolLogo name={tool.name} size="lg" />
           </div>
           
           {/* Content */}
           <div className="flex-1 p-5 min-w-0 pr-24">
             <div className="flex items-start justify-between gap-3 mb-2">
               <h3 className="font-semibold text-slate-900 group-hover:text-orange-600 
-                             transition-colors truncate text-lg"
-              >
+                             transition-colors truncate text-lg">
                 {tool.name}
               </h3>
             </div>
@@ -107,8 +84,7 @@ export function ToolCard({ tool, compact = false, featured = false }: ToolCardPr
             
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${pricingConfig.class}`}
-                >
+                <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${pricingConfig.class}`}>
                   {pricingConfig.label}
                 </span>
                 
@@ -119,8 +95,7 @@ export function ToolCard({ tool, compact = false, featured = false }: ToolCardPr
               </div>
               
               <span className="text-slate-400 group-hover:text-orange-500 
-                               group-hover:translate-x-1 transition-all duration-200"
-              >
+                               group-hover:translate-x-1 transition-all duration-200">
                 →
               </span>
             </div>          
@@ -129,8 +104,7 @@ export function ToolCard({ tool, compact = false, featured = false }: ToolCardPr
         
         {/* Bottom accent line on hover */}
         <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-orange-500 to-amber-500
-                        transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" 
-        />
+                        transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
       </Link>
     );
   }
@@ -149,11 +123,9 @@ export function ToolCard({ tool, compact = false, featured = false }: ToolCardPr
       >
         {/* Trending badge - fixed top right */}
         {isTrending && (
-          <div className="absolute top-3 right-3"
-          >
+          <div className="absolute top-3 right-3">
             <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium 
-                             bg-orange-500 text-white rounded-full shadow-sm"
-            >
+                             bg-orange-500 text-white rounded-full shadow-sm">
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
               </svg>
@@ -163,18 +135,14 @@ export function ToolCard({ tool, compact = false, featured = false }: ToolCardPr
         )}
 
         <div className="flex items-start gap-3 pr-20">
-          {/* Icon */}
-          <div className={`flex-shrink-0 w-11 h-11 rounded-lg bg-gradient-to-br ${gradient}
-                          flex items-center justify-center text-slate-700 font-bold text-lg
-                          group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300`}
-          >
-            {tool.name[0]}
+          {/* Logo */}
+          <div className="flex-shrink-0">
+            <ToolLogo name={tool.name} size="md" />
           </div>
           
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-slate-900 group-hover:text-orange-600 
-                           transition-colors truncate mb-1"
-            >
+                           transition-colors truncate mb-1">
               {tool.name}
             </h3>
             
@@ -188,8 +156,7 @@ export function ToolCard({ tool, compact = false, featured = false }: ToolCardPr
               </span>
               
               <span className="text-slate-300 group-hover:text-orange-400 group-hover:translate-x-0.5 
-                               transition-all duration-200 text-sm"
-              >
+                               transition-all duration-200 text-sm">
                 →
               </span>
             </div>
@@ -212,11 +179,9 @@ export function ToolCard({ tool, compact = false, featured = false }: ToolCardPr
     >
       {/* Trending badge - fixed top right */}
       {isTrending && (
-        <div className="absolute top-4 right-4 z-10"
-        >
+        <div className="absolute top-4 right-4 z-10">
           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium 
-                           bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full shadow-sm"
-          >
+                           bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full shadow-sm">
             <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
             </svg>
@@ -226,26 +191,21 @@ export function ToolCard({ tool, compact = false, featured = false }: ToolCardPr
       )}
 
       <div className="flex items-start gap-4">
-        {/* Icon */}
-        <div className={`flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br ${gradient}
-                        flex items-center justify-center text-slate-700 text-2xl font-bold
-                        group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300`}
-        >
-          {tool.name[0]}
+        {/* Logo */}
+        <div className="flex-shrink-0">
+          <ToolLogo name={tool.name} size="lg" />
         </div>
         
         <div className="flex-1 min-w-0 pr-24">
           <div className="mb-1">
             <h3 className="text-lg font-semibold text-slate-900 group-hover:text-orange-600 
-                           transition-colors"
-            >
+                           transition-colors">
               {tool.name}
             </h3>
           </div>
           
           <div className="flex items-center gap-2 mb-3">
-            <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${pricingConfig.class}`}
-            >
+            <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${pricingConfig.class}`}>
               {pricingConfig.label}
             </span>
             
@@ -263,8 +223,7 @@ export function ToolCard({ tool, compact = false, featured = false }: ToolCardPr
       
       {/* Bottom accent line */}
       <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-orange-500 to-amber-500
-                      transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" 
-      />
+                      transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
     </Link>
   );
 }
