@@ -21,18 +21,73 @@ interface Tool {
 interface ToolCardProps {
   tool: Tool;
   compact?: boolean;
+  featured?: boolean;
 }
 
-export function ToolCard({ tool, compact = false }: ToolCardProps) {
+export function ToolCard({ tool, compact = false, featured = false }: ToolCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   
   const pricingConfig = {
-    FREE: { label: "Free", class: "text-[var(--success)] bg-[var(--success)]/10" },
-    FREEMIUM: { label: "Freemium", class: "text-[var(--warning)] bg-[var(--warning)]/10" },
-    PAID: { label: "Paid", class: "text-[var(--foreground)] bg-[var(--surface-subtle)]" },
-    ENTERPRISE: { label: "Enterprise", class: "text-[var(--foreground)] bg-[var(--surface-subtle)]" },
-    OPEN_SOURCE: { label: "Open Source", class: "text-[var(--success)] bg-[var(--success)]/10" },
+    FREE: { label: "Free", class: "text-[var(--success)]" },
+    FREEMIUM: { label: "Freemium", class: "text-[var(--warning)]" },
+    PAID: { label: "Paid", class: "text-[var(--muted)]" },
+    ENTERPRISE: { label: "Enterprise", class: "text-[var(--muted)]" },
+    OPEN_SOURCE: { label: "Open Source", class: "text-[var(--success)]" },
   }[tool.pricingTier];
+
+  // Featured variant - horizontal layout for homepage
+  if (featured) {
+    return (
+      <Link
+        href={`/tools/${tool.slug}`}
+        className="group block bg-[var(--surface)] rounded-lg border border-[var(--border)] 
+                   hover:border-[var(--border-strong)] card-hover overflow-hidden"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div className="flex items-stretch">
+          {/* Icon */}
+          <div className="w-20 sm:w-24 bg-[var(--background)] border-r border-[var(--border)] 
+                          flex items-center justify-center flex-shrink-0"
+          >
+            <span className="text-2xl sm:text-3xl font-semibold text-[var(--foreground)]">
+              {tool.name[0]}
+            </span>
+          </div>
+          
+          {/* Content */}
+          <div className="flex-1 p-4 sm:p-5 min-w-0">
+            <div className="flex items-start justify-between gap-3 mb-2">
+              <h3 className="font-medium text-[var(--foreground)] group-hover:text-[var(--accent)] 
+                             transition-colors truncate"
+              >
+                {tool.name}
+              </h3>
+              <span className={`text-xs font-medium flex-shrink-0 ${pricingConfig.class}`}>
+                {pricingConfig.label}
+              </span>
+            </div>
+            
+            <p className="text-sm text-[var(--muted)] line-clamp-2 mb-3">
+              {tool.tagline}
+            </p>
+            
+            <div className="flex items-center gap-4 text-xs text-[var(--muted-foreground)]">
+              <span>{tool.category.name}</span>
+              {tool.githubStars > 0 && (
+                <span className="flex items-center gap-1">
+                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  {tool.githubStars.toLocaleString()}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </Link>
+    );
+  }
 
   if (compact) {
     return (

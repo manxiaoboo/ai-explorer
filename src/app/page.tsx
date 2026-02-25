@@ -13,20 +13,16 @@ export const metadata: Metadata = {
   },
 };
 
-// Helper function with retry logic
 async function queryWithRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> {
   let lastError;
-  
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await fn();
     } catch (error) {
       lastError = error;
-      console.log(`Database query attempt ${i + 1} failed, retrying...`);
       await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
     }
   }
-  
   throw lastError;
 }
 
@@ -35,7 +31,7 @@ async function getFeaturedTools() {
     prisma.tool.findMany({
       where: { isFeatured: true, isActive: true },
       orderBy: { trendingScore: "desc" },
-      take: 6,
+      take: 3,
       include: { category: true },
     })
   );
@@ -46,7 +42,18 @@ async function getTrendingTools() {
     prisma.tool.findMany({
       where: { isActive: true },
       orderBy: { trendingScore: "desc" },
-      take: 8,
+      take: 6,
+      include: { category: true },
+    })
+  );
+}
+
+async function getNewTools() {
+  return queryWithRetry(() =>
+    prisma.tool.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: "desc" },
+      take: 4,
       include: { category: true },
     })
   );
@@ -63,12 +70,14 @@ async function getCategories() {
 export default async function HomePage() {
   let featuredTools: any[] = [];
   let trendingTools: any[] = [];
+  let newTools: any[] = [];
   let categories: any[] = [];
   
   try {
-    [featuredTools, trendingTools, categories] = await Promise.all([
+    [featuredTools, trendingTools, newTools, categories] = await Promise.all([
       getFeaturedTools(),
       getTrendingTools(),
+      getNewTools(),
       getCategories(),
     ]);
   } catch (error) {
@@ -93,96 +102,155 @@ export default async function HomePage() {
       
       <HeroSection categories={categories} />
 
-      {/* Featured Tools Section */}
-      {featuredTools.length > 0 && (
-        <section className="py-16 px-4 max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <span className="w-6 h-[2px] bg-[var(--accent)]"></span>
-              <h2 className="text-xl font-medium text-[var(--foreground)]">Featured</h2>
-            </div>
-            <Link 
-              href="/tools" 
-              className="text-sm text-[var(--muted)] hover:text-[var(--accent)] transition-colors"
-            >
-              View all →
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {featuredTools.map((tool) => (
-              <ToolCard key={tool.id} tool={tool} />
-            ))}
-          </div>
-        </section>
-      )}
+      {/* Main Content Grid */}
+      <div className="max-w-7xl mx-auto px-4 py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* Left Sidebar - Navigation */}
+          <aside className="lg:col-span-2 space-y-8">
+            <nav>
+              <h3 className="text-xs font-medium text-[var(--muted)] uppercase tracking-wider mb-4">
+                Browse
+              </h3>
+              <ul className="space-y-1">
+                <li>
+                  <Link href="/tools" className="block py-2 text-sm text-[var(--foreground)] hover:text-[var(--accent)]">
+                    All Tools
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/trending" className="block py-2 text-sm text-[var(--foreground)] hover:text-[var(--accent)]">
+                    Trending
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/free-ai-tools" className="block py-2 text-sm text-[var(--foreground)] hover:text-[var(--accent)]">
+                    Free Tools
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/news" className="block py-2 text-sm text-[var(--foreground)] hover:text-[var(--accent)]">
+                    News
+                  </Link>
+                </li>
+              </ul>
+            </nav>
 
-      {/* Trending Tools Section */}
-      {trendingTools.length > 0 && (
-        <section className="py-16 px-4 max-w-7xl mx-auto bg-[var(--surface)]">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <span className="w-6 h-[2px] bg-[var(--accent)]"></span>
-              <h2 className="text-xl font-medium text-[var(--foreground)]">Trending</h2>
-            </div>
-            <Link 
-              href="/trending" 
-              className="text-sm text-[var(--muted)] hover:text-[var(--accent)] transition-colors"
-            >
-              See more →
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {trendingTools.map((tool) => (
-              <ToolCard key={tool.id} tool={tool} compact />
-            ))}
-          </div>
-        </section>
-      )}
+            <nav>
+              <h3 className="text-xs font-medium text-[var(--muted)] uppercase tracking-wider mb-4">
+                Categories
+              </h3>
+              <ul className="space-y-1">
+                {categories.slice(0, 6).map((category) => (
+                  <li key={category.id}>
+                    <Link 
+                      href={`/category/${category.slug}`}
+                      className="block py-2 text-sm text-[var(--muted)] hover:text-[var(--accent)]"
+                    >
+                      {category.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </aside>
 
-      {/* Categories Section */}
-      {categories.length > 0 && (
-        <section className="py-16 px-4 max-w-7xl mx-auto">
-          <div className="flex items-center gap-3 mb-8">
-            <span className="w-6 h-[2px] bg-[var(--accent)]"></span>
-            <h2 className="text-xl font-medium text-[var(--foreground)]">Browse by Category</h2>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {categories.map((category) => (
-              <Link
-                key={category.id}
-                href={`/category/${category.slug}`}
-                className="group p-5 bg-[var(--surface-elevated)] border border-[var(--border)] rounded-lg 
-                           hover:border-[var(--border-strong)] card-hover"
-              >
-                <div className="text-2xl mb-3">{category.icon || "📁"}</div>
-                <div className="font-medium text-[var(--foreground)] group-hover:text-[var(--accent)] transition-colors">
-                  {category.name}
+          {/* Main Content */}
+          <main className="lg:col-span-7 space-y-12">
+            {/* Featured Section */}
+            {featuredTools.length > 0 && (
+              <section>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-lg font-medium text-[var(--foreground)]">Featured</h2>
+                  <Link href="/tools" className="text-sm text-[var(--muted)] hover:text-[var(--accent)]">
+                    View all
+                  </Link>
                 </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
+                <div className="space-y-4">
+                  {featuredTools.map((tool) => (
+                    <ToolCard key={tool.id} tool={tool} featured />
+                  ))}
+                </div>
+              </section>
+            )}
 
-      {/* CTA Section */}
-      <section className="py-16 px-4 max-w-7xl mx-auto">
-        <div className="bg-[var(--foreground)] rounded-lg p-8 md:p-12">
-          <div className="max-w-2xl">
-            <h2 className="text-2xl md:text-3xl font-medium text-[var(--background)] mb-4">
-              Can&apos;t find what you need?
-            </h2>
-            <p className="text-[var(--background)]/70 mb-8">
-              Browse the full collection. We&apos;re adding new tools every week.
-            </p>
-            <Link
-              href="/tools"
-              className="inline-flex px-6 py-3 bg-[var(--background)] text-[var(--foreground)] font-medium rounded-md hover:bg-[var(--surface)] transition-colors"
-            >
-              See all tools
-            </Link>
-          </div>
+            {/* Trending Section */}
+            {trendingTools.length > 0 && (
+              <section>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-lg font-medium text-[var(--foreground)]">Trending</h2>
+                  <Link href="/trending" className="text-sm text-[var(--muted)] hover:text-[var(--accent)]">
+                    See more
+                  </Link>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {trendingTools.map((tool) => (
+                    <ToolCard key={tool.id} tool={tool} compact />
+                  ))}
+                </div>
+              </section>
+            )}
+          </main>
+
+          {/* Right Sidebar - New & CTA */}
+          <aside className="lg:col-span-3 space-y-8">
+            {/* New Tools */}
+            {newTools.length > 0 && (
+              <div className="bg-[var(--surface)] rounded-lg p-5">
+                <h3 className="text-xs font-medium text-[var(--muted)] uppercase tracking-wider mb-4">
+                  Recently Added
+                </h3>
+                <div className="space-y-4">
+                  {newTools.map((tool) => (
+                    <Link 
+                      key={tool.id} 
+                      href={`/tools/${tool.slug}`}
+                      className="block group"
+                    >
+                      <div className="font-medium text-sm text-[var(--foreground)] group-hover:text-[var(--accent)]">
+                        {tool.name}
+                      </div>
+                      <div className="text-xs text-[var(--muted)] line-clamp-1">
+                        {tool.tagline}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Submit CTA */}
+            <div className="bg-[var(--foreground)] rounded-lg p-5">
+              <h3 className="text-sm font-medium text-[var(--background)] mb-2">
+                Have a tool?
+              </h3>
+              <p className="text-xs text-[var(--background)]/70 mb-4">
+                Get in front of people actively looking for solutions.
+              </p>
+              <Link
+                href="/submit"
+                className="inline-flex px-4 py-2 bg-[var(--background)] text-[var(--foreground)] text-sm font-medium rounded hover:bg-[var(--surface)] transition-colors"
+              >
+                Submit
+              </Link>
+            </div>
+
+            {/* Stats */}
+            <div className="border border-[var(--border)] rounded-lg p-5">
+              <div className="grid grid-cols-2 gap-4 text-center">
+                <div>
+                  <div className="text-2xl font-medium text-[var(--foreground)]">500+</div>
+                  <div className="text-xs text-[var(--muted)]">Tools</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-medium text-[var(--foreground)]">50+</div>
+                  <div className="text-xs text-[var(--muted)]">Categories</div>
+                </div>
+              </div>
+            </div>
+          </aside>
         </div>
-      </section>
+      </div>
     </>
   );
 }
