@@ -1,43 +1,35 @@
 /**
- * Update ToolCard to display logos
+ * ToolLogo component - displays tool logos
+ * Uses embedded SVG data URLs for now, can be migrated to CDN later
  */
+
+import { getToolLogo } from '@/lib/logos';
 
 interface ToolLogoProps {
   name: string;
-  logo?: string | null;
   size?: 'sm' | 'md' | 'lg';
+  className?: string;
 }
 
-export function ToolLogo({ name, logo, size = 'md' }: ToolLogoProps) {
+export function ToolLogo({ name, size = 'md', className = '' }: ToolLogoProps) {
   const sizeClasses = {
-    sm: 'w-8 h-8 text-sm',
-    md: 'w-12 h-12 text-xl',
-    lg: 'w-16 h-16 text-2xl',
+    sm: 'w-8 h-8',
+    md: 'w-12 h-12',
+    lg: 'w-16 h-16',
   };
   
-  // If logo exists and is a local path
-  if (logo?.startsWith('/logos/')) {
-    return (
-      <img
-        src={logo}
-        alt={name}
-        className={`${sizeClasses[size]} rounded-lg object-cover bg-white`}
-        onError={(e) => {
-          // Fallback to initial on error
-          const target = e.target as HTMLImageElement;
-          target.style.display = 'none';
-          target.parentElement?.querySelector('.fallback')?.classList.remove('hidden');
-        }}
-      />
-    );
-  }
+  const logoUrl = getToolLogo(name);
   
-  // Fallback to initial
   return (
-    <div className={`${sizeClasses[size]} rounded-lg bg-gradient-to-br from-slate-100 to-slate-200 
-                    flex items-center justify-center font-bold text-slate-700 fallback`}
-    >
-      {name[0]}
-    </div>
+    <img
+      src={logoUrl}
+      alt={name}
+      className={`${sizeClasses[size]} rounded-lg object-cover ${className}`}
+      onError={(e) => {
+        // Fallback to default on error
+        const target = e.target as HTMLImageElement;
+        target.src = getToolLogo('default');
+      }}
+    />
   );
 }
