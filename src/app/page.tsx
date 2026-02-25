@@ -73,20 +73,22 @@ const pricingLabels: Record<string, string> = {
   OPEN_SOURCE: "Open Source",
 };
 
-// Category colors for left border
-const categoryColors: Record<string, string> = {
-  writing: "border-l-blue-400",
-  image: "border-l-purple-400",
-  code: "border-l-emerald-400",
-  chat: "border-l-orange-400",
-  audio: "border-l-pink-400",
-  video: "border-l-red-400",
-  data: "border-l-cyan-400",
-  default: "border-l-slate-300",
-};
+// Generate gradient based on tool name
+function getGradient(name: string): string {
+  const gradients = [
+    "from-orange-400/20 to-amber-500/20",
+    "from-blue-400/20 to-cyan-500/20",
+    "from-emerald-400/20 to-teal-500/20",
+    "from-violet-400/20 to-purple-500/20",
+    "from-rose-400/20 to-pink-500/20",
+  ];
+  const index = name.charCodeAt(0) % gradients.length;
+  return gradients[index];
+}
 
-function getCategoryColor(slug: string): string {
-  return categoryColors[slug] || categoryColors.default;
+// Check if tool is trending
+function isTrendingTool(trendingScore: number): boolean {
+  return trendingScore > 80;
 }
 
 // Check if tool is new (added within 3 days)
@@ -204,66 +206,101 @@ export default async function HomePage() {
 
             {/* Tool List */}
             <div className="space-y-3">
-              {latestTools.map((tool) => (
-                <Link
-                  key={tool.id}
-                  href={`/tools/${tool.slug}`}
-                  className={`group flex items-start gap-4 p-4 bg-white rounded-xl border border-slate-200 
-                             hover:border-orange-300 hover:shadow-md hover:shadow-orange-100/50
-                             hover:-translate-y-0.5 transition-all duration-200
-                             ${getCategoryColor(tool.category.slug)} border-l-4`}
-                >
-                  <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-slate-100 to-slate-200 
-                                  rounded-lg flex items-center justify-center text-xl font-bold text-slate-700
-                                  group-hover:scale-105 transition-transform"
+              {latestTools.map((tool) => {
+                const gradient = getGradient(tool.name);
+                const isTrending = isTrendingTool(tool.trendingScore);
+                return (
+                  <Link
+                    key={tool.id}
+                    href={`/tools/${tool.slug}`}
+                    className="group relative block bg-white rounded-xl border border-slate-200
+                               hover:border-orange-300 hover:shadow-lg hover:shadow-orange-100/50
+                               hover:-translate-y-0.5 transition-all duration-300 overflow-hidden"
                   >
-                    {tool.name[0]}
-                  </div>
-                  
-                  <div className="flex-1 min-w-0"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-slate-900 group-hover:text-orange-600">
-                          {tool.name}
-                        </h3>
-                        
-                        {isNewTool(tool.createdAt) && (
-                          <span className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded font-medium">
-                            NEW
-                          </span>
-                        )}
-                        
-                        {tool.isFeatured && (
-                          <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-medium">
-                            ⭐ PICK
-                          </span>
-                        )}
+                    {/* Trending badge */}
+                    {isTrending && (
+                      <div className="absolute top-3 right-3 z-10">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium
+                                         bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full shadow-sm">
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
+                          </svg>
+                          Trending
+                        </span>
                       </div>
-                      
-                      <span className="flex-shrink-0 text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded-md"
+                    )}
+
+                    <div className="flex items-stretch">
+                      {/* Icon with gradient */}
+                      <div className={`w-20 sm:w-24 bg-gradient-to-br ${gradient}
+                                      flex items-center justify-center flex-shrink-0
+                                      group-hover:scale-105 transition-transform duration-500`}
                       >
-                        {pricingLabels[tool.pricingTier]}
-                      </span>
+                        <span className="text-2xl sm:text-3xl font-bold text-slate-700
+                                         group-hover:rotate-3 transition-transform duration-300">
+                          {tool.name[0]}
+                        </span>
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 p-4 min-w-0 pr-20">
+                        <div className="flex items-start justify-between gap-3 mb-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-slate-900 group-hover:text-orange-600 truncate">
+                              {tool.name}
+                            </h3>
+
+                            {isNewTool(tool.createdAt) && (
+                              <span className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded font-medium">
+                                NEW
+                              </span>
+                            )}
+
+                            {tool.isFeatured && (
+                              <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-medium">
+                                ⭐ PICK
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <p className="text-sm text-slate-600 line-clamp-1 mb-3">
+                          {tool.tagline}
+                        </p>
+
+                        <div className="flex items-center gap-3">
+                          <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                            tool.pricingTier === 'FREE' ? 'text-emerald-600 bg-emerald-50' :
+                            tool.pricingTier === 'FREEMIUM' ? 'text-amber-600 bg-amber-50' :
+                            tool.pricingTier === 'OPEN_SOURCE' ? 'text-sky-600 bg-sky-50' :
+                            'text-slate-600 bg-slate-100'
+                          }`}>
+                            {pricingLabels[tool.pricingTier]}
+                          </span>
+
+                          <span className="flex items-center gap-1.5 text-sm text-slate-500">
+                            <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+                            {tool.category.name}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Arrow */}
+                      <div className="flex items-center pr-4">
+                        <span className="text-slate-300 group-hover:text-orange-500
+                                         group-hover:translate-x-1 transition-all duration-200">
+                          →
+                        </span>
+                      </div>
                     </div>
-                    
-                    <p className="text-sm text-slate-500 mt-1 line-clamp-1">{tool.tagline}</p>
-                    
-                    <div className="flex items-center gap-3 mt-2 text-xs text-slate-400"
-                    >
-                      <span className="flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-                        {tool.category.name}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="text-slate-300 group-hover:text-orange-400 group-hover:translate-x-1 transition-all"
-                  >
-                    →
-                  </div>
-                </Link>
-              ))}
+
+                    {/* Bottom accent line */}
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-orange-500 to-amber-500
+                                    transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"
+                    />
+                  </Link>
+                );
+              })}
             </div>
           </main>
 
