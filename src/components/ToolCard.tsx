@@ -39,6 +39,7 @@ function getGradient(name: string): string {
 
 export function ToolCard({ tool, compact = false, featured = false }: ToolCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const isTrending = tool.trendingScore > 80;
   
   const pricingConfig = {
     FREE: { label: "Free", class: "text-emerald-600 bg-emerald-50" },
@@ -62,6 +63,21 @@ export function ToolCard({ tool, compact = false, featured = false }: ToolCardPr
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
+        {/* Trending badge - fixed top right */}
+        {isTrending && (
+          <div className="absolute top-3 right-3 z-10"
+          >
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium 
+                             bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full shadow-sm"
+            >
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
+              </svg>
+              Trending
+            </span>
+          </div>
+        )}
+
         <div className="flex items-stretch">
           {/* Icon with gradient background */}
           <div className={`w-24 sm:w-28 bg-gradient-to-br ${gradient} 
@@ -76,16 +92,13 @@ export function ToolCard({ tool, compact = false, featured = false }: ToolCardPr
           </div>
           
           {/* Content */}
-          <div className="flex-1 p-5 min-w-0">
+          <div className="flex-1 p-5 min-w-0 pr-24">
             <div className="flex items-start justify-between gap-3 mb-2">
               <h3 className="font-semibold text-slate-900 group-hover:text-orange-600 
                              transition-colors truncate text-lg"
               >
                 {tool.name}
               </h3>
-              <span className={`text-xs font-medium px-2.5 py-1 rounded-full flex-shrink-0 ${pricingConfig.class}`}>
-                {pricingConfig.label}
-              </span>
             </div>
             
             <p className="text-slate-600 line-clamp-2 mb-4 leading-relaxed">
@@ -93,29 +106,24 @@ export function ToolCard({ tool, compact = false, featured = false }: ToolCardPr
             </p>
             
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4 text-sm text-slate-500">
-                <span className="flex items-center gap-1.5">
+              <div className="flex items-center gap-3">
+                <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${pricingConfig.class}`}
+                >
+                  {pricingConfig.label}
+                </span>
+                
+                <span className="flex items-center gap-1.5 text-sm text-slate-500">
                   <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
                   {tool.category.name}
                 </span>
-                
-                {tool.githubStars && tool.githubStars > 0 && (
-                  <span className="flex items-center gap-1">
-                    <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                    {tool.githubStars.toLocaleString()}
-                  </span>
-                )}
               </div>
               
-              {/* Arrow indicator */}
               <span className="text-slate-400 group-hover:text-orange-500 
                                group-hover:translate-x-1 transition-all duration-200"
               >
                 →
               </span>
-            </div>
+            </div>          
           </div>        
         </div>
         
@@ -132,14 +140,29 @@ export function ToolCard({ tool, compact = false, featured = false }: ToolCardPr
     return (
       <Link
         href={`/tools/${tool.slug}`}
-        className="group block p-4 bg-white rounded-xl border border-slate-200 
+        className="group relative block p-4 bg-white rounded-xl border border-slate-200 
                    hover:border-slate-300 hover:shadow-md
                    transition-all duration-200 ease-out
                    hover:-translate-y-0.5"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <div className="flex items-start gap-3">
+        {/* Trending badge - fixed top right */}
+        {isTrending && (
+          <div className="absolute top-3 right-3"
+          >
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium 
+                             bg-orange-500 text-white rounded-full shadow-sm"
+            >
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
+              </svg>
+              Trending
+            </span>
+          </div>
+        )}
+
+        <div className="flex items-start gap-3 pr-20">
           {/* Icon */}
           <div className={`flex-shrink-0 w-11 h-11 rounded-lg bg-gradient-to-br ${gradient}
                           flex items-center justify-center text-slate-700 font-bold text-lg
@@ -149,19 +172,11 @@ export function ToolCard({ tool, compact = false, featured = false }: ToolCardPr
           </div>
           
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold text-slate-900 group-hover:text-orange-600 
-                             transition-colors truncate"
-              >
-                {tool.name}
-              </h3>
-              
-              {tool.trendingScore > 80 && (
-                <span className="flex-shrink-0 w-2 h-2 rounded-full bg-orange-500 animate-pulse"
-                      title="Trending"
-                />
-              )}
-            </div>
+            <h3 className="font-semibold text-slate-900 group-hover:text-orange-600 
+                           transition-colors truncate mb-1"
+            >
+              {tool.name}
+            </h3>
             
             <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed mb-2">
               {tool.tagline}
@@ -188,13 +203,28 @@ export function ToolCard({ tool, compact = false, featured = false }: ToolCardPr
   return (
     <Link
       href={`/tools/${tool.slug}`}
-      className="group block p-5 bg-white rounded-xl border border-slate-200
+      className="group relative block p-5 bg-white rounded-xl border border-slate-200
                  hover:border-slate-300 hover:shadow-lg hover:shadow-slate-200/50
                  transition-all duration-300 ease-out
-                 hover:-translate-y-1 relative overflow-hidden"
+                 hover:-translate-y-1 overflow-hidden"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      {/* Trending badge - fixed top right */}
+      {isTrending && (
+        <div className="absolute top-4 right-4 z-10"
+        >
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium 
+                           bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full shadow-sm"
+          >
+            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
+            </svg>
+            Trending
+          </span>
+        </div>
+      )}
+
       <div className="flex items-start gap-4">
         {/* Icon */}
         <div className={`flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br ${gradient}
@@ -204,68 +234,30 @@ export function ToolCard({ tool, compact = false, featured = false }: ToolCardPr
           {tool.name[0]}
         </div>
         
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold text-slate-900 group-hover:text-orange-600 
-                             transition-colors mb-0.5"
-              >
-                {tool.name}
-              </h3>
-              <p className="text-sm text-slate-500 flex items-center gap-1.5">
-                <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                {tool.category.name}
-              </p>
-            </div>
-            <div className="flex flex-col items-end gap-1">
-              <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${pricingConfig.class}`}
-              >
-                {pricingConfig.label}
-              </span>
-              
-              {tool.trendingScore > 80 && (
-                <span className="text-xs font-medium text-orange-600 flex items-center gap-1"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
-                  Trending
-                </span>
-              )}
-            </div>
+        <div className="flex-1 min-w-0 pr-24">
+          <div className="mb-1">
+            <h3 className="text-lg font-semibold text-slate-900 group-hover:text-orange-600 
+                           transition-colors"
+            >
+              {tool.name}
+            </h3>
           </div>
           
-          <p className="text-slate-600 mt-3 text-sm line-clamp-2 leading-relaxed">
-            {tool.description}
-          </p>
-          
-          <div className="flex items-center justify-between mt-4">
-            <div className="flex items-center gap-4 text-sm text-slate-500">
-              {tool.githubStars && tool.githubStars > 0 && (
-                <span className="flex items-center gap-1"
-                      aria-label={`${tool.githubStars.toLocaleString()} GitHub stars`}
-                >
-                  <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20"
-                  >
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                  {tool.githubStars.toLocaleString()}
-                </span>
-              )}
-              
-              {tool.productHuntVotes && tool.productHuntVotes > 0 && (
-                <span className="flex items-center gap-1"
-                      aria-label={`${tool.productHuntVotes} Product Hunt votes`}
-                >
-                  🚀 {tool.productHuntVotes}
-                </span>
-              )}
-            </div>
-            
-            <span className="text-slate-300 group-hover:text-orange-500 
-                             group-hover:translate-x-1 transition-all duration-200"
+          <div className="flex items-center gap-2 mb-3">
+            <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${pricingConfig.class}`}
             >
-              View →
+              {pricingConfig.label}
+            </span>
+            
+            <span className="text-sm text-slate-500 flex items-center gap-1.5">
+              <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+              {tool.category.name}
             </span>
           </div>
+          
+          <p className="text-slate-600 text-sm line-clamp-2 leading-relaxed">
+            {tool.description}
+          </p>
         </div>
       </div>
       
