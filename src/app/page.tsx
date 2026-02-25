@@ -5,7 +5,7 @@ import { StructuredData } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
   title: "Tooli - AI Tools Directory",
-  description: "Discover the best AI tools. Browse 500+ tools across writing, image, code, and more. Updated daily.",
+  description: "500+ AI tools, hand-picked and categorized. Find the perfect tool for writing, images, code, and more.",
   alternates: {
     canonical: "/",
   },
@@ -29,7 +29,7 @@ async function getLatestTools() {
     prisma.tool.findMany({
       where: { isActive: true },
       orderBy: { createdAt: "desc" },
-      take: 10,
+      take: 8,
       include: { category: true },
     })
   );
@@ -40,7 +40,7 @@ async function getTrendingTools() {
     prisma.tool.findMany({
       where: { isActive: true },
       orderBy: { trendingScore: "desc" },
-      take: 10,
+      take: 5,
       include: { category: true },
     })
   );
@@ -51,7 +51,7 @@ async function getFeaturedTools() {
     prisma.tool.findMany({
       where: { isFeatured: true, isActive: true },
       orderBy: { trendingScore: "desc" },
-      take: 3,
+      take: 1,
       include: { category: true },
     })
   );
@@ -72,6 +72,29 @@ const pricingLabels: Record<string, string> = {
   ENTERPRISE: "Enterprise",
   OPEN_SOURCE: "Open Source",
 };
+
+// Category colors for left border
+const categoryColors: Record<string, string> = {
+  writing: "border-l-blue-400",
+  image: "border-l-purple-400",
+  code: "border-l-emerald-400",
+  chat: "border-l-orange-400",
+  audio: "border-l-pink-400",
+  video: "border-l-red-400",
+  data: "border-l-cyan-400",
+  default: "border-l-slate-300",
+};
+
+function getCategoryColor(slug: string): string {
+  return categoryColors[slug] || categoryColors.default;
+}
+
+// Check if tool is new (added within 3 days)
+function isNewTool(createdAt: Date): boolean {
+  const threeDaysAgo = new Date();
+  threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+  return new Date(createdAt) > threeDaysAgo;
+}
 
 export default async function HomePage() {
   let latestTools: any[] = [];
@@ -106,57 +129,93 @@ export default async function HomePage() {
     <>
       <StructuredData data={websiteStructuredData} />
 
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Main Content - Tool Feed */}
-          <main className="lg:col-span-8">
-            {/* Tab Navigation */}
-            <div className="flex items-center gap-1 mb-6 border-b border-slate-200">
-              <button className="px-4 py-3 text-sm font-medium text-slate-900 border-b-2 border-slate-900">
-                Latest
-              </button>
-              <Link 
-                href="/trending" 
-                className="px-4 py-3 text-sm font-medium text-slate-500 hover:text-slate-700"
+      {/* Hero Section - Above the Fold */}
+      <section className="bg-gradient-to-b from-amber-50/50 to-white border-b border-slate-200">
+        <div className="max-w-6xl mx-auto px-4 py-12 md:py-16">
+          <div className="max-w-2xl">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="w-8 h-8 bg-gradient-to-br from-orange-500 to-amber-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">T</span>
+              <span className="text-sm font-medium text-slate-500">Tooli</span>
+            </div>
+
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 leading-tight">
+              500+ AI tools,
+              <br />
+              <span className="text-orange-600">hand-picked and categorized</span>
+            </h1>
+
+            <p className="text-lg text-slate-600 mb-6">
+              Find the perfect tool for writing, images, code, and more. Updated daily.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                href="/tools"
+                className="px-5 py-2.5 bg-slate-900 text-white font-medium rounded-lg hover:bg-slate-800 transition-colors"
               >
-                Trending
+                Browse all tools
               </Link>
-              <Link 
-                href="/free-ai-tools"
-                className="px-4 py-3 text-sm font-medium text-slate-500 hover:text-slate-700"
+              
+              <Link
+                href="/submit"
+                className="px-5 py-2.5 bg-white text-slate-700 font-medium rounded-lg border border-slate-300 hover:border-orange-300 hover:text-orange-600 transition-colors"
               >
-                Free
+                Submit a tool
               </Link>
             </div>
 
-            {/* Category Filter Pills */}
-            <div className="flex flex-wrap gap-2 mb-6">
-              <Link 
-                href="/tools"
-                className="px-3 py-1.5 text-xs font-medium bg-slate-900 text-white rounded-full"
-              >
-                All
-              </Link>
-              {categories.slice(0, 6).map((cat) => (
+            <div className="flex flex-wrap items-center gap-2 mt-6">
+              <span className="text-sm text-slate-500">Popular:</span>
+              {['Writing', 'Image', 'Code', 'Chat', 'Free'].map((tag) => (
                 <Link
-                  key={cat.id}
-                  href={`/tools?category=${cat.slug}`}
-                  className="px-3 py-1.5 text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-full transition-colors"
+                  key={tag}
+                  href={`/tools?category=${tag.toLowerCase()}`}
+                  className="px-3 py-1 text-sm text-slate-600 bg-white border border-slate-200 rounded-full hover:border-orange-300 hover:text-orange-600 transition-colors"
                 >
-                  {cat.name}
+                  {tag}
                 </Link>
               ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Main Content */}
+          <main className="lg:col-span-8">
+            {/* Section Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <h2 className="text-lg font-semibold text-slate-900">Latest Tools</h2>
+                <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">Updated today</span>
+              </div>
+              
+              <Link 
+                href="/tools" 
+                className="text-sm text-slate-500 hover:text-orange-600 flex items-center gap-1"
+              >
+                View all
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
             </div>
 
             {/* Tool List */}
             <div className="space-y-3">
-              {latestTools.map((tool, index) => (
+              {latestTools.map((tool) => (
                 <Link
                   key={tool.id}
                   href={`/tools/${tool.slug}`}
-                  className="group flex items-start gap-4 p-4 bg-white rounded-lg border border-slate-200 hover:border-orange-300 hover:shadow-sm transition-all"
+                  className={`group flex items-start gap-4 p-4 bg-white rounded-xl border border-slate-200 
+                             hover:border-orange-300 hover:shadow-md hover:shadow-orange-100/50
+                             hover:-translate-y-0.5 transition-all duration-200
+                             ${getCategoryColor(tool.category.slug)} border-l-4`}
                 >
-                  <div className="flex-shrink-0 w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center text-xl font-bold text-slate-600"
+                  <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-slate-100 to-slate-200 
+                                  rounded-lg flex items-center justify-center text-xl font-bold text-slate-700
+                                  group-hover:scale-105 transition-transform"
                   >
                     {tool.name[0]}
                   </div>
@@ -164,81 +223,112 @@ export default async function HomePage() {
                   <div className="flex-1 min-w-0"
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h3 className="font-semibold text-slate-900 group-hover:text-orange-600 truncate">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-slate-900 group-hover:text-orange-600">
                           {tool.name}
                         </h3>
-                        <p className="text-sm text-slate-500 mt-0.5">{tool.tagline}</p>
+                        
+                        {isNewTool(tool.createdAt) && (
+                          <span className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded font-medium">
+                            NEW
+                          </span>
+                        )}
+                        
+                        {tool.isFeatured && (
+                          <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-medium">
+                            ⭐ PICK
+                          </span>
+                        )}
                       </div>
                       
-                      <span className="flex-shrink-0 text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded">
+                      <span className="flex-shrink-0 text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded-md"
+                      >
                         {pricingLabels[tool.pricingTier]}
                       </span>
                     </div>
                     
-                    <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
-                      <span>{tool.category.name}</span>
-                      <span>·</span>
-                      <span>Added recently</span>
+                    <p className="text-sm text-slate-500 mt-1 line-clamp-1">{tool.tagline}</p>
+                    
+                    <div className="flex items-center gap-3 mt-2 text-xs text-slate-400"
+                    >
+                      <span className="flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+                        {tool.category.name}
+                      </span>
                     </div>
+                  </div>
+                  
+                  <div className="text-slate-300 group-hover:text-orange-400 group-hover:translate-x-1 transition-all"
+                  >
+                    →
                   </div>
                 </Link>
               ))}
-            </div>
-
-            <div className="mt-6 text-center">
-              <Link 
-                href="/tools" 
-                className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-orange-600"
-              >
-                View all tools
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
             </div>
           </main>
 
           {/* Sidebar */}
           <aside className="lg:col-span-4 space-y-6">
-            {/* Search */}
-            <div className="bg-white rounded-lg border border-slate-200 p-4">
-              <label className="block text-xs font-medium text-slate-500 uppercase mb-2">Search</label>
-              <form action="/tools" method="GET">
-                <div className="relative">
-                  <input
-                    type="text"
-                    name="q"
-                    placeholder="Find tools..."
-                    className="w-full px-3 py-2 pr-10 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-500"
-                  />
-                  <button 
-                    type="submit"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                  </button>
+            {/* Featured Highlight */}
+            {featuredTools[0] && (
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-200 p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-lg">⭐</span>
+                  <span className="text-xs font-semibold text-amber-800 uppercase tracking-wider">Editor&apos;s Pick</span>
                 </div>
-              </form>
-            </div>
+                
+                <Link
+                  href={`/tools/${featuredTools[0].slug}`}
+                  className="group block"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-14 h-14 bg-white rounded-xl shadow-sm flex items-center justify-center text-2xl font-bold text-slate-700"
+                    >
+                      {featuredTools[0].name[0]}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-slate-900 group-hover:text-orange-600">
+                        {featuredTools[0].name}
+                      </h3>
+                      <span className="text-xs text-slate-500">{featuredTools[0].category.name}</span>
+                    </div>
+                  </div>
+                  
+                  <p className="text-sm text-slate-600 mb-3">{featuredTools[0].tagline}</p>
+                  
+                  <span className="inline-flex items-center gap-1 text-sm font-medium text-orange-600"
+                  >
+                    Check it out
+                    <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </span>
+                </Link>
+              </div>
+            )}
 
             {/* Trending Mini */}
-            <div className="bg-white rounded-lg border border-slate-200 p-4">
+            <div className="bg-white rounded-xl border border-slate-200 p-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-slate-900">Trending</h3>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🔥</span>
+                  <h3 className="font-semibold text-slate-900">Trending</h3>
+                </div>
                 <Link href="/trending" className="text-xs text-slate-500 hover:text-orange-600">View all →</Link>
               </div>
               
               <div className="space-y-3">
-                {trendingTools.slice(0, 5).map((tool, index) => (
+                {trendingTools.map((tool, index) => (
                   <Link
                     key={tool.id}
                     href={`/tools/${tool.slug}`}
                     className="flex items-center gap-3 group"
                   >
-                    <span className="w-5 text-center text-sm font-bold text-slate-400">{index + 1}</span>
+                    <span className={`w-6 text-center text-sm font-bold ${
+                      index < 3 ? 'text-orange-500' : 'text-slate-400'
+                    }`}>
+                      {index + 1}
+                    </span>
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-sm text-slate-900 group-hover:text-orange-600 truncate">
                         {tool.name}
@@ -250,50 +340,37 @@ export default async function HomePage() {
               </div>
             </div>
 
-            {/* Featured Mini */}
-            {featuredTools.length > 0 && (
-              <div className="bg-white rounded-lg border border-slate-200 p-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                  <h3 className="text-sm font-semibold text-slate-900">Editor&apos;s Pick</h3>
-                </div>
-                
-                <div className="space-y-3">
-                  {featuredTools.map((tool) => (
-                    <Link
-                      key={tool.id}
-                      href={`/tools/${tool.slug}`}
-                      className="flex items-start gap-3 group"
-                    >
-                      <div className="w-10 h-10 bg-slate-100 rounded flex items-center justify-center font-bold text-slate-600">
-                        {tool.name[0]}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm text-slate-900 group-hover:text-orange-600 truncate">
-                          {tool.name}
-                        </div>
-                        <div className="text-xs text-slate-500">{tool.tagline}</div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
+            {/* Categories */}
+            <div className="bg-white rounded-xl border border-slate-200 p-5">
+              <h3 className="font-semibold text-slate-900 mb-4">Categories</h3>
+              
+              <div className="flex flex-wrap gap-2">
+                {categories.slice(0, 8).map((cat) => (
+                  <Link
+                    key={cat.id}
+                    href={`/tools?category=${cat.slug}`}
+                    className="px-3 py-1.5 text-sm text-slate-600 bg-slate-50 hover:bg-orange-50 hover:text-orange-600 rounded-lg transition-colors"
+                  >
+                    {cat.icon && <span className="mr-1">{cat.icon}</span>}
+                    {cat.name}
+                  </Link>
+                ))}
               </div>
-            )}
+            </div>
 
             {/* Stats */}
-            <div className="bg-slate-50 rounded-lg p-4">
-              <div className="grid grid-cols-2 gap-4 text-center">
-                <div>
-                  <div className="text-2xl font-bold text-slate-900">500+</div>
-                  <div className="text-xs text-slate-500">Tools</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-slate-900">{categories.length}</div>
-                  <div className="text-xs text-slate-500">Categories</div>
-                </div>
+            <div className="bg-slate-900 rounded-xl p-5 text-white">
+              <div className="text-center mb-4">
+                <div className="text-3xl font-bold">500+</div>
+                <div className="text-sm text-slate-400">Tools curated</div>
               </div>
+              
+              <Link
+                href="/submit"
+                className="block w-full py-2.5 bg-white text-slate-900 text-center font-medium rounded-lg hover:bg-slate-100 transition-colors"
+              >
+                Submit a tool
+              </Link>
             </div>
           </aside>
         </div>
