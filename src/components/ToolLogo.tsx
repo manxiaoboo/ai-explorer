@@ -1,24 +1,26 @@
 /**
  * ToolLogo component - displays tool logos
- * Uses embedded SVG data URLs for now, can be migrated to CDN later
+ * Uses database logo if available, falls back to generated logos
  */
 
 import { getToolLogo } from '@/lib/logos';
 
 interface ToolLogoProps {
   name: string;
+  logo?: string | null;  // From database
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
 
-export function ToolLogo({ name, size = 'md', className = '' }: ToolLogoProps) {
+export function ToolLogo({ name, logo, size = 'md', className = '' }: ToolLogoProps) {
   const sizeClasses = {
     sm: 'w-8 h-8',
     md: 'w-12 h-12',
     lg: 'w-16 h-16',
   };
   
-  const logoUrl = getToolLogo(name);
+  // Use database logo if available, otherwise generate
+  const logoUrl = logo || getToolLogo(name);
   
   return (
     <img
@@ -26,9 +28,9 @@ export function ToolLogo({ name, size = 'md', className = '' }: ToolLogoProps) {
       alt={`${name} logo`}
       className={`${sizeClasses[size]} rounded-lg object-cover ${className}`}
       onError={(e) => {
-        // Fallback to default on error
+        // Fallback to generated logo on error
         const target = e.target as HTMLImageElement;
-        target.src = getToolLogo('default');
+        target.src = getToolLogo(name);
       }}
     />
   );

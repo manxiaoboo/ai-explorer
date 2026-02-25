@@ -104,6 +104,23 @@ export default async function EditToolPage({ params }: EditToolPageProps) {
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Logo URL</label>
+            <input
+              type="url"
+              name="logo"
+              defaultValue={tool.logo || ""}
+              placeholder="https://example.com/logo.png or data:image/svg+xml,..."
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+            />
+            <p className="text-xs text-gray-500 mt-1">Leave empty to auto-generate from tool name</p>
+            {tool.logo && (
+              <div className="mt-2">
+                <img src={tool.logo} alt="Current logo" className="w-12 h-12 rounded-lg object-cover border" />
+              </div>
+            )}
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>

@@ -66,7 +66,7 @@ export function ToolCard({ tool, compact = false, featured = false }: ToolCardPr
           {/* Logo */}
           <div className="w-24 sm:w-28 flex-shrink-0 bg-slate-50 flex items-center justify-center
                           group-hover:bg-slate-100 transition-colors duration-300">
-            <ToolLogo name={tool.name} size="lg" />
+            <ToolLogo name={tool.name} logo={tool.logo} size="lg" />
           </div>
           
           {/* Content */}
@@ -137,7 +137,7 @@ export function ToolCard({ tool, compact = false, featured = false }: ToolCardPr
         <div className="flex items-start gap-3 pr-20">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <ToolLogo name={tool.name} size="md" />
+            <ToolLogo name={tool.name} logo={tool.logo} size="md" />
           </div>
           
           <div className="flex-1 min-w-0">
@@ -193,7 +193,7 @@ export function ToolCard({ tool, compact = false, featured = false }: ToolCardPr
       <div className="flex items-start gap-4">
         {/* Logo */}
         <div className="flex-shrink-0">
-          <ToolLogo name={tool.name} size="lg" />
+          <ToolLogo name={tool.name} logo={tool.logo} size="lg" />
         </div>
         
         <div className="flex-1 min-w-0 pr-24">
