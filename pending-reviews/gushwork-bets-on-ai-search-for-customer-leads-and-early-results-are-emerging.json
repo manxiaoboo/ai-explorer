@@ -14,5 +14,16 @@
     }
   ],
   "fetchedAt": "2026-02-26T12:35:26.331Z",
-  "status": "pending_ai_analysis"
+  "status": "pending_ai_analysis",
+  "aiAnalysis": {
+    "summary": "Gushwork secures $9M seed funding to expand its AI-powered customer lead generation platform, leveraging ChatGPT and other AI search tools to help businesses find qualified prospects.",
+    "keyPoints": [
+      "$9 million seed round led by SIG and Lightspeed",
+      "AI-driven customer lead generation platform",
+      "Early traction from ChatGPT and AI search integrations",
+      "Helps businesses identify and qualify potential customers"
+    ],
+    "relevanceScore": 80,
+    "qualityScore": 75
+  }
 }

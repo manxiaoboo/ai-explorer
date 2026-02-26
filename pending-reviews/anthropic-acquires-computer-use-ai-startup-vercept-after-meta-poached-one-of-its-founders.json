@@ -8,5 +8,16 @@
   "content": "Seattle-based Vercept developed complex agentic tools, including a computer-use agent that could complete tasks inside applications like a person with a laptop would.",
   "mentionedTools": [],
   "fetchedAt": "2026-02-26T12:35:29.137Z",
-  "status": "pending_ai_analysis"
+  "status": "pending_ai_analysis",
+  "aiAnalysis": {
+    "summary": "Anthropic acquires Vercept, a Seattle-based startup building computer-use AI agents, following Meta's recruitment of one of Vercept's founders. The acquisition strengthens Anthropic's agentic AI capabilities.",
+    "keyPoints": [
+      "Anthropic acquires AI agent startup Vercept",
+      "Vercept developed computer-use agents for application automation",
+      "Acquisition follows Meta poaching Vercept co-founder",
+      "Strategic move to enhance Claude's agentic capabilities"
+    ],
+    "relevanceScore": 90,
+    "qualityScore": 85
+  }
 }
