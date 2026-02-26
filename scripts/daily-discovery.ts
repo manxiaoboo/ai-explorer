@@ -83,7 +83,7 @@ async function searchGitHub(query: string, perPage: number = 20): Promise<GitHub
       headers: {
         'Authorization': `Bearer ${GITHUB_TOKEN}`,
         'Accept': 'application/vnd.github.v3+json',
-        'User-Agent': 'atooli-Discovery/1.0'
+        'User-Agent': 'Atooli-Discovery/1.0'
       }
     });
     

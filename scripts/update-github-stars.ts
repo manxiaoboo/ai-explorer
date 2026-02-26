@@ -65,7 +65,7 @@ async function updateGitHubStars() {
         headers: {
           'Authorization': `Bearer ${GITHUB_TOKEN}`,
           'Accept': 'application/vnd.github.v3+json',
-          'User-Agent': 'atooli-Updater/1.0'
+          'User-Agent': 'Atooli-Updater/1.0'
         }
       });
       

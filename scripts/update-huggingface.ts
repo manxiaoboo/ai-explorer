@@ -19,7 +19,7 @@ async function fetchHFModel(modelId: string): Promise<HFModelInfo | null> {
     const response = await fetch(`https://huggingface.co/api/models/${modelId}`, {
       headers: {
         'Accept': 'application/json',
-        'User-Agent': 'atooli-Updater/1.0'
+        'User-Agent': 'Atooli-Updater/1.0'
       }
     });
     

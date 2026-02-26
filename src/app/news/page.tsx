@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { StructuredData } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "AI News & Insights - atooli",
+  title: "AI News & Insights - Atooli",
   description: "The latest in AI — tools, trends, and what actually matters. Curated updates without the hype.",
   alternates: {
     canonical: "/news",

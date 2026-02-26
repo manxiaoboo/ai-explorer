@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy - atooli",
+  title: "Privacy - Atooli",
   description: "How we handle your data. Short version: we collect as little as possible and don't sell it.",
 };
 

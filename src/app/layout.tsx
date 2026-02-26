@@ -25,14 +25,14 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://tooli.ai"),
   title: {
-    default: "atooli — Find the Perfect AI Tool",
-    template: "%s | atooli",
+    default: "Atooli — Find the Perfect AI Tool",
+    template: "%s | Atooli",
   },
   description: "Discover 500+ AI tools with reviews, pricing, and trending scores. Find free AI tools, compare features, and find the perfect tool for your workflow.",
-  keywords: ["AI tools", "artificial intelligence", "AI software", "machine learning tools", "AI apps", "atooli"],
-  authors: [{ name: "atooli" }],
-  creator: "atooli",
-  publisher: "atooli",
+  keywords: ["AI tools", "artificial intelligence", "AI software", "machine learning tools", "AI apps", "Atooli"],
+  authors: [{ name: "Atooli" }],
+  creator: "Atooli",
+  publisher: "Atooli",
   robots: {
     index: true,
     follow: true,
@@ -48,13 +48,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "https://tooli.ai",
-    siteName: "atooli",
-    title: "atooli — Find the Perfect AI Tool",
+    siteName: "Atooli",
+    title: "Atooli — Find the Perfect AI Tool",
     description: "Discover 500+ AI tools with reviews, pricing, and trending scores.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "atooli — Find the Perfect AI Tool",
+    title: "Atooli — Find the Perfect AI Tool",
     description: "Discover 500+ AI tools with reviews, pricing, and trending scores.",
   },
   alternates: {

@@ -21,13 +21,13 @@ export function Header() {
           <Link 
             href="/" 
             className="flex items-center gap-2 text-[var(--foreground)] hover:text-[var(--accent)] transition-colors"
-            aria-label="atooli - Home"
+            aria-label="Atooli - Home"
           >
             <div className="w-7 h-7 bg-gradient-to-br from-orange-500 to-amber-500 rounded flex items-center justify-center text-white font-bold text-sm">
               T
             </div>
             <span className="text-lg font-semibold tracking-tight">
-              atooli
+              Atooli
             </span>
           </Link>
 

@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "About atooli - Why We Built This",
-  description: "atooli helps you find the right AI tool without the noise. Learn about our approach to curation and why we started this.",
+  title: "About Atooli - Why We Built This",
+  description: "Atooli helps you find the right AI tool without the noise. Learn about our approach to curation and why we started this.",
 };
 
 export default function AboutPage() {
@@ -11,7 +11,7 @@ export default function AboutPage() {
       <article className="prose prose-invert max-w-none">
         <h1 className="font-[family-name:var(--font-display)] text-4xl font-semibold text-[var(--foreground)] mb-8"
         >
-          About atooli
+          About Atooli
         </h1>
 
         <p className="text-lg text-[var(--muted)] leading-relaxed mb-6"
@@ -22,7 +22,7 @@ export default function AboutPage() {
 
         <p className="text-lg text-[var(--muted)] leading-relaxed mb-6"
         >
-          atooli is a curated collection of the best AI tools — organized, 
+          Atooli is a curated collection of the best AI tools — organized, 
           reviewed, and kept up to date. No fluff, no paid placements, 
           just honest info to help you decide.
         </p>

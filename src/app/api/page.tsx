@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "API - atooli",
+  title: "API - Atooli",
   description: "Build with our data. Simple endpoints, no nonsense.",
 };
 

@@ -23,12 +23,12 @@ export async function generateMetadata({ searchParams }: ToolsPageProps): Promis
   if (params.q) filters.push(`"${params.q}"`);
   
   const title = filters.length > 0 
-    ? `${filters.join(', ')} - atooli`
-    : 'Browse All Tools - atooli';
+    ? `${filters.join(', ')} - Atooli`
+    : 'Browse All Tools - Atooli';
     
   const description = filters.length > 0
-    ? `Discover ${filters.join(', ')} AI tools curated by atooli. Compare features, pricing, and find the right tool for your needs.`
-    : 'Explore 500+ AI tools curated by atooli. Filter by category, pricing, and features to find exactly what you need.';
+    ? `Discover ${filters.join(', ')} AI tools curated by Atooli. Compare features, pricing, and find the right tool for your needs.`
+    : 'Explore 500+ AI tools curated by Atooli. Filter by category, pricing, and features to find exactly what you need.';
 
   return {
     title,
@@ -174,7 +174,7 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
     name: currentCategory 
       ? `${categories.find(c => c.slug === currentCategory)?.name || currentCategory} Tools`
       : "Browse All Tools",
-    description: `Complete collection of AI tools${currentCategory ? ' in ' + currentCategory : ''} curated by atooli`,
+    description: `Complete collection of AI tools${currentCategory ? ' in ' + currentCategory : ''} curated by Atooli`,
     url: buildUrl('https://tooli.ai/tools', params),
     mainEntity: {
       "@type": "ItemList",
