@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { StructuredData } from "@/components/StructuredData";
+import { RelatedTools } from "@/components/RelatedTools";
 
 interface NewsArticlePageProps {
   params: Promise<{
@@ -14,6 +15,18 @@ async function getArticle(slug: string) {
   return prisma.news.findUnique({
     where: { slug, isPublished: true },
   });
+}
+
+async function getRelatedTools(newsId: string) {
+  const mentions = await prisma.$queryRaw`
+    SELECT t.id, t.name, t.slug, t.tagline, t.logo, m.mentions
+    FROM "Tool" t
+    JOIN "NewsToolMention" m ON t.id = m."toolId"
+    WHERE m."newsId" = ${newsId}
+    ORDER BY m.mentions DESC
+    LIMIT 5
+  `;
+  return mentions as any[];
 }
 
 async function getRelatedArticles(currentSlug: string) {
@@ -67,7 +80,10 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
     notFound();
   }
 
-  const relatedArticles = await getRelatedArticles(slug);
+  const [relatedArticles, relatedTools] = await Promise.all([
+    getRelatedArticles(slug),
+    getRelatedTools(article.id)
+  ]);
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -122,16 +138,24 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
         )}
 
         {/* Content */}
-        <div className="prose prose-invert prose-lg max-w-none
-                     prose-headings:font-[family-name:var(--font-display)]
-                     prose-headings:text-[var(--foreground)]
-                     prose-p:text-[var(--muted)]
-                     prose-strong:text-[var(--foreground)]
-                     prose-a:text-[var(--accent)]
-                     prose-a:no-underline
-                     prose-a:hover:underline"
-          dangerouslySetInnerHTML={{ __html: article.content }}
-        />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <div className="prose prose-invert prose-lg max-w-none
+                         prose-headings:font-[family-name:var(--font-display)]
+                         prose-headings:text-[var(--foreground)]
+                         prose-p:text-[var(--muted)]
+                         prose-strong:text-[var(--foreground)]
+                         prose-a:text-[var(--accent)]
+                         prose-a:no-underline
+                         prose-a:hover:underline"
+              dangerouslySetInnerHTML={{ __html: article.content }}
+            />
+          </div>
+          
+          <aside className="lg:col-span-1">
+            <RelatedTools tools={relatedTools} />
+          </aside>
+        </div>
 
         {/* Related Articles */}
         {relatedArticles.length > 0 && (
