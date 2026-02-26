@@ -4,11 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface DeletePendingButtonProps {
-  fileName: string;
+  newsId: string;
   title: string;
 }
 
-export function DeletePendingButton({ fileName, title }: DeletePendingButtonProps) {
+export function DeletePendingButton({ newsId, title }: DeletePendingButtonProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
 
@@ -20,7 +20,7 @@ export function DeletePendingButton({ fileName, title }: DeletePendingButtonProp
       const response = await fetch('/api/admin/news/delete-pending', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileName }),
+        body: JSON.stringify({ newsId }),
       });
       
       if (response.ok) {

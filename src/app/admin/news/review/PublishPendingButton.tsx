@@ -4,11 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface PublishPendingButtonProps {
-  fileName: string;
+  newsId: string;
   title: string;
 }
 
-export function PublishPendingButton({ fileName, title }: PublishPendingButtonProps) {
+export function PublishPendingButton({ newsId, title }: PublishPendingButtonProps) {
   const [isPublishing, setIsPublishing] = useState(false);
   const router = useRouter();
 
@@ -20,7 +20,7 @@ export function PublishPendingButton({ fileName, title }: PublishPendingButtonPr
       const response = await fetch('/api/admin/news/publish-pending', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileName }),
+        body: JSON.stringify({ newsId }),
       });
       
       if (response.ok) {

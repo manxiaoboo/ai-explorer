@@ -1,23 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import * as fs from 'fs';
-import * as path from 'path';
+import { PrismaClient, NewsStatus } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
-    const { fileName } = await request.json();
+    const { newsId } = await request.json();
     
-    if (!fileName) {
-      return NextResponse.json({ error: 'File name required' }, { status: 400 });
+    if (!newsId) {
+      return NextResponse.json({ error: 'News ID required' }, { status: 400 });
     }
     
-    const filePath = path.join(process.cwd(), 'pending-reviews', fileName);
-    
-    if (!fs.existsSync(filePath)) {
-      return NextResponse.json({ error: 'File not found' }, { status: 404 });
-    }
-    
-    // Delete the pending file
-    fs.unlinkSync(filePath);
+    // Delete the news article
+    await prisma.news.delete({
+      where: { id: newsId }
+    });
     
     return NextResponse.json({ success: true });
   } catch (error) {

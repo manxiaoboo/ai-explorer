@@ -116,23 +116,32 @@ model PriceHistory {
 }
 
 model News {
-  id              String    @id @default(cuid())
-  slug            String    @unique
+  id              String     @id @default(cuid())
+  slug            String     @unique
   title           String
   excerpt         String
   content         String
   coverImage      String?
   metaTitle       String?
   metaDescription String?
-  originalUrl     String?   // Source URL for curated content
-  source          String?   // Source name (e.g., "OpenAI Blog")
-  isPublished     Boolean   @default(false)
+  originalUrl     String?    // Source URL for curated content
+  source          String?    // Source name (e.g., "OpenAI Blog")
+  status          NewsStatus @default(PENDING)
+  isPublished     Boolean    @default(false)
   publishedAt     DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
 
+  @@index([status])
   @@index([isPublished])
   @@index([publishedAt])
+}
+
+enum NewsStatus {
+  PENDING   // Waiting for AI analysis and review
+  REVIEWED  // AI analysis complete, ready to publish
+  PUBLISHED // Published
+  REJECTED  // Rejected/ignored
 }
 
 enum PricingTier {

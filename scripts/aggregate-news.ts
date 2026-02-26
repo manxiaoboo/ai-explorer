@@ -1,11 +1,9 @@
 /**
- * News Aggregator - Fetch Only
- * Saves raw articles for manual AI analysis
+ * News Aggregator - Database Version
+ * Saves articles directly to database with PENDING status
  */
 
-import { PrismaClient } from '@prisma/client';
-import * as fs from 'fs';
-import * as path from 'path';
+import { PrismaClient, NewsStatus } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -112,66 +110,34 @@ async function isDuplicate(url: string, title: string): Promise<boolean> {
   return !!existing;
 }
 
-// Save pending article for manual review
-async function savePendingArticle(article: RawArticle, mentionedTools: any[]) {
-  const slug = generateSlug(article.title);
-  
-  // Create pending review file
-  const reviewDir = path.join(process.cwd(), 'pending-reviews');
-  if (!fs.existsSync(reviewDir)) {
-    fs.mkdirSync(reviewDir, { recursive: true });
-  }
-  
-  const reviewFile = path.join(reviewDir, `${slug}.json`);
-  
-  const reviewData = {
-    slug,
-    title: article.title,
-    originalUrl: article.url,
-    source: article.source,
-    author: article.author,
-    publishedAt: article.publishedAt,
-    content: article.content,
-    mentionedTools,
-    fetchedAt: new Date().toISOString(),
-    status: 'pending_ai_analysis'
-  };
-  
-  fs.writeFileSync(reviewFile, JSON.stringify(reviewData, null, 2));
-  
-  return reviewFile;
-}
-
 // Main aggregation function - Daily limit: 5 articles
 async function aggregateNews() {
   console.log('🔄 Fetching news articles...\n');
   
   // Check already pending articles
-  const reviewDir = path.join(process.cwd(), 'pending-reviews');
-  let existingPending = 0;
-  if (fs.existsSync(reviewDir)) {
-    existingPending = fs.readdirSync(reviewDir).filter(f => f.endsWith('.json')).length;
-  }
+  const pendingCount = await prisma.news.count({
+    where: { status: NewsStatus.PENDING }
+  });
   
-  if (existingPending >= 5) {
-    console.log(`⏸️ Already have ${existingPending} articles pending review.`);
+  const dailyLimit = 5;
+  const remainingSlots = dailyLimit - pendingCount;
+  
+  if (remainingSlots <= 0) {
+    console.log(`⏸️ Already have ${pendingCount} articles pending review.`);
     console.log('   Please process existing articles before fetching more.\n');
     await prisma.$disconnect();
     return;
   }
   
-  const dailyLimit = 5;
-  const remainingSlots = dailyLimit - existingPending;
-  
   console.log(`📋 Daily limit: ${dailyLimit} articles`);
-  console.log(`   Pending: ${existingPending}, Can fetch: ${remainingSlots}\n`);
+  console.log(`   Pending: ${pendingCount}, Can fetch: ${remainingSlots}\n`);
   
   let totalFound = 0;
-  let totalPending = existingPending;
-  const pendingList: Array<{title: string, file: string, tools: string[]}> = [];
+  let totalSaved = 0;
+  const savedArticles: Array<{title: string, id: string, tools: string[]}> = [];
   
   for (const source of CONTENT_SOURCES) {
-    if (totalPending >= dailyLimit) {
+    if (totalSaved >= remainingSlots) {
       console.log('✅ Daily limit reached. Stopping fetch.\n');
       break;
     }
@@ -181,7 +147,7 @@ async function aggregateNews() {
     console.log(`  Found ${articles.length} articles`);
     
     for (const article of articles.slice(0, 3)) { // Max 3 per source
-      if (totalPending >= dailyLimit) break;
+      if (totalSaved >= remainingSlots) break;
       
       if (await isDuplicate(article.url, article.title)) {
         console.log(`  ⏭️ Duplicate: ${article.title.substring(0, 50)}...`);
@@ -190,17 +156,44 @@ async function aggregateNews() {
       
       const mentionedTools = await findMentionedTools(article.content, article.title);
       
-      // Save for manual AI analysis
-      const reviewFile = await savePendingArticle(article, mentionedTools);
+      // Save to database with PENDING status
+      const news = await prisma.news.create({
+        data: {
+          slug: generateSlug(article.title),
+          title: article.title,
+          excerpt: article.content.substring(0, 200) + '...',
+          content: article.content,
+          originalUrl: article.url,
+          source: article.source,
+          status: NewsStatus.PENDING,
+          isPublished: false,
+          publishedAt: article.publishedAt
+        }
+      });
       
-      totalPending++;
-      pendingList.push({
+      // Store tool mentions
+      for (const mention of mentionedTools) {
+        await prisma.$executeRaw`
+          INSERT INTO "NewsToolMention" ("id", "newsId", "toolId", "mentions", "createdAt")
+          VALUES (
+            gen_random_uuid()::text,
+            ${news.id},
+            ${mention.toolId},
+            ${mention.mentions},
+            NOW()
+          )
+          ON CONFLICT DO NOTHING
+        `;
+      }
+      
+      totalSaved++;
+      savedArticles.push({
         title: article.title,
-        file: reviewFile,
+        id: news.id,
         tools: mentionedTools.map(t => t.toolName)
       });
       
-      console.log(`  ✅ Saved for review: ${article.title.substring(0, 60)}...`);
+      console.log(`  ✅ Saved to database: ${article.title.substring(0, 60)}...`);
       if (mentionedTools.length > 0) {
         console.log(`     🔗 Tools found: ${mentionedTools.map(t => t.toolName).join(', ')}`);
       }
@@ -211,22 +204,21 @@ async function aggregateNews() {
   
   // Generate summary report
   console.log(`\n========================================`);
-  console.log(`📊 Summary: ${totalFound} found, ${totalPending} pending review`);
+  console.log(`📊 Summary: ${totalFound} found, ${totalSaved} saved to database`);
   console.log(`========================================\n`);
   
-  if (pendingList.length > 0) {
-    console.log('📝 Pending Articles for AI Analysis:\n');
-    pendingList.forEach((item, index) => {
+  if (savedArticles.length > 0) {
+    console.log('📝 Articles saved for review:\n');
+    savedArticles.forEach((item, index) => {
       console.log(`${index + 1}. ${item.title}`);
-      console.log(`   File: ${item.file}`);
+      console.log(`   ID: ${item.id}`);
       if (item.tools.length > 0) {
         console.log(`   Tools: ${item.tools.join(', ')}`);
       }
       console.log('');
     });
     
-    console.log('👉 Next step: Run AI analysis on these articles');
-    console.log('   Command: npx tsx scripts/process-pending-articles.ts');
+    console.log('👉 Next step: Review articles at /admin/news/review');
   }
   
   await prisma.$disconnect();

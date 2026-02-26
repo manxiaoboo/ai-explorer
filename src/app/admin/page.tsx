@@ -1,26 +1,20 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import * as fs from 'fs';
-import * as path from 'path';
+import { NewsStatus } from "@prisma/client";
 
 export const metadata: Metadata = {
   title: "Admin Dashboard - Atooli",
 };
 
 async function getStats() {
-  const [toolsCount, categoriesCount, tagsCount, newsCount] = await Promise.all([
+  const [toolsCount, categoriesCount, tagsCount, newsCount, pendingCount] = await Promise.all([
     prisma.tool.count(),
     prisma.category.count(),
     prisma.tag.count(),
     prisma.news.count(),
+    prisma.news.count({ where: { status: { in: [NewsStatus.PENDING, NewsStatus.REVIEWED] } } })
   ]);
-  
-  // Get pending review count
-  const reviewDir = path.join(process.cwd(), 'pending-reviews');
-  const pendingCount = fs.existsSync(reviewDir) 
-    ? fs.readdirSync(reviewDir).filter(f => f.endsWith('.json')).length 
-    : 0;
   
   return { toolsCount, categoriesCount, tagsCount, newsCount, pendingCount };
 }
