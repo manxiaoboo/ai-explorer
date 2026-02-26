@@ -1,6 +1,8 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import * as fs from 'fs';
+import * as path from 'path';
 
 export const metadata: Metadata = {
   title: "Admin Dashboard - Atooli",
@@ -13,7 +15,14 @@ async function getStats() {
     prisma.tag.count(),
     prisma.news.count(),
   ]);
-  return { toolsCount, categoriesCount, tagsCount, newsCount };
+  
+  // Get pending review count
+  const reviewDir = path.join(process.cwd(), 'pending-reviews');
+  const pendingCount = fs.existsSync(reviewDir) 
+    ? fs.readdirSync(reviewDir).filter(f => f.endsWith('.json')).length 
+    : 0;
+  
+  return { toolsCount, categoriesCount, tagsCount, newsCount, pendingCount };
 }
 
 export default async function AdminPage() {
@@ -31,6 +40,25 @@ export default async function AdminPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
+        {/* Pending Review Alert */}
+        {stats.pendingCount > 0 && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">📬</span>
+              <div>
+                <div className="font-medium text-amber-900">{stats.pendingCount} articles waiting for review</div>
+                <div className="text-sm text-amber-700">AI-curated articles ready for your approval</div>
+              </div>
+            </div>
+            <Link
+              href="/admin/news/review"
+              className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
+            >
+              Review Now →
+            </Link>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-xl p-6 shadow-sm border">
             <div className="text-3xl font-bold text-blue-600">{stats.toolsCount}</div>
@@ -93,6 +121,18 @@ export default async function AdminPage() {
               <div>
                 <div className="font-medium">Add News Article</div>
                 <div className="text-sm text-gray-500">Create a new blog post</div>
+              </div>
+            </Link>
+            <Link
+              href="/admin/news/review"
+              className="flex items-center gap-3 p-4 rounded-lg border hover:border-amber-500 hover:bg-amber-50 transition-colors"
+            >
+              <span className="text-2xl">📬</span>
+              <div>
+                <div className="font-medium">Review Pending News</div>
+                <div className="text-sm text-gray-500">
+                  {stats.pendingCount > 0 ? `${stats.pendingCount} articles waiting` : 'No pending articles'}
+                </div>
               </div>
             </Link>
           </div>
