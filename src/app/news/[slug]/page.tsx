@@ -187,16 +187,29 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <div 
-              className="prose prose-lg max-w-none
+              className="article-content prose prose-lg max-w-none
                        prose-headings:text-[var(--foreground)]
                        prose-headings:font-semibold
+                       prose-headings:mt-10
+                       prose-headings:mb-5
                        prose-p:text-[var(--muted)]
+                       prose-p:leading-8
+                       prose-p:mb-6
                        prose-strong:text-[var(--foreground)]
                        prose-a:text-[var(--accent)]
                        prose-a:no-underline
                        prose-a:hover:underline
                        prose-img:rounded-xl
-                       prose-img:my-4"
+                       prose-img:my-8
+                       prose-blockquote:border-l-4
+                       prose-blockquote:border-[var(--accent)]
+                       prose-blockquote:pl-6
+                       prose-blockquote:italic
+                       prose-blockquote:my-8
+                       prose-ul:my-6
+                       prose-ol:my-6
+                       prose-li:my-2
+                       prose-hr:my-10"
               dangerouslySetInnerHTML={{ __html: article.content || '' }}
             />
             

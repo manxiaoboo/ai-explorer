@@ -100,8 +100,49 @@ async function fetchFullContent(url: string, contentSelector: string): Promise<{
     const html = await response.text();
     const $ = cheerio.load(html);
     
-    // Remove unwanted elements
-    $('script, style, nav, header, footer, .ads, .social-share, .comments').remove();
+    // Remove unwanted elements - comprehensive list
+    const elementsToRemove = [
+      'script',
+      'style',
+      'nav',
+      'header',
+      'footer',
+      '.ads',
+      '.social-share',
+      '.share',
+      '.sharing',
+      '.comments',
+      '.comment',
+      '.loading',
+      '.loader',
+      '.spinner',
+      '.subscribe',
+      '.newsletter',
+      '.popup',
+      '.modal',
+      '.overlay',
+      '.cookie-banner',
+      '.gdpr',
+      '.related-posts',
+      '.recommended',
+      '.read-more',
+      '.author-bio',
+      '.post-meta',
+      '.post-tags',
+      '.breadcrumb',
+      '.sidebar',
+      '.widget',
+      '[class*="share"]',
+      '[class*="social"]',
+      '[class*="loading"]',
+      '[class*="subscribe"]',
+      '[id*="share"]',
+      '[id*="social"]',
+      '[id*="loading"]',
+      '[id*="subscribe"]'
+    ];
+    
+    $(elementsToRemove.join(', ')).remove();
     
     // Try to find main content
     let contentEl = $(contentSelector).first();
@@ -120,6 +161,28 @@ async function fetchFullContent(url: string, contentSelector: string): Promise<{
       contentEl = $('body');
     }
     
+    // Remove empty elements and unwanted attributes
+    contentEl.find('*').each((_, el) => {
+      const $el = $(el);
+      // Remove empty paragraphs
+      if ($el.is('p') && $el.text().trim() === '') {
+        $el.remove();
+        return;
+      }
+      // Remove data attributes
+      const attrs = Object.keys(el.attribs || {});
+      attrs.forEach(attr => {
+        if (attr.startsWith('data-') || attr === 'onclick' || attr === 'onload') {
+          $el.removeAttr(attr);
+        }
+      });
+      // Remove class attributes that contain certain keywords
+      const classAttr = $el.attr('class');
+      if (classAttr && /loading|spinner|share|social|subscribe/i.test(classAttr)) {
+        $el.removeAttr('class');
+      }
+    });
+    
     // Extract images
     const images: string[] = [];
     contentEl.find('img').each((_, img) => {
@@ -128,8 +191,9 @@ async function fetchFullContent(url: string, contentSelector: string): Promise<{
         // Make relative URLs absolute
         const absoluteUrl = src.startsWith('http') ? src : new URL(src, url).href;
         images.push(absoluteUrl);
-        // Update img src in content
+        // Update img src in content and clean up attributes
         $(img).attr('src', absoluteUrl);
+        $(img).removeAttr('data-src data-lazy-src loading');
       }
     });
     
@@ -138,7 +202,8 @@ async function fetchFullContent(url: string, contentSelector: string): Promise<{
     
     // Remove empty paragraphs and excessive whitespace
     content = content
-      .replace(/<p>\s*<\/p>/g, '')
+      .replace(/<p>\s*<\/p>/gi, '')
+      .replace(/<div>\s*<\/div>/gi, '')
       .replace(/\n\s*\n/g, '\n')
       .trim();
     
