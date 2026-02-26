@@ -50,6 +50,7 @@ model Tool {
   clicks              ToolClick[]
   saves               ToolSave[]
   tags                Tag[]          @relation("TagToTool")
+  newsMentions        NewsToolMention[]
 
   @@index([categoryId])
   @@index([pricingTier])
@@ -131,10 +132,25 @@ model News {
   publishedAt     DateTime?
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
+  mentions        NewsToolMention[]
 
   @@index([status])
   @@index([isPublished])
   @@index([publishedAt])
+}
+
+model NewsToolMention {
+  id        String   @id @default(cuid())
+  newsId    String
+  toolId    String
+  mentions  Int      @default(1)
+  createdAt DateTime @default(now())
+  news      News     @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  tool      Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  @@unique([newsId, toolId])
+  @@index([newsId])
+  @@index([toolId])
 }
 
 enum NewsStatus {
