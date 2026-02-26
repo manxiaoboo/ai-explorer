@@ -63,7 +63,7 @@ export default async function NewsPage() {
               News
             </span>
           </div>
-          <h1 className="font-[family-name:var(--font-display)] text-4xl md:text-5xl font-semibold text-[var(--foreground)] mb-4"
+          <h1 className="text-4xl md:text-5xl font-semibold text-[var(--foreground)] mb-4"
           >
             News & Insights
           </h1>
@@ -76,7 +76,7 @@ export default async function NewsPage() {
         {/* Featured Articles */}
         {featuredArticles.length > 0 && (
           <section className="mb-16">
-            <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-[var(--foreground)] mb-6"
+            <h2 className="text-2xl font-semibold text-[var(--foreground)] mb-6"
             >
               Featured Stories
             </h2>
@@ -111,7 +111,7 @@ export default async function NewsPage() {
                         </span>
                       </div>
                       
-                      <h3 className="font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--foreground)] 
+                      <h3 className="text-xl font-semibold text-[var(--foreground)] 
                                      mb-2 group-hover:text-[var(--accent)] transition-colors"
                       >
                         {article.title}
@@ -132,7 +132,7 @@ export default async function NewsPage() {
         {/* Recent Articles */}
         {recentArticles.length > 0 && (
           <section>
-            <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-[var(--foreground)] mb-6"
+            <h2 className="text-2xl font-semibold text-[var(--foreground)] mb-6"
             >
               Latest Articles
             </h2>
