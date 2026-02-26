@@ -14,19 +14,16 @@ interface NewsArticlePageProps {
 async function getArticle(slug: string) {
   return prisma.news.findUnique({
     where: { slug, isPublished: true },
+    include: {
+      mentions: {
+        include: {
+          tool: {
+            select: { id: true, name: true, slug: true, tagline: true, logo: true }
+          }
+        }
+      }
+    }
   });
-}
-
-async function getRelatedTools(newsId: string) {
-  const mentions = await prisma.$queryRaw`
-    SELECT t.id, t.name, t.slug, t.tagline, t.logo, m.mentions
-    FROM "Tool" t
-    JOIN "NewsToolMention" m ON t.id = m."toolId"
-    WHERE m."newsId" = ${newsId}
-    ORDER BY m.mentions DESC
-    LIMIT 5
-  `;
-  return mentions as any[];
 }
 
 async function getRelatedArticles(currentSlug: string) {
@@ -49,6 +46,17 @@ function formatDate(date: Date | null) {
   });
 }
 
+// Extract first image from HTML content
+function extractFirstImage(content: string): string | null {
+  const imgMatch = content.match(/<img[^>]+src=["']([^"']+)["'][^>]*>/i);
+  return imgMatch ? imgMatch[1] : null;
+}
+
+// Strip HTML tags for plain text preview
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 export async function generateMetadata({ params }: NewsArticlePageProps): Promise<Metadata> {
   const { slug } = await params;
   const article = await getArticle(slug);
@@ -57,17 +65,20 @@ export async function generateMetadata({ params }: NewsArticlePageProps): Promis
     return { title: "Article Not Found" };
   }
   
+  const firstImage = extractFirstImage(article.content);
+  
   return {
     title: `${article.title} | AI News`,
-    description: article.excerpt,
+    description: article.excerpt || stripHtml(article.content).substring(0, 160),
     alternates: {
       canonical: `/news/${slug}`,
     },
     openGraph: {
       title: article.title,
-      description: article.excerpt,
+      description: article.excerpt || stripHtml(article.content).substring(0, 160),
       type: "article",
       publishedTime: article.publishedAt?.toISOString(),
+      images: firstImage ? [firstImage] : undefined,
     },
   };
 }
@@ -80,24 +91,29 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
     notFound();
   }
 
-  const [relatedArticles, relatedTools] = await Promise.all([
-    getRelatedArticles(slug),
-    getRelatedTools(article.id)
-  ]);
+  const relatedArticles = await getRelatedArticles(slug);
+  const relatedTools = article.mentions.map((m: any) => ({
+    ...m.tool,
+    mentions: m.mentions
+  }));
+
+  // Extract image from content if no coverImage
+  const contentImage = !article.coverImage ? extractFirstImage(article.content) : null;
+  const displayImage = article.coverImage || contentImage;
 
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "NewsArticle",
     headline: article.title,
-    description: article.excerpt,
-    image: article.coverImage || "https://tooli.ai/news-default.jpg",
+    description: article.excerpt || stripHtml(article.content).substring(0, 160),
+    image: displayImage || "https://atooli.ai/news-default.jpg",
     datePublished: article.publishedAt?.toISOString(),
     publisher: {
       "@type": "Organization",
       name: "Atooli",
       logo: {
         "@type": "ImageObject",
-        url: "https://tooli.ai/logo.png",
+        url: "https://atooli.ai/logo.png",
       },
     },
   };
@@ -110,29 +126,41 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
         {/* Header */}
         <header className="mb-8">
           <div className="flex items-center gap-3 mb-4">
+            {article.source && (
+              <span className="px-3 py-1 bg-[var(--accent)]/10 text-[var(--accent)] text-sm font-medium rounded-full">
+                {article.source}
+              </span>
+            )}
             <span className="text-[var(--muted)]">
               {formatDate(article.publishedAt)}
             </span>
           </div>
           
-          <h1 className="font-[family-name:var(--font-display)] text-3xl md:text-4xl lg:text-5xl font-semibold text-[var(--foreground)] mb-4 leading-tight"
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-[var(--foreground)] mb-4 leading-tight"
           >
             {article.title}
-          </h1>
+          </h1>          
           
-          <p className="text-xl text-[var(--muted)] leading-relaxed"
-          >
-            {article.excerpt}
-          </p>
+          {article.excerpt && (
+            <p className="text-xl text-[var(--muted)] leading-relaxed"
+            >
+              {article.excerpt}
+            </p>
+          )}
         </header>
 
         {/* Featured Image */}
-        {article.coverImage && (
-          <div className="aspect-video rounded-2xl overflow-hidden mb-8">
+        {displayImage && (
+          <div className="aspect-video rounded-2xl overflow-hidden mb-8 bg-[var(--surface)]">
             <img 
-              src={article.coverImage} 
+              src={displayImage} 
               alt={article.title}
               className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
+              onError={(e) => {
+                // Hide broken images
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
             />
           </div>
         )}
@@ -140,17 +168,36 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
         {/* Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <div className="prose prose-invert prose-lg max-w-none
-                         prose-headings:font-[family-name:var(--font-display)]
-                         prose-headings:text-[var(--foreground)]
-                         prose-p:text-[var(--muted)]
-                         prose-strong:text-[var(--foreground)]
-                         prose-a:text-[var(--accent)]
-                         prose-a:no-underline
-                         prose-a:hover:underline"
+            <div 
+              className="prose prose-lg max-w-none
+                       prose-headings:text-[var(--foreground)]
+                       prose-headings:font-semibold
+                       prose-p:text-[var(--muted)]
+                       prose-strong:text-[var(--foreground)]
+                       prose-a:text-[var(--accent)]
+                       prose-a:no-underline
+                       prose-a:hover:underline
+                       prose-img:rounded-xl
+                       prose-img:my-4"
               dangerouslySetInnerHTML={{ __html: article.content }}
             />
-          </div>
+            
+            {/* Source Link */}
+            {article.originalUrl && (
+              <div className="mt-8 pt-6 border-t border-[var(--border)]">
+                <p className="text-sm text-[var(--muted)]">
+                  Source: <a 
+                    href={article.originalUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-[var(--accent)] hover:underline"
+                  >
+                    {article.source || 'Original Article'} ↗
+                  </a>
+                </p>
+              </div>
+            )}
+          </div>          
           
           <aside className="lg:col-span-1">
             <RelatedTools tools={relatedTools} />
@@ -160,11 +207,10 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
         {/* Related Articles */}
         {relatedArticles.length > 0 && (
           <section className="mt-16">
-            <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-[var(--foreground)] mb-6"
+            <h2 className="text-2xl font-semibold text-[var(--foreground)] mb-6"
             >
               Related Articles
-            </h2>
-            
+            </h2>            
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {relatedArticles.map((related) => (
                 <article
@@ -176,17 +222,15 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
                     <div className="text-xs text-[var(--accent)] font-medium uppercase tracking-wider mb-2"
                     >
                       {formatDate(related.publishedAt)}
-                    </div>
-                    
+                    </div>                    
                     <h3 className="font-semibold text-[var(--foreground)] mb-2 
                                    group-hover:text-[var(--accent)] transition-colors line-clamp-2"
                     >
                       {related.title}
-                    </h3>
-                    
+                    </h3>                    
                     <p className="text-sm text-[var(--muted)] line-clamp-2"
                     >
-                      {related.excerpt}
+                      {related.excerpt || stripHtml(related.content).substring(0, 100) + '...'}
                     </p>
                   </Link>
                 </article>
