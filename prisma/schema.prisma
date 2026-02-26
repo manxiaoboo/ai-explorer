@@ -124,6 +124,8 @@ model News {
   coverImage      String?
   metaTitle       String?
   metaDescription String?
+  originalUrl     String?   // Source URL for curated content
+  source          String?   // Source name (e.g., "OpenAI Blog")
   isPublished     Boolean   @default(false)
   publishedAt     DateTime?
   createdAt       DateTime  @default(now())
