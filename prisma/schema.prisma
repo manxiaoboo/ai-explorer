@@ -8,73 +8,48 @@ datasource db {
 }
 
 model Tool {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  name        String
-  tagline     String
-  description String
-  website     String
-  logo        String?  // Logo URL or data URI
-  logoType    String?  // 'svg', 'url', 'base64'
-
-  // SEO
-  metaTitle       String?
-  metaDescription String?
-  ogImage         String?
-
-  // Categorization
-  category    Category @relation(fields: [categoryId], references: [id])
-  categoryId  String
-  tags        Tag[]
-
-  // Pricing
-  pricingTier PricingTier @default(FREE)
-  priceStart  Float?
-  priceEnd    Float?
-  hasFreeTier Boolean     @default(false)
-  hasTrial    Boolean     @default(false)
-
-  // Features
-  features    String[]
-  useCases    String[]
-
-  // External platform IDs
-  githubRepo      String?  // owner/repo format
-  hfModelId       String?  // Hugging Face model ID
-  productHuntId   String?  // Product Hunt post ID
-
-  // Metrics
-  githubStars     Int?
+  id                  String         @id @default(cuid())
+  slug                String         @unique
+  name                String
+  tagline             String
+  description         String
+  website             String
+  logo                String?
+  metaTitle           String?
+  metaDescription     String?
+  ogImage             String?
+  categoryId          String
+  pricingTier         PricingTier    @default(FREE)
+  priceStart          Float?
+  priceEnd            Float?
+  hasFreeTier         Boolean        @default(false)
+  hasTrial            Boolean        @default(false)
+  features            String[]
+  useCases            String[]
+  githubStars         Int?
   githubStarsGrowth7d Int?
-  productHuntVotes Int?
-  
-  // Hugging Face metrics
-  hfDownloads     Int?
-  hfLikes         Int?
+  productHuntVotes    Int?
+  trendingScore       Float          @default(0)
+  isActive            Boolean        @default(true)
+  isFeatured          Boolean        @default(false)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  avgTimeOnPage       Int            @default(0)
+  clickCount          Int            @default(0)
+  clickCount7d        Int            @default(0)
+  githubRepo          String?
+  hfDownloads         Int?
   hfDownloadsGrowth7d Int?
-  
-  // Own platform metrics
-  clickCount      Int      @default(0)
-  clickCount7d    Int      @default(0)
-  saveCount       Int      @default(0)
-  avgTimeOnPage   Int      @default(0)  // seconds
-  
-  trendingScore   Float    @default(0)
-
-  // Status
-  isActive    Boolean  @default(true)
-  isFeatured  Boolean  @default(false)
-
-  // Timestamps
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Price history
-  priceHistory PriceHistory[]
-  
-  // Click tracking
-  clicks ToolClick[]
-  saves ToolSave[]
+  hfLikes             Int?
+  hfModelId           String?
+  productHuntId       String?
+  saveCount           Int            @default(0)
+  logoType            String?
+  priceHistory        PriceHistory[]
+  category            Category       @relation(fields: [categoryId], references: [id])
+  clicks              ToolClick[]
+  saves               ToolSave[]
+  tags                Tag[]          @relation("TagToTool")
 
   @@index([categoryId])
   @@index([pricingTier])
@@ -86,12 +61,12 @@ model Tool {
 
 model ToolClick {
   id        String   @id @default(cuid())
-  tool      Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
   toolId    String
-  ipHash    String?  // Hashed IP for deduplication
+  ipHash    String?
   userAgent String?
   referrer  String?
   createdAt DateTime @default(now())
+  tool      Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
 
   @@index([toolId, createdAt])
   @@index([createdAt])
@@ -99,70 +74,61 @@ model ToolClick {
 
 model ToolSave {
   id        String   @id @default(cuid())
-  tool      Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
   toolId    String
-  ipHash    String   // For deduplication (one save per IP)
+  ipHash    String
   createdAt DateTime @default(now())
+  tool      Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
 
   @@unique([toolId, ipHash])
   @@index([toolId])
 }
 
 model Category {
-  id          String @id @default(cuid())
-  slug        String @unique
-  name        String
-  description String
-  icon        String?
-  sortOrder   Int    @default(0)
-  tools       Tool[]
-
-  // SEO
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  name            String
+  description     String
+  icon            String?
+  sortOrder       Int      @default(0)
   metaTitle       String?
   metaDescription String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  tools           Tool[]
 }
 
 model Tag {
   id    String @id @default(cuid())
   name  String @unique
-  tools Tool[]
+  tools Tool[] @relation("TagToTool")
 }
 
 model PriceHistory {
-  id        String   @id @default(cuid())
-  tool      Tool     @relation(fields: [toolId], references: [id])
-  toolId    String
-  price     Float?
+  id          String      @id @default(cuid())
+  toolId      String
+  price       Float?
   pricingTier PricingTier
-  recordedAt DateTime @default(now())
+  recordedAt  DateTime    @default(now())
+  tool        Tool        @relation(fields: [toolId], references: [id])
 
   @@index([toolId])
   @@index([recordedAt])
 }
 
 model News {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  title       String
-  excerpt     String
-  content     String
-  coverImage  String?
-  
-  // SEO
+  id              String    @id @default(cuid())
+  slug            String    @unique
+  title           String
+  excerpt         String
+  content         String
+  coverImage      String?
   metaTitle       String?
   metaDescription String?
-  
-  // Status
-  isPublished Boolean @default(false)
-  publishedAt DateTime?
-  
-  // Timestamps
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  isPublished     Boolean   @default(false)
+  publishedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
   @@index([isPublished])
   @@index([publishedAt])
 }

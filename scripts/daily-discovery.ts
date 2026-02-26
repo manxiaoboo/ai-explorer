@@ -9,6 +9,35 @@ const prisma = new PrismaClient();
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 
+// Chinese/non-international domains to filter out
+const BLOCKED_DOMAINS = [
+  '.cn',
+  'baidu.com',
+  'aliyun.com',
+  'tencent.com',
+  'xfyun.cn',
+  'moonshot.cn',
+  'modelscope.cn',
+  '360.cn',
+  'shutu.cn',
+  'gitmind.cn',
+  'newrank.cn',
+  'pixso.cn',
+  'arkie.cn',
+  'codegeex.cn',
+];
+
+// Check if a URL or repo should be filtered out
+function isBlocked(url: string | null, repoName: string = ''): boolean {
+  if (!url) return false;
+  const lowerUrl = url.toLowerCase();
+  const lowerRepo = repoName.toLowerCase();
+  
+  return BLOCKED_DOMAINS.some(domain => 
+    lowerUrl.includes(domain) || lowerRepo.includes(domain.replace('.', ''))
+  );
+}
+
 // Expanded search queries for more coverage
 const GITHUB_QUERIES = [
   'ai tools stars:>50',
@@ -118,6 +147,13 @@ function generateSlug(name: string): string {
 async function saveGitHubRepo(repo: GitHubRepo) {
   try {
     const website = repo.homepage || repo.html_url;
+    
+    // Filter out Chinese/non-international sites
+    if (isBlocked(website, repo.full_name)) {
+      console.log(`⏭️ Skipping (blocked domain): ${repo.name}`);
+      return { action: 'skipped', name: repo.name };
+    }
+    
     const normalizedUrl = normalizeUrl(website);
     const slug = generateSlug(repo.name);
     

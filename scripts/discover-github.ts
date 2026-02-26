@@ -14,6 +14,35 @@ if (!GITHUB_TOKEN) {
   process.exit(1);
 }
 
+// Chinese/non-international domains to filter out
+const BLOCKED_DOMAINS = [
+  '.cn',
+  'baidu.com',
+  'aliyun.com',
+  'tencent.com',
+  'xfyun.cn',
+  'moonshot.cn',
+  'modelscope.cn',
+  '360.cn',
+  'shutu.cn',
+  'gitmind.cn',
+  'newrank.cn',
+  'pixso.cn',
+  'arkie.cn',
+  'codegeex.cn',
+];
+
+// Check if a URL or repo should be filtered out
+function isBlocked(url: string | null, repoName: string = ''): boolean {
+  if (!url) return false;
+  const lowerUrl = url.toLowerCase();
+  const lowerRepo = repoName.toLowerCase();
+  
+  return BLOCKED_DOMAINS.some(domain => 
+    lowerUrl.includes(domain) || lowerRepo.includes(domain.replace('.', ''))
+  );
+}
+
 interface GitHubRepo {
   id: number;
   name: string;
@@ -97,6 +126,12 @@ function determinePricing(repo: GitHubRepo): 'FREE' | 'FREEMIUM' | 'PAID' | 'OPE
 async function saveRepo(repo: GitHubRepo) {
   try {
     const website = repo.homepage || repo.html_url;
+    
+    // Filter out Chinese/non-international sites
+    if (isBlocked(website, repo.full_name)) {
+      console.log(`⏭️ Skipping (blocked domain): ${repo.name}`);
+      return;
+    }
     
     // Skip if already exists
     const existing = await prisma.tool.findFirst({

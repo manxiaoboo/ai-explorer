@@ -13,6 +13,30 @@ if (!GITHUB_TOKEN) {
   process.exit(1);
 }
 
+// Chinese/non-international domains to filter out
+const BLOCKED_DOMAINS = [
+  '.cn',
+  'baidu.com',
+  'aliyun.com',
+  'tencent.com',
+  'xfyun.cn',
+  'moonshot.cn',
+  'modelscope.cn',
+  '360.cn',
+  'shutu.cn',
+  'gitmind.cn',
+  'newrank.cn',
+  'pixso.cn',
+  'arkie.cn',
+  'codegeex.cn',
+];
+
+// Check if a URL should be filtered out
+function isBlocked(url: string): boolean {
+  const lowerUrl = url.toLowerCase();
+  return BLOCKED_DOMAINS.some(domain => lowerUrl.includes(domain));
+}
+
 async function updateGitHubStars() {
   const tools = await prisma.tool.findMany({
     where: {
@@ -24,9 +48,12 @@ async function updateGitHubStars() {
     take: 100 // Batch size
   });
   
-  console.log(`Updating ${tools.length} tools...`);
+  // Filter out Chinese/non-international sites
+  const filteredTools = tools.filter(tool => !isBlocked(tool.website));
   
-  for (const tool of tools) {
+  console.log(`Updating ${filteredTools.length} tools (filtered from ${tools.length})...`);
+  
+  for (const tool of filteredTools) {
     try {
       // Extract owner/repo from GitHub URL
       const match = tool.website.match(/github\.com\/([^\/]+)\/([^\/]+)/);
