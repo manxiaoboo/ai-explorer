@@ -1,6 +1,6 @@
 /**
- * News Aggregator with Full Content Extraction
- * Fetches full article content from original URLs
+ * News Aggregator with Intelligent Content Extraction
+ * Uses readability algorithm to extract main article content
  */
 
 import { PrismaClient, NewsStatus } from '@prisma/client';
@@ -14,36 +14,31 @@ const CONTENT_SOURCES = [
     name: 'OpenAI Blog',
     url: 'https://openai.com/blog',
     rssUrl: 'https://openai.com/blog/rss.xml',
-    category: 'AI Research',
-    contentSelector: 'article, .post-content, .blog-content, main'
+    category: 'AI Research'
   },
   {
     name: 'Anthropic News',
     url: 'https://www.anthropic.com/news',
     rssUrl: 'https://www.anthropic.com/news/rss.xml',
-    category: 'AI Research',
-    contentSelector: 'article, .post-content, main'
+    category: 'AI Research'
   },
   {
     name: 'Google AI Blog',
     url: 'https://ai.googleblog.com',
     rssUrl: 'https://ai.googleblog.com/feeds/posts/default',
-    category: 'AI Research',
-    contentSelector: '.post-body, article, .entry-content'
+    category: 'AI Research'
   },
   {
     name: 'TechCrunch AI',
     url: 'https://techcrunch.com/category/artificial-intelligence/',
     rssUrl: 'https://techcrunch.com/category/artificial-intelligence/feed/',
-    category: 'Industry News',
-    contentSelector: 'article, .article-content, .post-content'
+    category: 'Industry News'
   },
   {
     name: 'The Verge AI',
     url: 'https://www.theverge.com/ai-artificial-intelligence/',
     rssUrl: 'https://www.theverge.com/ai-artificial-intelligence/rss/index.xml',
-    category: 'Industry News',
-    contentSelector: '.c-entry-content, article, main'
+    category: 'Industry News'
   }
 ];
 
@@ -71,7 +66,7 @@ async function fetchRSSFeed(source: typeof CONTENT_SOURCES[0]): Promise<RawArtic
       title: item.title,
       url: item.link,
       content: item.content || item.description || '',
-      fullContent: '', // Will be fetched separately
+      fullContent: '',
       publishedAt: new Date(item.pubDate),
       source: source.name,
       author: item.author,
@@ -83,8 +78,225 @@ async function fetchRSSFeed(source: typeof CONTENT_SOURCES[0]): Promise<RawArtic
   }
 }
 
-// Fetch full article content from original URL
-async function fetchFullContent(url: string, contentSelector: string): Promise<{ content: string; images: string[] }> {
+// Calculate text density score for an element
+function getTextDensity($: cheerio.CheerioAPI, el: cheerio.Element): number {
+  const $el = $(el);
+  const text = $el.text().trim();
+  const textLength = text.length;
+  
+  // Count links
+  const linkLength = $el.find('a').text().length;
+  
+  // Count commas (indicator of good content)
+  const commaCount = (text.match(/,/g) || []).length;
+  
+  // Calculate density
+  const density = (textLength - linkLength) / (textLength + 1);
+  
+  // Bonus for paragraphs with commas
+  const commaBonus = commaCount * 10;
+  
+  return density * textLength + commaBonus;
+}
+
+// Extract main content using readability-like algorithm
+function extractMainContent($: cheerio.CheerioAPI): { element: cheerio.Cheerio; score: number } | null {
+  const candidates: Array<{ element: cheerio.Cheerio; score: number }> = [];
+  
+  // Common content container selectors
+  const selectors = [
+    'article',
+    '[role="main"]',
+    'main',
+    '.post-content',
+    '.entry-content',
+    '.article-content',
+    '.content',
+    '.post',
+    '.entry',
+    '#content',
+    '#main-content'
+  ];
+  
+  // Try specific selectors first
+  for (const selector of selectors) {
+    const el = $(selector).first();
+    if (el.length) {
+      const score = getTextDensity($, el[0]);
+      if (score > 100) {
+        candidates.push({ element: el, score });
+      }
+    }
+  }
+  
+  // If no good candidates, scan all divs and sections
+  if (candidates.length === 0) {
+    $('div, section').each((_, el) => {
+      const $el = $(el);
+      
+      // Skip small elements
+      const text = $el.text().trim();
+      if (text.length < 200) return;
+      
+      // Skip elements with too many links
+      const linkRatio = $el.find('a').length / (text.length / 100 + 1);
+      if (linkRatio > 0.5) return;
+      
+      // Skip navigation-like elements
+      const className = ($el.attr('class') || '').toLowerCase();
+      const id = ($el.attr('id') || '').toLowerCase();
+      const skipPatterns = /nav|menu|sidebar|footer|header|comment|meta|tag|share|social|related|recommended/;
+      if (skipPatterns.test(className) || skipPatterns.test(id)) return;
+      
+      const score = getTextDensity($, el);
+      if (score > 100) {
+        candidates.push({ element: $el, score });
+      }
+    });
+  }
+  
+  // Return best candidate
+  if (candidates.length === 0) return null;
+  
+  candidates.sort((a, b) => b.score - a.score);
+  return candidates[0];
+}
+
+// Clean and format extracted content
+function cleanContent($: cheerio.CheerioAPI, contentEl: cheerio.Cheerio, baseUrl: string): { content: string; images: string[] } {
+  // Clone to avoid modifying original
+  const $content = contentEl.clone();
+  
+  // Remove unwanted elements
+  const elementsToRemove = [
+    'script',
+    'style',
+    'nav',
+    'header',
+    'footer',
+    'aside',
+    '.ads',
+    '.advertisement',
+    '.social-share',
+    '.share',
+    '.sharing',
+    '.comments',
+    '.comment',
+    '.loading',
+    '.loader',
+    '.spinner',
+    '.subscribe',
+    '.newsletter',
+    '.popup',
+    '.modal',
+    '.overlay',
+    '.cookie-banner',
+    '.gdpr',
+    '.related-posts',
+    '.recommended',
+    '.read-more',
+    '.author-bio',
+    '.post-meta',
+    '.post-tags',
+    '.breadcrumb',
+    '.sidebar',
+    '.widget',
+    '.pagination',
+    '.nav-links',
+    '[class*="share"]',
+    '[class*="social"]',
+    '[class*="loading"]',
+    '[class*="subscribe"]',
+    '[id*="share"]',
+    '[id*="social"]',
+    '[id*="loading"]',
+    '[id*="subscribe"]'
+  ];
+  
+  $content.find(elementsToRemove.join(', ')).remove();
+  
+  // Clean up each element
+  const images: string[] = [];
+  
+  $content.find('*').each((_, el) => {
+    const $el = $(el);
+    
+    // Remove empty elements (except br, hr, img)
+    const tagName = el.tagName.toLowerCase();
+    if (!['br', 'hr', 'img'].includes(tagName)) {
+      const text = $el.text().trim();
+      if (text === '' && $el.children().length === 0) {
+        $el.remove();
+        return;
+      }
+    }
+    
+    // Clean up attributes
+    const attrs = Object.keys(el.attribs || {});
+    attrs.forEach(attr => {
+      if (attr.startsWith('data-') || 
+          attr.startsWith('on') || 
+          attr === 'style' ||
+          attr === 'class' && /loading|spinner|share|social|subscribe/i.test($el.attr('class') || '')) {
+        $el.removeAttr(attr);
+      }
+    });
+    
+    // Handle images
+    if (tagName === 'img') {
+      let src = $el.attr('src') || $el.attr('data-src') || $el.attr('data-lazy-src');
+      if (src) {
+        // Skip small icons and avatars
+        const width = parseInt($el.attr('width') || '0');
+        const height = parseInt($el.attr('height') || '0');
+        if ((width > 0 && width < 100) || (height > 0 && height < 100)) {
+          if (src.includes('icon') || src.includes('avatar') || src.includes('logo')) {
+            $el.remove();
+            return;
+          }
+        }
+        
+        // Make URL absolute
+        const absoluteUrl = src.startsWith('http') ? src : new URL(src, baseUrl).href;
+        images.push(absoluteUrl);
+        $el.attr('src', absoluteUrl);
+        
+        // Clean up image attributes
+        $el.removeAttr('data-src data-lazy-src loading width height class style');
+        
+        // Add alt text if missing
+        if (!$el.attr('alt')) {
+          $el.attr('alt', 'Article image');
+        }
+      } else {
+        $el.remove();
+      }
+    }
+    
+    // Convert divs with only text to paragraphs
+    if (tagName === 'div' && $el.children().length === 0) {
+      const text = $el.text().trim();
+      if (text.length > 50 && !text.includes('<')) {
+        $el.replaceWith(`<p>${text}</p>`);
+      }
+    }
+  });
+  
+  // Get the cleaned HTML
+  let content = $content.html() || '';
+  
+  // Final cleanup
+  content = content
+    .replace(/<p>\s*<\/p>/gi, '')
+    .replace(/<div>\s*<\/div>/gi, '')
+    .replace(/\n\s*\n+/g, '\n\n')
+    .trim();
+  
+  return { content, images };
+}
+
+// Fetch and extract article content
+async function fetchArticleContent(url: string): Promise<{ content: string; images: string[] }> {
   try {
     const response = await fetch(url, {
       headers: {
@@ -100,114 +312,30 @@ async function fetchFullContent(url: string, contentSelector: string): Promise<{
     const html = await response.text();
     const $ = cheerio.load(html);
     
-    // Remove unwanted elements - comprehensive list
-    const elementsToRemove = [
-      'script',
-      'style',
-      'nav',
-      'header',
-      'footer',
-      '.ads',
-      '.social-share',
-      '.share',
-      '.sharing',
-      '.comments',
-      '.comment',
-      '.loading',
-      '.loader',
-      '.spinner',
-      '.subscribe',
-      '.newsletter',
-      '.popup',
-      '.modal',
-      '.overlay',
-      '.cookie-banner',
-      '.gdpr',
-      '.related-posts',
-      '.recommended',
-      '.read-more',
-      '.author-bio',
-      '.post-meta',
-      '.post-tags',
-      '.breadcrumb',
-      '.sidebar',
-      '.widget',
-      '[class*="share"]',
-      '[class*="social"]',
-      '[class*="loading"]',
-      '[class*="subscribe"]',
-      '[id*="share"]',
-      '[id*="social"]',
-      '[id*="loading"]',
-      '[id*="subscribe"]'
-    ];
+    // Remove script and style tags first
+    $('script, style, noscript').remove();
     
-    $(elementsToRemove.join(', ')).remove();
+    // Extract main content
+    const result = extractMainContent($);
     
-    // Try to find main content
-    let contentEl = $(contentSelector).first();
-    
-    // Fallback selectors if primary doesn't work
-    if (!contentEl.length) {
-      contentEl = $('article').first();
-    }
-    if (!contentEl.length) {
-      contentEl = $('main').first();
-    }
-    if (!contentEl.length) {
-      contentEl = $('.content, .post, .entry').first();
-    }
-    if (!contentEl.length) {
-      contentEl = $('body');
+    if (!result) {
+      console.log(`  ⚠️ Could not extract main content from ${url}`);
+      return { content: '', images: [] };
     }
     
-    // Remove empty elements and unwanted attributes
-    contentEl.find('*').each((_, el) => {
-      const $el = $(el);
-      // Remove empty paragraphs
-      if ($el.is('p') && $el.text().trim() === '') {
-        $el.remove();
-        return;
-      }
-      // Remove data attributes
-      const attrs = Object.keys(el.attribs || {});
-      attrs.forEach(attr => {
-        if (attr.startsWith('data-') || attr === 'onclick' || attr === 'onload') {
-          $el.removeAttr(attr);
-        }
-      });
-      // Remove class attributes that contain certain keywords
-      const classAttr = $el.attr('class');
-      if (classAttr && /loading|spinner|share|social|subscribe/i.test(classAttr)) {
-        $el.removeAttr('class');
-      }
-    });
+    console.log(`  📊 Content score: ${Math.round(result.score)}`);
     
-    // Extract images
-    const images: string[] = [];
-    contentEl.find('img').each((_, img) => {
-      const src = $(img).attr('src') || $(img).attr('data-src');
-      if (src && !src.includes('avatar') && !src.includes('icon') && !src.includes('logo')) {
-        // Make relative URLs absolute
-        const absoluteUrl = src.startsWith('http') ? src : new URL(src, url).href;
-        images.push(absoluteUrl);
-        // Update img src in content and clean up attributes
-        $(img).attr('src', absoluteUrl);
-        $(img).removeAttr('data-src data-lazy-src loading');
-      }
-    });
+    // Clean and format the content
+    const { content, images } = cleanContent($, result.element, url);
     
-    // Clean up the content
-    let content = contentEl.html() || '';
+    if (content.length < 500) {
+      console.log(`  ⚠️ Extracted content too short (${content.length} chars)`);
+      return { content: '', images: [] };
+    }
     
-    // Remove empty paragraphs and excessive whitespace
-    content = content
-      .replace(/<p>\s*<\/p>/gi, '')
-      .replace(/<div>\s*<\/div>/gi, '')
-      .replace(/\n\s*\n/g, '\n')
-      .trim();
-    
+    console.log(`  ✅ Extracted: ${content.length} chars, ${images.length} images`);
     return { content, images };
+    
   } catch (error) {
     console.error(`  ⚠️ Error fetching ${url}:`, error);
     return { content: '', images: [] };
@@ -258,7 +386,7 @@ async function isDuplicate(url: string, title: string): Promise<boolean> {
 
 // Main aggregation function - Daily limit: 5 articles
 async function aggregateNews() {
-  console.log('🔄 Fetching news articles with full content...\n');
+  console.log('🔄 Fetching news articles with intelligent content extraction...\n');
   
   // Check already pending articles
   const pendingCount = await prisma.news.count({
@@ -292,7 +420,7 @@ async function aggregateNews() {
     const articles = await fetchRSSFeed(source);
     console.log(`  Found ${articles.length} articles`);
     
-    for (const article of articles.slice(0, 3)) { // Max 3 per source
+    for (const article of articles.slice(0, 3)) {
       if (totalSaved >= remainingSlots) break;
       
       if (await isDuplicate(article.url, article.title)) {
@@ -300,17 +428,16 @@ async function aggregateNews() {
         continue;
       }
       
-      console.log(`  📄 Fetching full content: ${article.title.substring(0, 50)}...`);
+      console.log(`  📄 Extracting: ${article.title.substring(0, 50)}...`);
       
-      // Fetch full content from original URL
-      const { content: fullContent, images } = await fetchFullContent(article.url, source.contentSelector);
+      // Extract article content using intelligent algorithm
+      const { content: extractedContent, images } = await fetchArticleContent(article.url);
       
-      if (!fullContent || fullContent.length < 500) {
-        console.log(`  ⚠️ Content too short or failed to fetch, using RSS content`);
+      if (!extractedContent) {
+        console.log(`  ⚠️ Failed to extract content, using RSS summary`);
         article.fullContent = article.content;
       } else {
-        article.fullContent = fullContent;
-        console.log(`  ✅ Full content fetched: ${fullContent.length} chars, ${images.length} images`);
+        article.fullContent = extractedContent;
       }
       
       // Use first image as cover if available
@@ -356,9 +483,9 @@ async function aggregateNews() {
         tools: mentionedTools.map(t => t.toolName)
       });
       
-      console.log(`  ✅ Saved to database: ${article.title.substring(0, 60)}...`);
+      console.log(`  ✅ Saved: ${article.title.substring(0, 60)}...`);
       if (mentionedTools.length > 0) {
-        console.log(`     🔗 Tools found: ${mentionedTools.map(t => t.toolName).join(', ')}`);
+        console.log(`     🔗 Tools: ${mentionedTools.map(t => t.toolName).join(', ')}`);
       }
       
       // Small delay to be polite to servers
