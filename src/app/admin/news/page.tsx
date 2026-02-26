@@ -2,12 +2,14 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { DeleteNewsButton } from "./DeleteNewsButton";
-import * as fs from 'fs';
-import * as path from 'path';
+import { NewsStatus } from "@prisma/client";
 
 export const metadata: Metadata = {
   title: "Manage News - Admin",
 };
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 
 async function getNews() {
   return prisma.news.findMany({
@@ -15,15 +17,17 @@ async function getNews() {
   });
 }
 
-function getPendingCount(): number {
-  const reviewDir = path.join(process.cwd(), 'pending-reviews');
-  if (!fs.existsSync(reviewDir)) return 0;
-  return fs.readdirSync(reviewDir).filter(f => f.endsWith('.json')).length;
+async function getPendingCount(): Promise<number> {
+  return prisma.news.count({
+    where: { status: { in: [NewsStatus.PENDING, NewsStatus.REVIEWED] } }
+  });
 }
 
 export default async function NewsPage() {
-  const news = await getNews();
-  const pendingCount = getPendingCount();
+  const [news, pendingCount] = await Promise.all([
+    getNews(),
+    getPendingCount()
+  ]);
 
   return (
     <div className="min-h-screen bg-gray-50">

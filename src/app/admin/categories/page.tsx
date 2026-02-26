@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: "Manage Categories - Admin",
 };
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 async function getCategories() {
   return prisma.category.findMany({
     orderBy: { sortOrder: "asc" },

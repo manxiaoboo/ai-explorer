@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   title: "Manage Tools - Admin",
 };
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 async function getTools() {
   return prisma.tool.findMany({
     include: { category: true },

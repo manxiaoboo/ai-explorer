@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: "Admin Dashboard - Atooli",
 };
 
+// Force dynamic rendering - no database connection at build time
+export const dynamic = 'force-dynamic';
+
 async function getStats() {
   const [toolsCount, categoriesCount, tagsCount, newsCount, pendingCount] = await Promise.all([
     prisma.tool.count(),

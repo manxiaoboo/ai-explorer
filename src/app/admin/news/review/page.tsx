@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   title: "Review Pending News - Admin",
 };
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 async function getPendingNews() {
   return prisma.news.findMany({
     where: { 
