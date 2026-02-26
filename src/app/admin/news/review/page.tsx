@@ -73,11 +73,11 @@ export default async function ReviewNewsPage() {
             <h1 className="text-xl font-bold">Review Pending News</h1>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-green-600">
               {readyToPublish.length} ready to publish
             </span>
             <span className="text-sm text-amber-600">
-              {needsAnalysis.length} needs AI analysis
+              {needsAnalysis.length} needs review
             </span>
           </div>
         </div>
@@ -109,117 +109,22 @@ export default async function ReviewNewsPage() {
                 </h2>
                 <div className="space-y-4">
                   {readyToPublish.map(({ file, data }) => (
-                    <div key={file} className="bg-white rounded-xl shadow-sm border overflow-hidden">
-                      <div className="p-6">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <h3 className="text-lg font-semibold">{data.title}</h3>
-                              <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
-                                {data.source}
-                              </span>
-                              {data.mentionedTools.length > 0 && (
-                                <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">
-                                  {data.mentionedTools.length} tools linked
-                                </span>
-                              )}
-                            </div>
-                            
-                            <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
-                              <span>Source: <a href={data.originalUrl} target="_blank" className="text-blue-600 hover:underline">{data.source} ↗</a></span>
-                              <span>•</span>
-                              <span>Fetched: {new Date(data.fetchedAt).toLocaleDateString()}</span>
-                              {data.aiAnalysis && (
-                                <>
-                                  <span>•</span>
-                                  <span className="text-green-600">Quality: {data.aiAnalysis.qualityScore}/100</span>
-                                </>
-                              )}
-                            </div>
-
-                            {data.aiAnalysis && (
-                              <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                                <div className="text-sm font-medium text-gray-700 mb-2">AI Summary:</div>
-                                <p className="text-gray-600 text-sm mb-3">{data.aiAnalysis.summary}</p>
-                                <div className="flex flex-wrap gap-2">
-                                  {data.aiAnalysis.keyPoints.map((point, i) => (
-                                    <span key={i} className="text-xs bg-white px-2 py-1 rounded border">
-                                      {point}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {data.mentionedTools.length > 0 && (
-                              <div className="flex flex-wrap gap-2">
-                                {data.mentionedTools.map(tool => (
-                                  <span key={tool.toolId} className="text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded-full">
-                                    🔗 {tool.toolName} ({tool.mentions}×)
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="flex flex-col gap-2">
-                            <PublishPendingButton fileName={file} title={data.title} />
-                            <DeletePendingButton fileName={file} title={data.title} />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    <ArticleCard key={file} file={file} data={data} hasAnalysis={true} />
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Needs Analysis Section */}
+            {/* Needs Review Section */}
             {needsAnalysis.length > 0 && (
               <div>
                 <h2 className="text-lg font-semibold text-amber-700 mb-4 flex items-center gap-2">
                   <span className="w-2 h-2 bg-amber-500 rounded-full"></span>
-                  Needs AI Analysis ({needsAnalysis.length})
+                  Needs Review ({needsAnalysis.length})
                 </h2>
                 <div className="space-y-4">
                   {needsAnalysis.map(({ file, data }) => (
-                    <div key={file} className="bg-white rounded-xl shadow-sm border overflow-hidden opacity-75">
-                      <div className="p-6">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <h3 className="text-lg font-semibold">{data.title}</h3>
-                              <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-                                {data.source}
-                              </span>
-                            </div>
-                            
-                            <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
-                              <span>Source: <a href={data.originalUrl} target="_blank" className="text-blue-600 hover:underline">{data.source} ↗</a></span>
-                              <span>•</span>
-                              <span>Fetched: {new Date(data.fetchedAt).toLocaleDateString()}</span>
-                            </div>
-
-                            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
-                              <div className="text-sm text-amber-800 mb-2">
-                                ⚠️ This article needs AI analysis before publishing.
-                              </div>
-                              <div className="text-xs text-amber-700">
-                                File: <code className="bg-white px-1 rounded">pending-reviews/{file}</code>
-                              </div>
-                            </div>
-
-                            <div className="text-sm text-gray-600 line-clamp-3">
-                              {data.content.substring(0, 300)}...
-                            </div>
-                          </div>
-
-                          <div className="flex flex-col gap-2">
-                            <DeletePendingButton fileName={file} title={data.title} />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    <ArticleCard key={file} file={file} data={data} hasAnalysis={false} />
                   ))}
                 </div>
               </div>
@@ -227,6 +132,119 @@ export default async function ReviewNewsPage() {
           </div>
         )}
       </main>
+    </div>
+  );
+}
+
+// Article Card Component
+function ArticleCard({ 
+  file, 
+  data, 
+  hasAnalysis 
+}: { 
+  file: string; 
+  data: PendingArticle; 
+  hasAnalysis: boolean;
+}) {
+  return (
+    <div className={`bg-white rounded-xl shadow-sm border overflow-hidden ${!hasAnalysis ? 'opacity-90' : ''}`}>
+      <div className="p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <!-- Title Row -->
+            <div className="flex items-center gap-3 mb-2">
+              <h3 className="text-lg font-semibold">{data.title}</h3>
+              <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                {data.source}
+              </span>
+              {data.mentionedTools.length > 0 && (
+                <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">
+                  {data.mentionedTools.length} tools linked
+                </span>
+              )}
+            </div>
+            
+            <!-- Meta Info -->
+            <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+              <span>Source: <a href={data.originalUrl} target="_blank" className="text-blue-600 hover:underline">{data.source} ↗</a></span>
+              <span>•</span>
+              <span>Fetched: {new Date(data.fetchedAt).toLocaleDateString()}</span>
+              {data.author && (
+                <>
+                  <span>•</span>
+                  <span>By: {data.author}</span>
+                </>
+              )}
+              {hasAnalysis && data.aiAnalysis && (
+                <>
+                  <span>•</span>
+                  <span className="text-green-600">Quality: {data.aiAnalysis.qualityScore}/100</span>
+                </>
+              )}
+            </div>
+
+            <!-- AI Analysis (if available) -->
+            {hasAnalysis && data.aiAnalysis && (
+              <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                <div className="text-sm font-medium text-gray-700 mb-2">AI Summary:</div>
+                <p className="text-gray-600 text-sm mb-3">{data.aiAnalysis.summary}</p>
+                <div className="flex flex-wrap gap-2">
+                  {data.aiAnalysis.keyPoints.map((point, i) => (
+                    <span key={i} className="text-xs bg-white px-2 py-1 rounded border">
+                      {point}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <!-- Content Preview (collapsible) -->
+            <div className="bg-slate-50 rounded-lg p-4 mb-4">
+              <div className="text-sm font-medium text-gray-700 mb-2">Original Content Preview:</div>
+              <div 
+                className="text-sm text-gray-600 prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ 
+                  __html: data.content.substring(0, 800) + (data.content.length > 800 ? '...' : '') 
+                }}
+              />
+              {data.content.length > 800 && (
+                <div className="mt-2">
+                  <a 
+                    href={data.originalUrl} 
+                    target="_blank" 
+                    className="text-sm text-blue-600 hover:underline"
+                  >
+                    Read full article ↗
+                  </a>
+                </div>
+              )}
+            </div>
+
+            <!-- Linked Tools -->
+            {data.mentionedTools.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {data.mentionedTools.map(tool => (
+                  <span key={tool.toolId} className="text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded-full">
+                    🔗 {tool.toolName} ({tool.mentions}×)
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <!-- Action Buttons -->
+          <div className="flex flex-col gap-2">
+            {!hasAnalysis && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-2 w-48">
+                <div className="text-xs text-amber-800 mb-1">⚠️ No AI analysis</div>
+                <div className="text-xs text-amber-600">You can still publish with original content</div>
+              </div>
+            )}
+            <PublishPendingButton fileName={file} title={data.title} />
+            <DeletePendingButton fileName={file} title={data.title} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

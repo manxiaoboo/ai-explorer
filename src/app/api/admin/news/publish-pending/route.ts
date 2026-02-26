@@ -22,12 +22,15 @@ export async function POST(request: NextRequest) {
     const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
     
     // Check if AI analysis is complete
-    if (!data.aiAnalysis?.summary || data.aiAnalysis.summary.includes('[')) {
-      return NextResponse.json({ error: 'AI analysis incomplete' }, { status: 400 });
-    }
+    const hasAIAnalysis = data.aiAnalysis?.summary && !data.aiAnalysis.summary.includes('[');
     
     // Create curated content
-    const curatedContent = `## Summary
+    let curatedContent: string;
+    let excerpt: string;
+    
+    if (hasAIAnalysis) {
+      // Use AI-generated summary
+      curatedContent = `## Summary
 ${data.aiAnalysis.summary}
 
 ## Key Points
@@ -38,13 +41,24 @@ Read the full article at [${data.source}](${data.originalUrl}).
 
 ---
 *This is a curated summary by Atooli. All content belongs to the original author.*`;
+      excerpt = data.aiAnalysis.summary;
+    } else {
+      // Use original content with note
+      curatedContent = `## Original Article
+${data.content}
+
+---
+*Source: [${data.source}](${data.originalUrl})*
+*This article is shared from ${data.source}. All content belongs to the original author.*`;
+      excerpt = data.content.substring(0, 200) + '...';
+    }
     
     // Save to database
     const news = await prisma.news.create({
       data: {
         slug: data.slug,
         title: data.title,
-        excerpt: data.aiAnalysis.summary,
+        excerpt: excerpt,
         content: curatedContent,
         originalUrl: data.originalUrl,
         source: data.source,
