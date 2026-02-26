@@ -142,20 +142,47 @@ async function savePendingArticle(article: RawArticle, mentionedTools: any[]) {
   return reviewFile;
 }
 
-// Main aggregation function
+// Main aggregation function - Daily limit: 5 articles
 async function aggregateNews() {
   console.log('🔄 Fetching news articles...\n');
   
+  // Check already pending articles
+  const reviewDir = path.join(process.cwd(), 'pending-reviews');
+  let existingPending = 0;
+  if (fs.existsSync(reviewDir)) {
+    existingPending = fs.readdirSync(reviewDir).filter(f => f.endsWith('.json')).length;
+  }
+  
+  if (existingPending >= 5) {
+    console.log(`⏸️ Already have ${existingPending} articles pending review.`);
+    console.log('   Please process existing articles before fetching more.\n');
+    await prisma.$disconnect();
+    return;
+  }
+  
+  const dailyLimit = 5;
+  const remainingSlots = dailyLimit - existingPending;
+  
+  console.log(`📋 Daily limit: ${dailyLimit} articles`);
+  console.log(`   Pending: ${existingPending}, Can fetch: ${remainingSlots}\n`);
+  
   let totalFound = 0;
-  let totalPending = 0;
+  let totalPending = existingPending;
   const pendingList: Array<{title: string, file: string, tools: string[]}> = [];
   
   for (const source of CONTENT_SOURCES) {
+    if (totalPending >= dailyLimit) {
+      console.log('✅ Daily limit reached. Stopping fetch.\n');
+      break;
+    }
+    
     console.log(`📡 Fetching from ${source.name}...`);
     const articles = await fetchRSSFeed(source);
     console.log(`  Found ${articles.length} articles`);
     
-    for (const article of articles.slice(0, 5)) {
+    for (const article of articles.slice(0, 3)) { // Max 3 per source
+      if (totalPending >= dailyLimit) break;
+      
       if (await isDuplicate(article.url, article.title)) {
         console.log(`  ⏭️ Duplicate: ${article.title.substring(0, 50)}...`);
         continue;
