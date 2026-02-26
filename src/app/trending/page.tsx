@@ -4,7 +4,7 @@ import { StructuredData } from "@/components/StructuredData";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Trending - Tooli",
+  title: "Trending - atooli",
   description: "The hottest AI tools right now. Ranked by real activity across GitHub, Product Hunt, and community engagement.",
   alternates: {
     canonical: "/trending",

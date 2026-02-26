@@ -10,7 +10,7 @@ import type { Tool, Category, Prisma } from "@prisma/client";
 type ToolWithCategory = Tool & { category: Category };
 
 export const metadata: Metadata = {
-  title: "Tooli - AI Tools Directory",
+  title: "atooli - AI Tools Directory",
   description: "500+ AI tools, hand-picked and categorized. Find the perfect tool for writing, images, code, and more.",
   alternates: {
     canonical: "/",
@@ -177,7 +177,7 @@ export default async function HomePage() {
   const websiteStructuredData = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "Tooli",
+    name: "atooli",
     url: "https://tooli.ai",
     potentialAction: {
       "@type": "SearchAction",
@@ -196,7 +196,7 @@ export default async function HomePage() {
           <div className="max-w-2xl">
             <div className="flex items-center gap-2 mb-4">
               <span className="w-8 h-8 bg-gradient-to-br from-orange-500 to-amber-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">T</span>
-              <span className="text-sm font-medium text-slate-500">Tooli</span>
+              <span className="text-sm font-medium text-slate-500">atooli</span>
             </div>
 
             <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 leading-tight">

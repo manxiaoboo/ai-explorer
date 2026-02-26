@@ -78,7 +78,7 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
     datePublished: article.publishedAt?.toISOString(),
     publisher: {
       "@type": "Organization",
-      name: "Tooli",
+      name: "atooli",
       logo: {
         "@type": "ImageObject",
         url: "https://tooli.ai/logo.png",

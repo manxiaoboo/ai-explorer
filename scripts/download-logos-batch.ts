@@ -36,7 +36,7 @@ async function fetchLogo(url: string): Promise<Buffer | null> {
   try {
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; Tooli-Bot/1.0)'
+        'User-Agent': 'Mozilla/5.0 (compatible; atooli-Bot/1.0)'
       },
       signal: AbortSignal.timeout(10000)
     });

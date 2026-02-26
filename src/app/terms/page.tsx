@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms - Tooli",
+  title: "Terms - atooli",
   description: "The rules. Don't be a jerk and we'll get along fine.",
 };
 
@@ -20,7 +20,7 @@ export default function TermsPage() {
 
         <section className="space-y-6 text-[var(--muted)]">
           <p>
-            By using Tooli, you agree to these simple rules. Don&apos;t worry, 
+            By using atooli, you agree to these simple rules. Don&apos;t worry, 
             they&apos;re pretty reasonable.
           </p>
 

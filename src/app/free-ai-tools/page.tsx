@@ -4,7 +4,7 @@ import { ToolCard } from "@/components/ToolCard";
 import { StructuredData } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Free AI Tools - No Credit Card Required | Tooli",
+  title: "Free AI Tools - No Credit Card Required | atooli",
   description: "120+ genuinely free AI tools. No trials, no tricks. Find free alternatives for writing, images, coding, and more.",
   alternates: {
     canonical: "/free-ai-tools",

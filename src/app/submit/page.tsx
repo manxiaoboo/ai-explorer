@@ -2,8 +2,8 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Submit Your Tool - Tooli",
-  description: "Add your tool to Tooli. Reach thousands of people actively searching for solutions like yours.",
+  title: "Submit Your Tool - atooli",
+  description: "Add your tool to atooli. Reach thousands of people actively searching for solutions like yours.",
 };
 
 const benefits = [

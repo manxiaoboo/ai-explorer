@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   }
   
   return {
-    title: `${category.name} Tools - Tooli`,
+    title: `${category.name} Tools - atooli`,
     description: `The best ${category.name.toLowerCase()} tools we could find. Compared, reviewed, and ready to try.`,
     alternates: {
       canonical: `/category/${slug}`,
