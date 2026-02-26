@@ -11,30 +11,43 @@ interface NewsArticlePageProps {
   }>;
 }
 
+// Force dynamic rendering to avoid build-time DB connection
+export const dynamic = 'force-dynamic';
+
 async function getArticle(slug: string) {
-  return prisma.news.findUnique({
-    where: { slug, isPublished: true },
-    include: {
-      mentions: {
-        include: {
-          tool: {
-            select: { id: true, name: true, slug: true, tagline: true, logo: true }
+  try {
+    return await prisma.news.findUnique({
+      where: { slug, isPublished: true },
+      include: {
+        mentions: {
+          include: {
+            tool: {
+              select: { id: true, name: true, slug: true, tagline: true, logo: true }
+            }
           }
         }
       }
-    }
-  });
+    });
+  } catch (error) {
+    console.error('Error fetching article:', error);
+    return null;
+  }
 }
 
 async function getRelatedArticles(currentSlug: string) {
-  return prisma.news.findMany({
-    where: { 
-      isPublished: true,
-      slug: { not: currentSlug },
-    },
-    take: 3,
-    orderBy: { publishedAt: "desc" },
-  });
+  try {
+    return await prisma.news.findMany({
+      where: { 
+        isPublished: true,
+        slug: { not: currentSlug },
+      },
+      take: 3,
+      orderBy: { publishedAt: "desc" },
+    });
+  } catch (error) {
+    console.error('Error fetching related articles:', error);
+    return [];
+  }
 }
 
 function formatDate(date: Date | null) {
@@ -48,39 +61,48 @@ function formatDate(date: Date | null) {
 
 // Extract first image from HTML content
 function extractFirstImage(content: string): string | null {
-  const imgMatch = content.match(/<img[^>]+src=["']([^"']+)["'][^>]*>/i);
+  if (!content) return null;
+  const imgMatch = content.match(/<img[^\u003e]+src=["']([^"']+)["'][^\u003e]*>/i);
   return imgMatch ? imgMatch[1] : null;
 }
 
 // Strip HTML tags for plain text preview
 function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!html) return "";
+  return html.replace(/<[^\u003e]*>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 export async function generateMetadata({ params }: NewsArticlePageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const article = await getArticle(slug);
-  
-  if (!article) {
-    return { title: "Article Not Found" };
-  }
-  
-  const firstImage = extractFirstImage(article.content);
-  
-  return {
-    title: `${article.title} | AI News`,
-    description: article.excerpt || stripHtml(article.content).substring(0, 160),
-    alternates: {
-      canonical: `/news/${slug}`,
-    },
-    openGraph: {
-      title: article.title,
+  try {
+    const { slug } = await params;
+    const article = await prisma.news.findUnique({
+      where: { slug, isPublished: true }
+    });
+    
+    if (!article) {
+      return { title: "Article Not Found" };
+    }
+    
+    const firstImage = extractFirstImage(article.content);
+    
+    return {
+      title: `${article.title} | AI News`,
       description: article.excerpt || stripHtml(article.content).substring(0, 160),
-      type: "article",
-      publishedTime: article.publishedAt?.toISOString(),
-      images: firstImage ? [firstImage] : undefined,
-    },
-  };
+      alternates: {
+        canonical: `/news/${slug}`,
+      },
+      openGraph: {
+        title: article.title,
+        description: article.excerpt || stripHtml(article.content).substring(0, 160),
+        type: "article",
+        publishedTime: article.publishedAt?.toISOString(),
+        images: firstImage ? [firstImage] : undefined,
+      },
+    };
+  } catch (error) {
+    console.error('Error generating metadata:', error);
+    return { title: "AI News" };
+  }
 }
 
 export default async function NewsArticlePage({ params }: NewsArticlePageProps) {
@@ -92,10 +114,10 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
   }
 
   const relatedArticles = await getRelatedArticles(slug);
-  const relatedTools = article.mentions.map((m: any) => ({
+  const relatedTools = article.mentions?.map((m: any) => ({
     ...m.tool,
     mentions: m.mentions
-  }));
+  })) || [];
 
   // Extract image from content if no coverImage
   const contentImage = !article.coverImage ? extractFirstImage(article.content) : null;
@@ -157,10 +179,6 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
               alt={article.title}
               className="w-full h-full object-cover"
               referrerPolicy="no-referrer"
-              onError={(e) => {
-                // Hide broken images
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
             />
           </div>
         )}
@@ -179,7 +197,7 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
                        prose-a:hover:underline
                        prose-img:rounded-xl
                        prose-img:my-4"
-              dangerouslySetInnerHTML={{ __html: article.content }}
+              dangerouslySetInnerHTML={{ __html: article.content || '' }}
             />
             
             {/* Source Link */}
