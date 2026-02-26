@@ -1,9 +1,11 @@
 /**
- * AI News Aggregator & Curator
- * Automated content aggregation with tool linking
+ * News Aggregator - Fetch Only
+ * Saves raw articles for manual AI analysis
  */
 
 import { PrismaClient } from '@prisma/client';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const prisma = new PrismaClient();
 
@@ -12,19 +14,26 @@ const CONTENT_SOURCES = [
   {
     name: 'OpenAI Blog',
     url: 'https://openai.com/blog',
-    type: 'rss',
     category: 'AI Research'
   },
   {
     name: 'Anthropic News',
     url: 'https://www.anthropic.com/news',
-    type: 'rss', 
+    category: 'AI Research'
+  },
+  {
+    name: 'Google AI Blog',
+    url: 'https://ai.googleblog.com',
     category: 'AI Research'
   },
   {
     name: 'TechCrunch AI',
     url: 'https://techcrunch.com/category/artificial-intelligence/feed/',
-    type: 'rss',
+    category: 'Industry News'
+  },
+  {
+    name: 'The Verge AI',
+    url: 'https://www.theverge.com/ai-artificial-intelligence/rss/index.xml',
     category: 'Industry News'
   }
 ];
@@ -61,44 +70,6 @@ async function fetchRSSFeed(source: typeof CONTENT_SOURCES[0]): Promise<RawArtic
   }
 }
 
-// AI-powered content analysis
-async function analyzeWithAI(article: RawArticle): Promise<any> {
-  const prompt = `Analyze this tech article:
-
-Title: ${article.title}
-Content: ${article.content.substring(0, 3000)}
-
-Provide JSON:
-{
-  "summary": "2-sentence summary",
-  "keyPoints": ["point1", "point2", "point3"],
-  "relevanceScore": 85,
-  "qualityScore": 78
-}`;
-
-  try {
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.GEMINI_API_KEY}`
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.3, maxOutputTokens: 1000 }
-      })
-    });
-
-    if (!response.ok) return null;
-    const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    return jsonMatch ? JSON.parse(jsonMatch[0]) : null;
-  } catch (error) {
-    return null;
-  }
-}
-
 // Find mentioned tools in article
 async function findMentionedTools(content: string, title: string) {
   const tools = await prisma.tool.findMany({
@@ -111,7 +82,6 @@ async function findMentionedTools(content: string, title: string) {
   
   for (const tool of tools) {
     const nameLower = tool.name.toLowerCase();
-    // Escape special regex characters
     const escapedName = nameLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`\\b${escapedName}\\b`, 'gi');
     const matches = fullText.match(regex);
@@ -142,12 +112,43 @@ async function isDuplicate(url: string, title: string): Promise<boolean> {
   return !!existing;
 }
 
-// Process articles
+// Save pending article for manual review
+async function savePendingArticle(article: RawArticle, mentionedTools: any[]) {
+  const slug = generateSlug(article.title);
+  
+  // Create pending review file
+  const reviewDir = path.join(process.cwd(), 'pending-reviews');
+  if (!fs.existsSync(reviewDir)) {
+    fs.mkdirSync(reviewDir, { recursive: true });
+  }
+  
+  const reviewFile = path.join(reviewDir, `${slug}.json`);
+  
+  const reviewData = {
+    slug,
+    title: article.title,
+    originalUrl: article.url,
+    source: article.source,
+    author: article.author,
+    publishedAt: article.publishedAt,
+    content: article.content,
+    mentionedTools,
+    fetchedAt: new Date().toISOString(),
+    status: 'pending_ai_analysis'
+  };
+  
+  fs.writeFileSync(reviewFile, JSON.stringify(reviewData, null, 2));
+  
+  return reviewFile;
+}
+
+// Main aggregation function
 async function aggregateNews() {
-  console.log('🔄 Starting news aggregation...\n');
+  console.log('🔄 Fetching news articles...\n');
   
   let totalFound = 0;
-  let totalSaved = 0;
+  let totalPending = 0;
+  const pendingList: Array<{title: string, file: string, tools: string[]}> = [];
   
   for (const source of CONTENT_SOURCES) {
     console.log(`📡 Fetching from ${source.name}...`);
@@ -160,66 +161,47 @@ async function aggregateNews() {
         continue;
       }
       
-      const aiAnalysis = await analyzeWithAI(article);
-      if (!aiAnalysis || aiAnalysis.qualityScore < 60) {
-        console.log(`  ⏭️ Low quality: ${article.title.substring(0, 50)}...`);
-        continue;
-      }
-      
       const mentionedTools = await findMentionedTools(article.content, article.title);
       
-      // Create curated content
-      const curatedContent = `## Summary
-${aiAnalysis.summary}
-
-## Key Points
-${aiAnalysis.keyPoints.map((p: string) => `- ${p}`).join('\n')}
-
-## Original Article
-Read the full article at [${article.source}](${article.url}).
-
----
-*This is a curated summary by Atooli. All content belongs to the original author.*`;
-
-      const news = await prisma.news.create({
-        data: {
-          slug: generateSlug(article.title),
-          title: article.title,
-          excerpt: aiAnalysis.summary,
-          content: curatedContent,
-          originalUrl: article.url,
-          source: article.source,
-          isPublished: false,
-          publishedAt: article.publishedAt
-        }
+      // Save for manual AI analysis
+      const reviewFile = await savePendingArticle(article, mentionedTools);
+      
+      totalPending++;
+      pendingList.push({
+        title: article.title,
+        file: reviewFile,
+        tools: mentionedTools.map(t => t.toolName)
       });
       
-      // Store tool mentions
-      for (const mention of mentionedTools) {
-        await prisma.$executeRaw`
-          INSERT INTO "NewsToolMention" ("id", "newsId", "toolId", "mentions", "createdAt")
-          VALUES (
-            gen_random_uuid()::text,
-            ${news.id},
-            ${mention.toolId},
-            ${mention.mentions},
-            NOW()
-          )
-          ON CONFLICT DO NOTHING
-        `;
-      }
-      
-      totalSaved++;
-      console.log(`  ✅ Saved: ${article.title.substring(0, 60)}...`);
+      console.log(`  ✅ Saved for review: ${article.title.substring(0, 60)}...`);
       if (mentionedTools.length > 0) {
-        console.log(`     🔗 Linked: ${mentionedTools.map(t => t.toolName).join(', ')}`);
+        console.log(`     🔗 Tools found: ${mentionedTools.map(t => t.toolName).join(', ')}`);
       }
     }
     
     totalFound += articles.length;
   }
   
-  console.log(`\n📊 Summary: ${totalFound} found, ${totalSaved} saved for review`);
+  // Generate summary report
+  console.log(`\n========================================`);
+  console.log(`📊 Summary: ${totalFound} found, ${totalPending} pending review`);
+  console.log(`========================================\n`);
+  
+  if (pendingList.length > 0) {
+    console.log('📝 Pending Articles for AI Analysis:\n');
+    pendingList.forEach((item, index) => {
+      console.log(`${index + 1}. ${item.title}`);
+      console.log(`   File: ${item.file}`);
+      if (item.tools.length > 0) {
+        console.log(`   Tools: ${item.tools.join(', ')}`);
+      }
+      console.log('');
+    });
+    
+    console.log('👉 Next step: Run AI analysis on these articles');
+    console.log('   Command: npx tsx scripts/process-pending-articles.ts');
+  }
+  
   await prisma.$disconnect();
 }
 
