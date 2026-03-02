@@ -8,8 +8,8 @@ datasource db {
 }
 
 model Tool {
-  id                  String         @id @default(cuid())
-  slug                String         @unique
+  id                  String            @id @default(cuid())
+  slug                String            @unique
   name                String
   tagline             String
   description         String
@@ -19,38 +19,38 @@ model Tool {
   metaDescription     String?
   ogImage             String?
   categoryId          String
-  pricingTier         PricingTier    @default(FREE)
+  pricingTier         PricingTier       @default(FREE)
   priceStart          Float?
   priceEnd            Float?
-  hasFreeTier         Boolean        @default(false)
-  hasTrial            Boolean        @default(false)
+  hasFreeTier         Boolean           @default(false)
+  hasTrial            Boolean           @default(false)
   features            String[]
   useCases            String[]
   githubStars         Int?
   githubStarsGrowth7d Int?
   productHuntVotes    Int?
-  trendingScore       Float          @default(0)
-  isActive            Boolean        @default(true)
-  isFeatured          Boolean        @default(false)
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
-  avgTimeOnPage       Int            @default(0)
-  clickCount          Int            @default(0)
-  clickCount7d        Int            @default(0)
+  trendingScore       Float             @default(0)
+  isActive            Boolean           @default(true)
+  isFeatured          Boolean           @default(false)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  avgTimeOnPage       Int               @default(0)
+  clickCount          Int               @default(0)
+  clickCount7d        Int               @default(0)
   githubRepo          String?
   hfDownloads         Int?
   hfDownloadsGrowth7d Int?
   hfLikes             Int?
   hfModelId           String?
   productHuntId       String?
-  saveCount           Int            @default(0)
+  saveCount           Int               @default(0)
   logoType            String?
+  newsMentions        NewsToolMention[]
   priceHistory        PriceHistory[]
-  category            Category       @relation(fields: [categoryId], references: [id])
+  category            Category          @relation(fields: [categoryId], references: [id])
   clicks              ToolClick[]
   saves               ToolSave[]
-  tags                Tag[]          @relation("TagToTool")
-  newsMentions        NewsToolMention[]
+  tags                Tag[]             @relation("TagToTool")
 
   @@index([categoryId])
   @@index([pricingTier])
@@ -117,21 +117,21 @@ model PriceHistory {
 }
 
 model News {
-  id              String     @id @default(cuid())
-  slug            String     @unique
+  id              String            @id @default(cuid())
+  slug            String            @unique
   title           String
   excerpt         String
   content         String
   coverImage      String?
   metaTitle       String?
   metaDescription String?
-  originalUrl     String?    // Source URL for curated content
-  source          String?    // Source name (e.g., "OpenAI Blog")
-  status          NewsStatus @default(PENDING)
-  isPublished     Boolean    @default(false)
+  isPublished     Boolean           @default(false)
   publishedAt     DateTime?
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  originalUrl     String?
+  source          String?
+  status          NewsStatus?       @default(PENDING)
   mentions        NewsToolMention[]
 
   @@index([status])
@@ -140,13 +140,13 @@ model News {
 }
 
 model NewsToolMention {
-  id        String   @id @default(cuid())
+  id        String   @id @default(dbgenerated("(gen_random_uuid())::text"))
   newsId    String
   toolId    String
   mentions  Int      @default(1)
-  createdAt DateTime @default(now())
-  news      News     @relation(fields: [newsId], references: [id], onDelete: Cascade)
-  tool      Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  news      News     @relation(fields: [newsId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  tool      Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([newsId, toolId])
   @@index([newsId])
@@ -154,10 +154,10 @@ model NewsToolMention {
 }
 
 enum NewsStatus {
-  PENDING   // Waiting for AI analysis and review
-  REVIEWED  // AI analysis complete, ready to publish
-  PUBLISHED // Published
-  REJECTED  // Rejected/ignored
+  PENDING
+  REVIEWED
+  PUBLISHED
+  REJECTED
 }
 
 enum PricingTier {

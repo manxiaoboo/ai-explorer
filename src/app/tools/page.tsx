@@ -39,6 +39,10 @@ export async function generateMetadata({ searchParams }: ToolsPageProps): Promis
   };
 }
 
+// Force dynamic rendering to ensure fresh data
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 async function getTools(filters: {
   category?: string;
   pricing?: string;

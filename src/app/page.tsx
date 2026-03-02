@@ -17,6 +17,10 @@ export const metadata: Metadata = {
   },
 };
 
+// Force dynamic rendering to ensure fresh data
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 async function queryWithRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> {
   let lastError;
   for (let i = 0; i < maxRetries; i++) {

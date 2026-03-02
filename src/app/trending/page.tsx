@@ -11,6 +11,10 @@ export const metadata: Metadata = {
   },
 };
 
+// Force dynamic rendering to ensure fresh data
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 async function getTrendingTools() {
   return prisma.tool.findMany({
     where: { isActive: true },

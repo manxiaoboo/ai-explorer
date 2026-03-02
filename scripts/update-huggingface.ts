@@ -16,12 +16,18 @@ interface HFModelInfo {
 
 async function fetchHFModel(modelId: string): Promise<HFModelInfo | null> {
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
     const response = await fetch(`https://huggingface.co/api/models/${modelId}`, {
       headers: {
         'Accept': 'application/json',
         'User-Agent': 'Atooli-Updater/1.0'
-      }
+      },
+      signal: controller.signal
     });
+    
+    clearTimeout(timeout);
     
     if (!response.ok) {
       if (response.status === 404) {
@@ -42,7 +48,11 @@ async function fetchHFModel(modelId: string): Promise<HFModelInfo | null> {
     };
     
   } catch (error) {
-    console.error(`Error fetching ${modelId}:`, error);
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.log(`Timeout fetching ${modelId}`);
+    } else {
+      console.error(`Error fetching ${modelId}:`, error);
+    }
     return null;
   }
 }
