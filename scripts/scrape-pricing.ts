@@ -412,4 +412,5 @@ if (require.main === module) {
   updateAllPricing().catch(console.error);
 }
 
-export { updateToolPricing, PricingData, PricingPlan };
+export { updateToolPricing };
+export type { PricingData, PricingPlan };
