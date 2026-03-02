@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { StructuredData } from "@/components/StructuredData";
-import { RelatedTools } from "@/components/RelatedTools";
+import { ArticleSidebar, extractTableOfContents } from "@/components/ArticleSidebar";
 
 interface NewsArticlePageProps {
   params: Promise<{
@@ -119,6 +119,9 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
     mentions: m.mentions
   })) || [];
 
+  // Extract table of contents from content
+  const tableOfContents = extractTableOfContents(article.content || '');
+
   // Extract image from content if no coverImage
   const contentImage = !article.coverImage ? extractFirstImage(article.content) : null;
   const displayImage = article.coverImage || contentImage;
@@ -231,7 +234,12 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
           </div>          
           
           <aside className="lg:col-span-1">
-            <RelatedTools tools={relatedTools} />
+            <ArticleSidebar 
+              tools={relatedTools}
+              tableOfContents={tableOfContents}
+              source={article.source}
+              originalUrl={article.originalUrl}
+            />
           </aside>
         </div>
 
