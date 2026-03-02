@@ -79,7 +79,7 @@ async function fetchRSSFeed(source: typeof CONTENT_SOURCES[0]): Promise<RawArtic
 }
 
 // Calculate text density score for an element
-function getTextDensity($: cheerio.CheerioAPI, el: cheerio.Element): number {
+function getTextDensity($: cheerio.CheerioAPI, el: any): number {
   const $el = $(el);
   const text = $el.text().trim();
   const textLength = text.length;
@@ -100,8 +100,8 @@ function getTextDensity($: cheerio.CheerioAPI, el: cheerio.Element): number {
 }
 
 // Extract main content using readability-like algorithm
-function extractMainContent($: cheerio.CheerioAPI): { element: cheerio.Cheerio; score: number } | null {
-  const candidates: Array<{ element: cheerio.Cheerio; score: number }> = [];
+function extractMainContent($: cheerio.CheerioAPI): { element: any; score: number } | null {
+  const candidates: Array<{ element: any; score: number }> = [];
   
   // Common content container selectors
   const selectors = [
@@ -131,7 +131,7 @@ function extractMainContent($: cheerio.CheerioAPI): { element: cheerio.Cheerio; 
   
   // If no good candidates, scan all divs and sections
   if (candidates.length === 0) {
-    $('div, section').each((_, el) => {
+    $('div, section').each((_: any, el: any) => {
       const $el = $(el);
       
       // Skip small elements
@@ -163,7 +163,7 @@ function extractMainContent($: cheerio.CheerioAPI): { element: cheerio.Cheerio; 
 }
 
 // Clean and format extracted content
-function cleanContent($: cheerio.CheerioAPI, contentEl: cheerio.Cheerio, baseUrl: string): { content: string; images: string[] } {
+function cleanContent($: cheerio.CheerioAPI, contentEl: any, baseUrl: string): { content: string; images: string[] } {
   // Clone to avoid modifying original
   const $content = contentEl.clone();
   
@@ -218,7 +218,7 @@ function cleanContent($: cheerio.CheerioAPI, contentEl: cheerio.Cheerio, baseUrl
   // Clean up each element
   const images: string[] = [];
   
-  $content.find('*').each((_, el) => {
+  $content.find('*').each((_: any, el: any) => {
     const $el = $(el);
     
     // Remove empty elements (except br, hr, img)
