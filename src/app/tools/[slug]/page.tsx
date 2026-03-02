@@ -15,7 +15,12 @@ interface ToolPageProps {
 async function getTool(slug: string) {
   return prisma.tool.findUnique({
     where: { slug },
-    include: { category: true },
+    include: { 
+      category: true,
+      pricingPlans: {
+        orderBy: { sortOrder: 'asc' }
+      }
+    },
   });
 }
 
@@ -219,33 +224,85 @@ export default async function ToolPage({ params }: ToolPageProps) {
                 Pricing
               </h3>
               
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-[var(--muted)]">Type</span>
-                  <span className="text-[var(--foreground)] font-medium">{pricingLabel}</span>
+              {/* Multi-tier Pricing Plans */}
+              {tool.pricingPlans && tool.pricingPlans.length > 0 ? (
+                <div className="space-y-3">
+                  {tool.pricingPlans.map((plan) => (
+                    <div 
+                      key={plan.id}
+                      className={`p-3 rounded-lg border ${
+                        plan.isPopular 
+                          ? 'border-[var(--accent)] bg-[var(--accent)]/5' 
+                          : 'border-[var(--border)]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-[var(--foreground)]">
+                          {plan.name}
+                        </span>
+                        {plan.isPopular && (
+                          <span className="text-xs px-2 py-0.5 bg-[var(--accent)] text-white rounded">
+                            Popular
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-lg font-bold text-[var(--foreground)] mb-2">
+                        {plan.price === 0 ? (
+                          'Free'
+                        ) : plan.price === null ? (
+                          'Custom'
+                        ) : (
+                          `$${plan.price}/${plan.priceUnit === 'month' ? 'mo' : plan.priceUnit === 'year' ? 'yr' : plan.priceUnit}`
+                        )}
+                      </div>
+                      {plan.features && plan.features.length > 0 && (
+                        <ul className="space-y-1">
+                          {plan.features.slice(0, 3).map((feature, idx) => (
+                            <li key={idx} className="text-xs text-[var(--muted)] flex items-start gap-1">
+                              <span className="text-[var(--accent)]">•</span>
+                              {feature}
+                            </li>
+                          ))}
+                          {plan.features.length > 3 && (
+                            <li className="text-xs text-[var(--muted)]">
+                              +{plan.features.length - 3} more
+                            </li>
+                          )}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
                 </div>
-                
-                {tool.priceStart && (
+              ) : (
+                /* Fallback to simple pricing display */
+                <div className="space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-[var(--muted)]">From</span>
-                    <span className="text-[var(--foreground)] font-medium">${tool.priceStart}/mo</span>
+                    <span className="text-[var(--muted)]">Type</span>
+                    <span className="text-[var(--foreground)] font-medium">{pricingLabel}</span>
                   </div>
-                )}
-                
-                {tool.hasFreeTier && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-[var(--muted)]">Free tier</span>
-                    <span className="text-[var(--success)]">✓ Yes</span>
-                  </div>
-                )}
-                
-                {tool.hasTrial && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-[var(--muted)]">Free trial</span>
-                    <span className="text-[var(--success)]">✓ Yes</span>
-                  </div>
-                )}
-              </div>
+                  
+                  {tool.priceStart && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-[var(--muted)]">From</span>
+                      <span className="text-[var(--foreground)] font-medium">${tool.priceStart}/mo</span>
+                    </div>
+                  )}
+                  
+                  {tool.hasFreeTier && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-[var(--muted)]">Free tier</span>
+                      <span className="text-[var(--success)]">✓ Yes</span>
+                    </div>
+                  )}
+                  
+                  {tool.hasTrial && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-[var(--muted)]">Free trial</span>
+                      <span className="text-[var(--success)]">✓ Yes</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Metrics Card */}
