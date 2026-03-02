@@ -45,9 +45,9 @@ model Tool {
   productHuntId       String?
   saveCount           Int               @default(0)
   logoType            String?
+  newsMentions        NewsToolMention[]
   priceHistory        PriceHistory[]
   pricingPlans        PricingPlan[]
-  newsMentions        NewsToolMention[]
   category            Category          @relation(fields: [categoryId], references: [id])
   clicks              ToolClick[]
   saves               ToolSave[]
@@ -118,17 +118,17 @@ model PriceHistory {
 }
 
 model PricingPlan {
-  id          String    @id @default(cuid())
-  toolId      String
-  name        String
-  price       Float?
-  priceUnit   String    @default("month") // month, year, one-time, custom
-  features    String[]
-  isPopular   Boolean   @default(false)
-  sortOrder   Int       @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  tool        Tool      @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  toolId    String
+  name      String
+  price     Float?
+  priceUnit String   @default("month")
+  features  String[]
+  isPopular Boolean  @default(false)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tool      Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
 
   @@index([toolId])
   @@index([sortOrder])

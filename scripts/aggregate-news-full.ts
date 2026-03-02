@@ -53,6 +53,42 @@ interface RawArticle {
   coverImage?: string;
 }
 
+// Ensure content is HTML formatted with proper paragraphs
+function ensureHtmlFormat(content: string): string {
+  if (!content) return '';
+  
+  // If already contains HTML tags, assume it's formatted
+  if (/<p>|<div>|<h[1-6]>/i.test(content)) {
+    return content;
+  }
+  
+  // Convert plain text to HTML
+  const paragraphs = content.split(/\n\n+/);
+  
+  return paragraphs.map(p => {
+    const trimmed = p.trim();
+    if (!trimmed) return '';
+    
+    // Check if it looks like a heading
+    if (trimmed.length < 80 && !/[.!?]$/.test(trimmed) && !trimmed.includes('\n')) {
+      return `<h2>${escapeHtml(trimmed)}</h2>`;
+    }
+    
+    // Convert single newlines to <br> within paragraph
+    const withBreaks = trimmed.replace(/\n/g, '<br>');
+    return `<p>${escapeHtml(withBreaks)}</p>`;
+  }).filter(Boolean).join('\n\n');
+}
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 // Fetch RSS feed
 async function fetchRSSFeed(source: typeof CONTENT_SOURCES[0]): Promise<RawArticle[]> {
   try {
@@ -451,7 +487,7 @@ async function aggregateNews() {
           slug: generateSlug(article.title),
           title: article.title,
           excerpt: article.content.substring(0, 300) + '...',
-          content: article.fullContent,
+          content: ensureHtmlFormat(article.fullContent),
           coverImage: coverImage,
           originalUrl: article.url,
           source: article.source,
