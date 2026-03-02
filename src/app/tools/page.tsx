@@ -11,8 +11,11 @@ interface ToolsPageProps {
     pricing?: string;
     sort?: string;
     q?: string;
+    page?: string;
   }>;
 }
+
+const ITEMS_PER_PAGE = 24;
 
 export async function generateMetadata({ searchParams }: ToolsPageProps): Promise<Metadata> {
   const params = await searchParams;
@@ -22,19 +25,32 @@ export async function generateMetadata({ searchParams }: ToolsPageProps): Promis
   if (params.pricing) filters.push(params.pricing);
   if (params.q) filters.push(`"${params.q}"`);
   
+  const currentPage = parseInt(params.page || '1', 10);
+  const pageSuffix = currentPage > 1 ? ` - Page ${currentPage}` : '';
+  
   const title = filters.length > 0 
-    ? `${filters.join(', ')} - Atooli`
-    : 'Browse All Tools - Atooli';
+    ? `${filters.join(', ')}${pageSuffix} - Atooli`
+    : `Browse All Tools${pageSuffix} - Atooli`;
     
   const description = filters.length > 0
     ? `Discover ${filters.join(', ')} AI tools curated by Atooli. Compare features, pricing, and find the right tool for your needs.`
     : 'Explore 500+ AI tools curated by Atooli. Filter by category, pricing, and features to find exactly what you need.';
 
+  // Build canonical URL
+  const canonicalParams: Record<string, string> = {};
+  if (params.category) canonicalParams.category = params.category;
+  if (params.pricing) canonicalParams.pricing = params.pricing;
+  if (params.sort) canonicalParams.sort = params.sort;
+  if (params.q) canonicalParams.q = params.q;
+  if (currentPage > 1) canonicalParams.page = currentPage.toString();
+  
+  const canonicalUrl = buildUrl('https://tooli.ai/tools', canonicalParams);
+
   return {
     title,
     description,
     alternates: {
-      canonical: '/tools',
+      canonical: canonicalUrl,
     },
   };
 }
@@ -48,6 +64,7 @@ async function getTools(filters: {
   pricing?: string;
   sort?: string;
   q?: string;
+  page?: number;
 }) {
   const where: any = { isActive: true };
   
@@ -92,11 +109,21 @@ async function getTools(filters: {
       orderBy = { trendingScore: 'desc' };
   }
   
-  return prisma.tool.findMany({
-    where,
-    orderBy,
-    include: { category: true },
-  });
+  const page = filters.page || 1;
+  const skip = (page - 1) * ITEMS_PER_PAGE;
+  
+  const [tools, totalCount] = await Promise.all([
+    prisma.tool.findMany({
+      where,
+      orderBy,
+      skip,
+      take: ITEMS_PER_PAGE,
+      include: { category: true },
+    }),
+    prisma.tool.count({ where })
+  ]);
+  
+  return { tools, totalCount, totalPages: Math.ceil(totalCount / ITEMS_PER_PAGE) };
 }
 
 async function getCategories() {
@@ -117,8 +144,10 @@ function buildUrl(base: string, params: Record<string, string | undefined>) {
 export default async function ToolsPage({ searchParams }: ToolsPageProps) {
   const params = await searchParams;
   
-  const [tools, categories] = await Promise.all([
-    getTools(params),
+  const currentPage = parseInt(params.page || '1', 10);
+  
+  const [{ tools, totalCount, totalPages }, categories] = await Promise.all([
+    getTools({ ...params, page: currentPage }),
     getCategories(),
   ]);
   
@@ -162,6 +191,14 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
     pricing: params.pricing,
     sort,
     q: params.q,
+  });
+  
+  const getPageUrl = (page: number) => buildUrl('/tools', {
+    category: params.category,
+    pricing: params.pricing,
+    sort: params.sort,
+    q: params.q,
+    page: page > 1 ? page.toString() : undefined,
   });
   
   const getSearchUrl = (q: string) => buildUrl('/tools', {
@@ -397,6 +434,75 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
                 ))}
               </div>
             )}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex items-center justify-center gap-2">
+                {/* Previous */}
+                {currentPage > 1 ? (
+                  <Link
+                    href={getPageUrl(currentPage - 1)}
+                    className="px-3 py-2 text-sm text-[var(--muted)] hover:text-[var(--accent)] border border-[var(--border)] rounded-lg hover:border-[var(--accent)] transition-colors"
+                  >
+                    ← Prev
+                  </Link>
+                ) : (
+                  <span className="px-3 py-2 text-sm text-[var(--muted-foreground)] border border-[var(--border)] rounded-lg opacity-50 cursor-not-allowed">
+                    ← Prev
+                  </span>
+                )}
+
+                {/* Page Numbers */}
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(page => {
+                      // Show first, last, current, and neighbors
+                      return page === 1 || 
+                             page === totalPages || 
+                             Math.abs(page - currentPage) <= 1;
+                    })
+                    .map((page, index, array) => {
+                      const showEllipsis = index > 0 && page - array[index - 1] > 1;
+                      return (
+                        <div key={page} className="flex items-center gap-1">
+                          {showEllipsis && (
+                            <span className="px-2 text-[var(--muted)]">...</span>
+                          )}
+                          <Link
+                            href={getPageUrl(page)}
+                            className={`min-w-[40px] px-3 py-2 text-sm text-center rounded-lg transition-colors ${
+                              currentPage === page
+                                ? 'bg-[var(--accent)] text-white'
+                                : 'text-[var(--muted)] hover:text-[var(--accent)] border border-[var(--border)] hover:border-[var(--accent)]'
+                            }`}
+                          >
+                            {page}
+                          </Link>
+                        </div>
+                      );
+                    })}
+                </div>
+
+                {/* Next */}
+                {currentPage < totalPages ? (
+                  <Link
+                    href={getPageUrl(currentPage + 1)}
+                    className="px-3 py-2 text-sm text-[var(--muted)] hover:text-[var(--accent)] border border-[var(--border)] rounded-lg hover:border-[var(--accent)] transition-colors"
+                  >
+                    Next →
+                  </Link>
+                ) : (
+                  <span className="px-3 py-2 text-sm text-[var(--muted-foreground)] border border-[var(--border)] rounded-lg opacity-50 cursor-not-allowed">
+                    Next →
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Page Info */}
+            <div className="mt-4 text-center text-sm text-[var(--muted)]">
+              Page {currentPage} of {totalPages} • {totalCount} tools total
+            </div>
           </main>
         </div>
       </div>
