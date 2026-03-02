@@ -2,7 +2,7 @@ import { PrismaClient, PricingTier } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const defaultTemplates: Record<PricingTier, any[]> = {
+const defaultTemplates: Record<string, any[]> = {
   [PricingTier.FREE]: [
     { name: 'Free', price: 0, priceUnit: 'month', features: ['All features free'], isPopular: true }
   ],
