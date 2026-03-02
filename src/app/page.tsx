@@ -18,8 +18,12 @@ export const metadata: Metadata = {
 };
 
 // Force dynamic rendering to ensure fresh data
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+// export const dynamic = 'force-dynamic';
+// export const revalidate = 0;
+
+// Use ISR for better performance - regenerate every 5 minutes
+export const dynamic = 'force-static';
+export const revalidate = 300;
 
 async function queryWithRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> {
   let lastError;
@@ -34,32 +38,44 @@ async function queryWithRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promise<
   throw lastError;
 }
 
-// Get tools grouped by category (3 per category)
+// Get tools grouped by category (3 per category) - Optimized to avoid N+1
 async function getToolsByCategory(): Promise<Record<string, ToolWithCategory[]>> {
-  const categories = await queryWithRetry(() =>
-    prisma.category.findMany({
-      orderBy: { sortOrder: "asc" },
+  // Single query to get all active tools with their categories
+  const allTools = await queryWithRetry(() =>
+    prisma.tool.findMany({
+      where: { isActive: true },
+      orderBy: { trendingScore: "desc" },
+      include: { category: true },
     })
   );
   
-  const result: Record<string, ToolWithCategory[]> = {};
+  // Group by category in memory
+  const grouped: Record<string, ToolWithCategory[]> = {};
   
-  for (const category of categories) {
-    const tools = await queryWithRetry(() =>
-      prisma.tool.findMany({
-        where: { 
-          isActive: true,
-          categoryId: category.id,
-        },
-        orderBy: { trendingScore: "desc" },
-        take: 3,
-        include: { category: true },
-      })
-    );
-    
-    // Only include categories with at least 3 tools
-    if (tools.length >= 3) {
-      result[category.name] = tools;
+  for (const tool of allTools) {
+    const categoryName = tool.category.name;
+    if (!grouped[categoryName]) {
+      grouped[categoryName] = [];
+    }
+    // Only keep top 3 per category
+    if (grouped[categoryName].length < 3) {
+      grouped[categoryName].push(tool);
+    }
+  }
+  
+  // Sort categories by sortOrder
+  const categories = await queryWithRetry(() =>
+    prisma.category.findMany({
+      orderBy: { sortOrder: "asc" },
+      select: { name: true }
+    })
+  );
+  
+  // Reorder result by category sortOrder
+  const result: Record<string, ToolWithCategory[]> = {};
+  for (const cat of categories) {
+    if (grouped[cat.name] && grouped[cat.name].length >= 3) {
+      result[cat.name] = grouped[cat.name];
     }
   }
   
