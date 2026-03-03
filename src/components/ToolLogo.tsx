@@ -1,6 +1,6 @@
 /**
  * ToolLogo component with CDN support
- * Uses Vercel Blob for storage + Vercel Image Optimization
+ * Uses Vercel Blob for storage via proxy API
  */
 
 'use client';
@@ -10,7 +10,7 @@ import { getToolLogo } from '@/lib/logos';
 
 interface ToolLogoProps {
   name: string;
-  logo?: string | null;  // From database - can be local path or CDN URL
+  logo?: string | null;  // From database - can be CDN URL or proxy path
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
@@ -28,21 +28,27 @@ export function ToolLogo({ name, logo, size = 'md', className = '' }: ToolLogoPr
   let src: string;
   
   if (logo) {
-    // Use database logo (already CDN URL or local path)
-    src = logo.startsWith('http') ? logo : `${process.env.NEXT_PUBLIC_CDN_URL || ''}${logo}`;
+    // Check if it's a Vercel Blob URL
+    if (logo.includes('vercel-storage.com')) {
+      // Extract the path from the URL
+      const url = new URL(logo);
+      const pathname = url.pathname.substring(1); // Remove leading slash
+      // Use proxy API
+      src = `/api/image?path=${encodeURIComponent(pathname)}`;
+    } else if (logo.startsWith('http')) {
+      // External URL
+      src = logo;
+    } else {
+      // Local path
+      src = logo;
+    }
   } else {
     // Generate fallback SVG
     src = getToolLogo(name);
   }
   
-  // For data URLs (generated SVGs), use unoptimized
+  // For data URLs (generated SVGs), use unoptimized img
   const isDataUrl = src.startsWith('data:');
-  
-  // For external URLs including Vercel Blob, use Vercel Image Optimization
-  const isExternal = src.startsWith('http');
-  
-  // For Vercel Blob URLs, we need to use unoptimized due to private access
-  const isVercelBlob = src.includes('vercel-storage.com');
   
   if (isDataUrl) {
     return (
@@ -56,6 +62,9 @@ export function ToolLogo({ name, logo, size = 'md', className = '' }: ToolLogoPr
     );
   }
   
+  // For proxied images, use unoptimized to avoid Next.js optimization issues
+  const isProxied = src.startsWith('/api/image');
+  
   return (
     <Image
       src={src}
@@ -63,7 +72,7 @@ export function ToolLogo({ name, logo, size = 'md', className = '' }: ToolLogoPr
       width={sizePx}
       height={sizePx}
       className={`rounded-lg object-cover ${className}`}
-      unoptimized={isVercelBlob} // Vercel Blob private URLs need unoptimized
+      unoptimized={isProxied}
     />
   );
 }
