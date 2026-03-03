@@ -9,6 +9,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "**.verge.com" },
       { protocol: "https", hostname: "**.openai.com" },
       { protocol: "https", hostname: "**.anthropic.com" },
+      { protocol: "https", hostname: "**.vercel-storage.com" },
+      { protocol: "https", hostname: "**.blob.vercel-storage.com" },
     ],
     formats: ["image/webp", "image/avif"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
