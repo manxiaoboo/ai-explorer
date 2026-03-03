@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "**.anthropic.com" },
       { protocol: "https", hostname: "**.vercel-storage.com" },
       { protocol: "https", hostname: "**.blob.vercel-storage.com" },
+      { protocol: "https", hostname: "gyqld3z17j5o0ygm.private.blob.vercel-storage.com" },
     ],
     formats: ["image/webp", "image/avif"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],

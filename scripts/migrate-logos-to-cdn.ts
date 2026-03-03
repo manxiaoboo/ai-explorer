@@ -60,9 +60,9 @@ async function migrateLogos() {
           svg: 'image/svg+xml',
         }[ext as string] || 'application/octet-stream';
         
-        // Upload to Vercel Blob
+        // Upload to Vercel Blob (use private access for private stores)
         const blob = await put(blobPath, buffer, {
-          access: 'public',
+          access: 'private',
           contentType,
           addRandomSuffix: false,
         });

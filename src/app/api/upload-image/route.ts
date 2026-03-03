@@ -34,9 +34,9 @@ export async function POST(request: NextRequest) {
     const extension = file.name.split('.').pop();
     const filename = `${folder}/${timestamp}-${random}.${extension}`;
     
-    // Upload to Vercel Blob
+    // Upload to Vercel Blob (use private access for private stores)
     const blob = await put(filename, file, {
-      access: 'public',
+      access: 'private',
       addRandomSuffix: false,
     });
     

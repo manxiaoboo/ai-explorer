@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.4.1",
+    "@vercel/blob": "^2.3.0",
     "cheerio": "^1.2.0",
     "next": "16.1.6",
     "next-sitemap": "^4.2.3",

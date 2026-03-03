@@ -38,8 +38,11 @@ export function ToolLogo({ name, logo, size = 'md', className = '' }: ToolLogoPr
   // For data URLs (generated SVGs), use unoptimized
   const isDataUrl = src.startsWith('data:');
   
-  // For external URLs, use Vercel Image Optimization
-  const isExternal = src.startsWith('http') && !src.includes('vercel-storage.com');
+  // For external URLs including Vercel Blob, use Vercel Image Optimization
+  const isExternal = src.startsWith('http');
+  
+  // For Vercel Blob URLs, we need to use unoptimized due to private access
+  const isVercelBlob = src.includes('vercel-storage.com');
   
   if (isDataUrl) {
     return (
@@ -60,7 +63,7 @@ export function ToolLogo({ name, logo, size = 'md', className = '' }: ToolLogoPr
       width={sizePx}
       height={sizePx}
       className={`rounded-lg object-cover ${className}`}
-      unoptimized={!isExternal} // Use Vercel optimization for external images
+      unoptimized={isVercelBlob} // Vercel Blob private URLs need unoptimized
     />
   );
 }
