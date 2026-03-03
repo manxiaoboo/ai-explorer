@@ -47,10 +47,13 @@ export function ToolLogo({ name, logo, size = 'md', className = '' }: ToolLogoPr
     src = getToolLogo(name);
   }
   
-  // For data URLs (generated SVGs), use unoptimized img
+  // For data URLs (generated SVGs) or external URLs, use unoptimized img
   const isDataUrl = src.startsWith('data:');
+  const isExternal = src.startsWith('http');
+  const isProxied = src.startsWith('/api/image');
   
-  if (isDataUrl) {
+  // Use native img for data URLs and external URLs to avoid Next.js restrictions
+  if (isDataUrl || isExternal) {
     return (
       <img
         src={src}
@@ -58,12 +61,14 @@ export function ToolLogo({ name, logo, size = 'md', className = '' }: ToolLogoPr
         width={sizePx}
         height={sizePx}
         className={`rounded-lg object-cover ${className}`}
+        onError={(e) => {
+          // Fallback to generated logo on error
+          const target = e.target as HTMLImageElement;
+          target.src = getToolLogo(name);
+        }}
       />
     );
   }
-  
-  // For proxied images, use unoptimized to avoid Next.js optimization issues
-  const isProxied = src.startsWith('/api/image');
   
   return (
     <Image
