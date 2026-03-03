@@ -40,11 +40,12 @@ async function queryWithRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promise<
 
 // Get tools grouped by category (3 per category) - Optimized to avoid N+1
 async function getToolsByCategory(): Promise<Record<string, ToolWithCategory[]>> {
-  // Single query to get all active tools with their categories
+  // Single query to get active tools with their categories (limit to prevent performance issues)
   const allTools = await queryWithRetry(() =>
     prisma.tool.findMany({
       where: { isActive: true },
       orderBy: { trendingScore: "desc" },
+      take: 150, // Limit to prevent performance issues as data grows
       include: { category: true },
     })
   );

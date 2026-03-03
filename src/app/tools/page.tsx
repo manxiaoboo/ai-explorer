@@ -55,9 +55,9 @@ export async function generateMetadata({ searchParams }: ToolsPageProps): Promis
   };
 }
 
-// Force dynamic rendering to ensure fresh data
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+// Use ISR for better performance - regenerate every 5 minutes
+export const dynamic = 'force-static';
+export const revalidate = 300;
 
 async function getTools(filters: {
   category?: string;

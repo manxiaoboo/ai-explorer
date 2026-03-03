@@ -6,6 +6,7 @@
 
 'use client';
 
+import Image from 'next/image';
 import { getToolLogo } from '@/lib/logos';
 
 interface ToolLogoProps {
@@ -17,24 +18,27 @@ interface ToolLogoProps {
 
 export function ToolLogo({ name, logo, size = 'md', className = '' }: ToolLogoProps) {
   const sizeClasses = {
-    sm: 'w-8 h-8',
-    md: 'w-12 h-12',
-    lg: 'w-16 h-16',
+    sm: 32,
+    md: 48,
+    lg: 64,
   };
+  
+  const sizePx = sizeClasses[size];
   
   // Use database logo if available, otherwise generate
   const logoUrl = logo || getToolLogo(name);
   
   return (
-    <img
+    <Image
       src={logoUrl}
       alt={`${name} logo`}
-      className={`${sizeClasses[size]} rounded-lg object-cover ${className}`}
-      onError={(e) => {
-        // Fallback to generated logo on error
-        const target = e.target as HTMLImageElement;
-        target.src = getToolLogo(name);
+      width={sizePx}
+      height={sizePx}
+      className={`rounded-lg object-cover ${className}`}
+      onError={() => {
+        // Fallback handled by Next.js Image error handling
       }}
+      unoptimized={logoUrl.startsWith('data:') || logoUrl.includes('ui-avatars.com')}
     />
   );
 }
