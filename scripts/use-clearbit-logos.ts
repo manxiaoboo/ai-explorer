@@ -47,7 +47,6 @@ const toolDomains: Record<string, string> = {
   'QuillBot': 'quillbot.com',
   'Wordtune': 'wordtune.com',
   'DeepL': 'deepl.com',
-  'Grammarly': 'grammarly.com',
   'Perplexity AI': 'perplexity.ai',
   'Poe': 'poe.com',
   'HuggingFace': 'huggingface.co',
@@ -71,7 +70,6 @@ const toolDomains: Record<string, string> = {
   'Slack': 'slack.com',
   'Discord': 'discord.com',
   'Zoom': 'zoom.us',
-  'Loom': 'loom.com',
 };
 
 async function updateLogosWithClearbit() {
