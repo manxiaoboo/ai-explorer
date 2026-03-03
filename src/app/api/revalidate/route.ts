@@ -1,4 +1,4 @@
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { revalidatePath } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
@@ -6,7 +6,6 @@ import { NextRequest, NextResponse } from 'next/server';
  * 
  * Usage:
  * POST /api/revalidate?path=/tools&secret=your-secret
- * POST /api/revalidate?tag=tools&secret=your-secret
  * 
  * Environment variable: REVALIDATE_SECRET
  */
@@ -24,7 +23,6 @@ export async function POST(request: NextRequest) {
   }
   
   const path = request.nextUrl.searchParams.get('path');
-  const tag = request.nextUrl.searchParams.get('tag');
   
   try {
     if (path) {
@@ -36,16 +34,7 @@ export async function POST(request: NextRequest) {
       });
     }
     
-    if (tag) {
-      revalidateTag(tag);
-      return NextResponse.json({ 
-        revalidated: true, 
-        tag,
-        message: `Tag ${tag} revalidated successfully` 
-      });
-    }
-    
-    // Revalidate common paths if no specific path/tag provided
+    // Revalidate common paths if no specific path provided
     const paths = ['/', '/tools', '/trending'];
     paths.forEach(p => revalidatePath(p));
     

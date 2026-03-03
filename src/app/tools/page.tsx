@@ -56,8 +56,11 @@ export async function generateMetadata({ searchParams }: ToolsPageProps): Promis
 }
 
 // Use ISR for better performance - regenerate every 5 minutes
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
 export const revalidate = 300;
+
+// Disable static generation for this page - it uses database
+export const dynamicParams = true;
 
 async function getTools(filters: {
   category?: string;
@@ -66,70 +69,81 @@ async function getTools(filters: {
   q?: string;
   page?: number;
 }) {
-  const where: any = { isActive: true };
-  
-  // Category filter
-  if (filters.category) {
-    const category = await prisma.category.findUnique({
-      where: { slug: filters.category },
-    });
-    if (category) {
-      where.categoryId = category.id;
+  try {
+    const where: any = { isActive: true };
+    
+    // Category filter
+    if (filters.category) {
+      const category = await prisma.category.findUnique({
+        where: { slug: filters.category },
+      });
+      if (category) {
+        where.categoryId = category.id;
+      }
     }
-  }
-  
-  // Pricing filter
-  if (filters.pricing) {
-    const pricingTiers = filters.pricing.split(',').filter(Boolean);
-    if (pricingTiers.length > 0) {
-      where.pricingTier = { in: pricingTiers };
+    
+    // Pricing filter
+    if (filters.pricing) {
+      const pricingTiers = filters.pricing.split(',').filter(Boolean);
+      if (pricingTiers.length > 0) {
+        where.pricingTier = { in: pricingTiers };
+      }
     }
+    
+    // Search filter
+    if (filters.q) {
+      where.OR = [
+        { name: { contains: filters.q, mode: 'insensitive' } },
+        { tagline: { contains: filters.q, mode: 'insensitive' } },
+        { description: { contains: filters.q, mode: 'insensitive' } },
+      ];
+    }
+    
+    // Sort order
+    let orderBy: any = { trendingScore: 'desc' };
+    switch (filters.sort) {
+      case 'newest':
+        orderBy = { createdAt: 'desc' };
+        break;
+      case 'name':
+        orderBy = { name: 'asc' };
+        break;
+      case 'trending':
+      default:
+        orderBy = { trendingScore: 'desc' };
+    }
+    
+    const page = filters.page || 1;
+    const skip = (page - 1) * ITEMS_PER_PAGE;
+    
+    const [tools, totalCount] = await Promise.all([
+      prisma.tool.findMany({
+        where,
+        orderBy,
+        skip,
+        take: ITEMS_PER_PAGE,
+        include: { category: true },
+      }),
+      prisma.tool.count({ where })
+    ]);
+    
+    return { tools, totalCount, totalPages: Math.ceil(totalCount / ITEMS_PER_PAGE) };
+  } catch (error) {
+    console.error('Failed to fetch tools:', error);
+    // Return empty data during build or on error
+    return { tools: [], totalCount: 0, totalPages: 0 };
   }
-  
-  // Search filter
-  if (filters.q) {
-    where.OR = [
-      { name: { contains: filters.q, mode: 'insensitive' } },
-      { tagline: { contains: filters.q, mode: 'insensitive' } },
-      { description: { contains: filters.q, mode: 'insensitive' } },
-    ];
-  }
-  
-  // Sort order
-  let orderBy: any = { trendingScore: 'desc' };
-  switch (filters.sort) {
-    case 'newest':
-      orderBy = { createdAt: 'desc' };
-      break;
-    case 'name':
-      orderBy = { name: 'asc' };
-      break;
-    case 'trending':
-    default:
-      orderBy = { trendingScore: 'desc' };
-  }
-  
-  const page = filters.page || 1;
-  const skip = (page - 1) * ITEMS_PER_PAGE;
-  
-  const [tools, totalCount] = await Promise.all([
-    prisma.tool.findMany({
-      where,
-      orderBy,
-      skip,
-      take: ITEMS_PER_PAGE,
-      include: { category: true },
-    }),
-    prisma.tool.count({ where })
-  ]);
-  
-  return { tools, totalCount, totalPages: Math.ceil(totalCount / ITEMS_PER_PAGE) };
 }
 
 async function getCategories() {
-  return prisma.category.findMany({
-    orderBy: { sortOrder: 'asc' },
-  });
+  try {
+    return await prisma.category.findMany({
+      orderBy: { sortOrder: 'asc' },
+    });
+  } catch (error) {
+    console.error('Failed to fetch categories:', error);
+    return [];
+  }
 }
 
 function buildUrl(base: string, params: Record<string, string | undefined>) {

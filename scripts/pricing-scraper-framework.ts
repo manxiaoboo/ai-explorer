@@ -219,21 +219,6 @@ const toolConfigs: Record<string, {
     },
   },
   
-  'Midjourney': {
-    priority: 'medium',
-    pricingUrl: 'https://www.midjourney.com/pricing',
-    selectors: {
-      plans: '.plan, .pricing-tier',
-      name: 'h3',
-      price: '.price',
-      features: 'ul li',
-    },
-    parsePrice: (text) => {
-      const match = text.match(/\$?(\d+)/);
-      return match ? parseInt(match[1]) : null;
-    },
-  },
-  
   'Leonardo.ai': {
     priority: 'medium',
     pricingUrl: 'https://leonardo.ai/pricing',
