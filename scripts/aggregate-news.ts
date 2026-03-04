@@ -79,6 +79,114 @@ async function fetchRSSFeed(source: typeof CONTENT_SOURCES[0]): Promise<RawArtic
   }
 }
 
+// Format content for better readability
+function formatContent(content: string): string {
+  if (!content) return '';
+  
+  // Step 1: Normalize line endings
+  let formatted = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  
+  // Step 2: Preserve paragraph breaks but normalize excessive whitespace
+  formatted = formatted
+    .replace(/\n{4,}/g, '\n\n\n')  // Max 2 blank lines between paragraphs
+    .replace(/[ \t]+/g, ' ');       // Normalize horizontal spaces
+  
+  // Step 3: Add proper spacing around common section markers
+  const sectionMarkers = [
+    'Introduction', 'Overview', 'Summary', 'Conclusion',
+    'Key Points', 'Highlights', 'What\'s New', 'Features',
+    'Benefits', 'How It Works', 'Getting Started',
+    'About', 'Background', 'Details', 'Analysis'
+  ];
+  
+  for (const marker of sectionMarkers) {
+    const regex = new RegExp(`(^|\n)(${marker})[:\s]*\n`, 'gi');
+    formatted = formatted.replace(regex, '\n\n$2\n');
+  }
+  
+  // Step 4: Ensure proper paragraph separation
+  // Split into paragraphs and rejoin with consistent spacing
+  const paragraphs = formatted
+    .split('\n')
+    .map(p => p.trim())
+    .filter(p => p.length > 0);
+  
+  // Group short lines that might be part of the same paragraph
+  const grouped: string[] = [];
+  let currentGroup = '';
+  
+  for (const para of paragraphs) {
+    // If paragraph ends with sentence-ending punctuation, it's complete
+    const isCompleteSentence = /[.!?。！？]$/.test(para);
+    const isShortLine = para.length < 100;
+    const isListItem = /^[\d•·\-\*•]/.test(para);
+    const isHeader = para.length < 50 && /^[A-Z]/.test(para) && !para.includes('.');
+    
+    if (isHeader) {
+      if (currentGroup) {
+        grouped.push(currentGroup.trim());
+        currentGroup = '';
+      }
+      grouped.push('\n' + para + '\n');
+    } else if (isListItem) {
+      if (currentGroup) {
+        grouped.push(currentGroup.trim());
+        currentGroup = '';
+      }
+      grouped.push(para);
+    } else if (isShortLine && !isCompleteSentence) {
+      currentGroup += ' ' + para;
+    } else {
+      currentGroup += ' ' + para;
+      if (isCompleteSentence || currentGroup.length > 200) {
+        grouped.push(currentGroup.trim());
+        currentGroup = '';
+      }
+    }
+  }
+  
+  if (currentGroup) {
+    grouped.push(currentGroup.trim());
+  }
+  
+  // Step 5: Join with generous spacing
+  formatted = grouped
+    .map(p => {
+      // Add extra line break after headers
+      if (/^\n/.test(p)) {
+        return p + '\n';
+      }
+      return p;
+    })
+    .join('\n\n');
+  
+  // Step 6: Add visual breathing room for long articles
+  // Insert a separator every ~1000 characters for very long content
+  const parts: string[] = [];
+  let currentPart = '';
+  const lines = formatted.split('\n');
+  
+  for (const line of lines) {
+    currentPart += line + '\n';
+    if (currentPart.length > 800 && /^[A-Z]/.test(line)) {
+      parts.push(currentPart.trim());
+      currentPart = '';
+    }
+  }
+  if (currentPart) {
+    parts.push(currentPart.trim());
+  }
+  
+  formatted = parts.join('\n\n');
+  
+  // Step 7: Final cleanup
+  formatted = formatted
+    .replace(/\n{5,}/g, '\n\n\n\n')  // Max 3 blank lines
+    .trim();
+  
+  return formatted;
+}
+
 // Fetch full article content using Playwright
 async function fetchFullContent(url: string, selectors: string[]): Promise<string> {
   let browser;
@@ -153,11 +261,8 @@ async function fetchFullContent(url: string, selectors: string[]): Promise<strin
       }
     }
     
-    // Clean up content
-    content = content
-      .replace(/\n{3,}/g, '\n\n')
-      .replace(/\s{2,}/g, ' ')
-      .trim();
+    // Clean up and format content with better readability
+    content = formatContent(content);
     
     return content;
   } catch (error) {
