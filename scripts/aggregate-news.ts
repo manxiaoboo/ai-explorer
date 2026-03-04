@@ -1,9 +1,10 @@
 /**
- * News Aggregator - Database Version
- * Saves articles directly to database with PENDING status
+ * News Aggregator with Playwright - Full Content Version
+ * Uses Playwright to fetch complete article content from source websites
  */
 
 import { PrismaClient, NewsStatus } from '@prisma/client';
+import { chromium } from 'playwright';
 
 const prisma = new PrismaClient();
 
@@ -12,27 +13,37 @@ const CONTENT_SOURCES = [
   {
     name: 'OpenAI Blog',
     url: 'https://openai.com/blog',
-    category: 'AI Research'
+    rssUrl: 'https://openai.com/blog/rss.xml',
+    category: 'AI Research',
+    contentSelector: 'article, .post-content, .prose, main'
   },
   {
     name: 'Anthropic News',
     url: 'https://www.anthropic.com/news',
-    category: 'AI Research'
+    rssUrl: 'https://www.anthropic.com/news/rss.xml',
+    category: 'AI Research',
+    contentSelector: 'article, .post-content, .prose, [class*="content"]'
   },
   {
     name: 'Google AI Blog',
     url: 'https://ai.googleblog.com',
-    category: 'AI Research'
+    rssUrl: 'https://ai.googleblog.com/feeds/posts/default',
+    category: 'AI Research',
+    contentSelector: '.post-body, .entry-content, article'
   },
   {
     name: 'TechCrunch AI',
-    url: 'https://techcrunch.com/category/artificial-intelligence/feed/',
-    category: 'Industry News'
+    url: 'https://techcrunch.com/category/artificial-intelligence/',
+    rssUrl: 'https://techcrunch.com/category/artificial-intelligence/feed/',
+    category: 'Industry News',
+    contentSelector: 'article, .article-content, .post-content, [class*="article"]'
   },
   {
     name: 'The Verge AI',
-    url: 'https://www.theverge.com/ai-artificial-intelligence/rss/index.xml',
-    category: 'Industry News'
+    url: 'https://www.theverge.com/ai-artificial-intelligence',
+    rssUrl: 'https://www.theverge.com/ai-artificial-intelligence/rss/index.xml',
+    category: 'Industry News',
+    contentSelector: 'article, .c-entry-content, .prose, [class*="content"]'
   }
 ];
 
@@ -48,7 +59,7 @@ interface RawArticle {
 // Fetch RSS feed
 async function fetchRSSFeed(source: typeof CONTENT_SOURCES[0]): Promise<RawArticle[]> {
   try {
-    const response = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(source.url)}`);
+    const response = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(source.rssUrl)}`);
     if (!response.ok) return [];
     
     const data = await response.json();
@@ -65,6 +76,97 @@ async function fetchRSSFeed(source: typeof CONTENT_SOURCES[0]): Promise<RawArtic
   } catch (error) {
     console.error(`Failed to fetch ${source.name}:`, error);
     return [];
+  }
+}
+
+// Fetch full article content using Playwright
+async function fetchFullContent(url: string, selectors: string[]): Promise<string> {
+  let browser;
+  try {
+    browser = await chromium.launch({ 
+      headless: true,
+      args: [
+        '--disable-blink-features=AutomationControlled',
+        '--disable-web-security',
+        '--disable-features=IsolateOrigins,site-per-process',
+        '--no-sandbox',
+        '--disable-setuid-sandbox'
+      ]
+    });
+    
+    const context = await browser.newContext({
+      userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      viewport: { width: 1920, height: 1080 },
+      locale: 'en-US',
+      timezoneId: 'America/New_York'
+    });
+    
+    // Inject script to hide automation
+    await context.addInitScript(() => {
+      Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+      Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+    });
+    
+    const page = await context.newPage();
+    
+    // Navigate with shorter timeout
+    const response = await page.goto(url, { 
+      waitUntil: 'domcontentloaded',
+      timeout: 20000 
+    });
+    
+    if (!response || response.status() >= 400) {
+      console.log(`     ⚠️ HTTP ${response?.status() || 'error'}`);
+    }
+    
+    // Wait for content to load
+    await page.waitForTimeout(3000);
+    
+    // Scroll to trigger lazy loading
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.waitForTimeout(1000);
+    
+    // Try to extract content using selectors
+    let content = '';
+    for (const selector of selectors) {
+      try {
+        const elements = await page.locator(selector).all();
+        for (const element of elements) {
+          const text = await element.innerText().catch(() => '');
+          if (text.length > content.length && text.length > 200) {
+            content = text;
+          }
+        }
+        if (content.length > 1000) break;
+      } catch {
+        continue;
+      }
+    }
+    
+    // Fallback: extract all paragraphs
+    if (content.length < 500) {
+      try {
+        const paragraphs = await page.locator('p').allInnerTexts();
+        content = paragraphs.filter(p => p.length > 50).join('\n\n');
+      } catch {
+        // ignore
+      }
+    }
+    
+    // Clean up content
+    content = content
+      .replace(/\n{3,}/g, '\n\n')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+    
+    return content;
+  } catch (error) {
+    console.error(`     ❌ Failed: ${(error as Error).message.substring(0, 80)}`);
+    return '';
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
   }
 }
 
@@ -112,7 +214,7 @@ async function isDuplicate(url: string, title: string): Promise<boolean> {
 
 // Main aggregation function - Daily limit: 5 articles
 async function aggregateNews() {
-  console.log('🔄 Fetching news articles...\n');
+  console.log('🔄 Fetching news articles with Playwright...\n');
   
   // Check already pending articles
   const pendingCount = await prisma.news.count({
@@ -134,7 +236,7 @@ async function aggregateNews() {
   
   let totalFound = 0;
   let totalSaved = 0;
-  const savedArticles: Array<{title: string, id: string, tools: string[]}> = [];
+  const savedArticles: Array<{title: string, id: string, tools: string[], contentLength: number}> = [];
   
   for (const source of CONTENT_SOURCES) {
     if (totalSaved >= remainingSlots) {
@@ -144,7 +246,7 @@ async function aggregateNews() {
     
     console.log(`📡 Fetching from ${source.name}...`);
     const articles = await fetchRSSFeed(source);
-    console.log(`  Found ${articles.length} articles`);
+    console.log(`  Found ${articles.length} articles in RSS`);
     
     for (const article of articles.slice(0, 3)) { // Max 3 per source
       if (totalSaved >= remainingSlots) break;
@@ -154,15 +256,30 @@ async function aggregateNews() {
         continue;
       }
       
-      const mentionedTools = await findMentionedTools(article.content, article.title);
+      console.log(`  🔍 Fetching full content: ${article.title.substring(0, 50)}...`);
+      
+      // Fetch full content with Playwright
+      const fullContent = await fetchFullContent(article.url, [
+        source.contentSelector,
+        'article',
+        'main',
+        '.content'
+      ]);
+      
+      // Use full content if available, otherwise fallback to RSS content
+      const finalContent = fullContent.length > 500 ? fullContent : article.content;
+      
+      console.log(`     📄 Content length: ${finalContent.length} chars`);
+      
+      const mentionedTools = await findMentionedTools(finalContent, article.title);
       
       // Save to database with PENDING status
       const news = await prisma.news.create({
         data: {
           slug: generateSlug(article.title),
           title: article.title,
-          excerpt: article.content.substring(0, 200) + '...',
-          content: article.content,
+          excerpt: finalContent.substring(0, 200) + '...',
+          content: finalContent,
           originalUrl: article.url,
           source: article.source,
           status: NewsStatus.PENDING,
@@ -190,13 +307,17 @@ async function aggregateNews() {
       savedArticles.push({
         title: article.title,
         id: news.id,
-        tools: mentionedTools.map(t => t.toolName)
+        tools: mentionedTools.map(t => t.toolName),
+        contentLength: finalContent.length
       });
       
-      console.log(`  ✅ Saved to database: ${article.title.substring(0, 60)}...`);
+      console.log(`  ✅ Saved: ${article.title.substring(0, 60)}...`);
       if (mentionedTools.length > 0) {
-        console.log(`     🔗 Tools found: ${mentionedTools.map(t => t.toolName).join(', ')}`);
+        console.log(`     🔗 Tools: ${mentionedTools.map(t => t.toolName).join(', ')}`);
       }
+      
+      // Small delay to be nice to servers
+      await new Promise(r => setTimeout(r, 1000));
     }
     
     totalFound += articles.length;
@@ -212,6 +333,7 @@ async function aggregateNews() {
     savedArticles.forEach((item, index) => {
       console.log(`${index + 1}. ${item.title}`);
       console.log(`   ID: ${item.id}`);
+      console.log(`   Content: ${item.contentLength} chars`);
       if (item.tools.length > 0) {
         console.log(`   Tools: ${item.tools.join(', ')}`);
       }
