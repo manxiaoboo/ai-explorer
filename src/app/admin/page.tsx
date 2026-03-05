@@ -11,15 +11,16 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic';
 
 async function getStats() {
-  const [toolsCount, categoriesCount, tagsCount, newsCount, pendingCount] = await Promise.all([
+  const [toolsCount, categoriesCount, tagsCount, newsCount, pendingCount, submissionCount] = await Promise.all([
     prisma.tool.count(),
     prisma.category.count(),
     prisma.tag.count(),
     prisma.news.count(),
-    prisma.news.count({ where: { status: { in: [NewsStatus.PENDING, NewsStatus.REVIEWED] } } })
+    prisma.news.count({ where: { status: { in: [NewsStatus.PENDING, NewsStatus.REVIEWED] } } }),
+    prisma.toolSubmission.count({ where: { status: 'PENDING' } })
   ]);
   
-  return { toolsCount, categoriesCount, tagsCount, newsCount, pendingCount };
+  return { toolsCount, categoriesCount, tagsCount, newsCount, pendingCount, submissionCount };
 }
 
 export default async function AdminPage() {
@@ -37,26 +38,46 @@ export default async function AdminPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Pending Review Alert */}
-        {stats.pendingCount > 0 && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">📬</span>
-              <div>
-                <div className="font-medium text-amber-900">{stats.pendingCount} articles waiting for review</div>
-                <div className="text-sm text-amber-700">AI-curated articles ready for your approval</div>
+        {/* Pending Review Alerts */}
+        <div className="space-y-4 mb-6">
+          {stats.pendingCount > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">📬</span>
+                <div>
+                  <div className="font-medium text-amber-900">{stats.pendingCount} articles waiting for review</div>
+                  <div className="text-sm text-amber-700">AI-curated articles ready for your approval</div>
+                </div>
               </div>
+              <Link
+                href="/admin/news/review"
+                className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
+              >
+                Review Now →
+              </Link>
             </div>
-            <Link
-              href="/admin/news/review"
-              className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
-            >
-              Review Now →
-            </Link>
-          </div>
-        )}
+          )}
+          
+          {stats.submissionCount > 0 && (
+            <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">🛠️</span>
+                <div>
+                  <div className="font-medium text-purple-900">{stats.submissionCount} tool submissions waiting</div>
+                  <div className="text-sm text-purple-700">New tools submitted for review</div>
+                </div>
+              </div>
+              <Link
+                href="/admin/submissions"
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              >
+                Review Submissions →
+              </Link>
+            </div>
+          )}
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
           <div className="bg-white rounded-xl p-6 shadow-sm border">
             <div className="text-3xl font-bold text-blue-600">{stats.toolsCount}</div>
             <div className="text-gray-600 mt-1">AI Tools</div>
@@ -81,6 +102,13 @@ export default async function AdminPage() {
             <div className="text-gray-600 mt-1">News Articles</div>
             <Link href="/admin/news" className="text-sm text-orange-600 mt-4 inline-block hover:underline">
               Manage News →
+            </Link>
+          </div>
+          <div className="bg-white rounded-xl p-6 shadow-sm border">
+            <div className="text-3xl font-bold text-purple-600">{stats.submissionCount}</div>
+            <div className="text-gray-600 mt-1">Pending Submissions</div>
+            <Link href="/admin/submissions" className="text-sm text-purple-600 mt-4 inline-block hover:underline">
+              Review →
             </Link>
           </div>
         </div>
@@ -129,6 +157,18 @@ export default async function AdminPage() {
                 <div className="font-medium">Review Pending News</div>
                 <div className="text-sm text-gray-500">
                   {stats.pendingCount > 0 ? `${stats.pendingCount} articles waiting` : 'No pending articles'}
+                </div>
+              </div>
+            </Link>
+            <Link
+              href="/admin/submissions"
+              className="flex items-center gap-3 p-4 rounded-lg border hover:border-purple-500 hover:bg-purple-50 transition-colors"
+            >
+              <span className="text-2xl">🛠️</span>
+              <div>
+                <div className="font-medium">Review Tool Submissions</div>
+                <div className="text-sm text-gray-500">
+                  {stats.submissionCount > 0 ? `${stats.submissionCount} submissions waiting` : 'No pending submissions'}
                 </div>
               </div>
             </Link>
