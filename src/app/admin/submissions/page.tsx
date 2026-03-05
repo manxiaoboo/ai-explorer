@@ -228,12 +228,10 @@ export default async function SubmissionsPage({
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-3">
-                          {submission.status === "PENDING" && (
-                            <QuickActions
-                              submissionId={submission.id}
-                              currentStatus={submission.status}
-                            />
-                          )}
+                          <QuickActions
+                            submissionId={submission.id}
+                            currentStatus={submission.status}
+                          />
                           <Link
                             href={`/admin/submissions/${submission.id}`}
                             className="text-sm text-purple-600 hover:text-purple-800"
