@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { ToolCard } from "@/components/ToolCard";
 import { StructuredData } from "@/components/StructuredData";
+import Link from "next/link";
 
 interface CategoryPageProps {
   params: Promise<{
@@ -36,8 +37,8 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   }
   
   return {
-    title: `${category.name} Tools - Atooli`,
-    description: `The best ${category.name.toLowerCase()} tools we could find. Compared, reviewed, and ready to try.`,
+    title: `${category.name} AI Tools - Atooli`,
+    description: `Discover the best ${category.name.toLowerCase()} AI tools. Compare features, pricing, and find the perfect ${category.name.toLowerCase()} solution for your needs.`,
     alternates: {
       canonical: `/category/${slug}`,
     },
@@ -54,10 +55,11 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
   const tools = await getToolsByCategory(category.id);
 
+  // CollectionPage structured data
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: `${category.name} Tools`,
+    name: `${category.name} AI Tools`,
     description: category.description,
     url: `https://tooli.ai/category/${slug}`,
     mainEntity: {
@@ -71,15 +73,51 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     },
   };
 
+  // Breadcrumb structured data
+  const breadcrumbData = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://tooli.ai",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Tools",
+        item: "https://tooli.ai/tools",
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: category.name,
+        item: `https://tooli.ai/category/${slug}`,
+      },
+    ],
+  };
+
   return (
     <>
       <StructuredData data={structuredData} />
+      <StructuredData data={breadcrumbData} />
       
       <div className="max-w-7xl mx-auto px-4 py-12">
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-2 text-sm text-[var(--muted)] mb-6">
+          <Link href="/" className="hover:text-[var(--accent)]">Home</Link>
+          <span>/</span>
+          <Link href="/tools" className="hover:text-[var(--accent)]">Tools</Link>
+          <span>/</span>
+          <span className="text-[var(--foreground)]">{category.name}</span>
+        </nav>
+
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">{category.name} Tools</h1>
-          <p className="text-gray-600 mt-2">{category.description}</p>
-          <p className="text-sm text-gray-500 mt-4">{tools.length} tools in this category</p>
+          <h1 className="text-3xl font-bold text-[var(--foreground)]">{category.name} AI Tools</h1>
+          <p className="text-[var(--muted)] mt-2">{category.description}</p>
+          <p className="text-sm text-[var(--muted)] mt-4">{tools.length} tools in this category</p>
         </header>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -63,6 +63,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
 
   const relatedTools = await getRelatedTools(tool.category.id, tool.id);
 
+  // SoftwareApplication structured data
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -80,6 +81,38 @@ export default async function ToolPage({ params }: ToolPageProps) {
     featureList: tool.features,
   };
 
+  // Breadcrumb structured data
+  const breadcrumbData = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://tooli.ai",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Tools",
+        item: "https://tooli.ai/tools",
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: tool.category.name,
+        item: `https://tooli.ai/category/${tool.category.slug}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 4,
+        name: tool.name,
+        item: `https://tooli.ai/tools/${slug}`,
+      },
+    ],
+  };
+
   const pricingLabel = {
     FREE: "Free",
     FREEMIUM: "Freemium",
@@ -91,6 +124,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
   return (
     <>
       <StructuredData data={structuredData} />
+      <StructuredData data={breadcrumbData} />
       
       <div className="max-w-7xl mx-auto px-4 py-12">
         {/* Breadcrumb */}

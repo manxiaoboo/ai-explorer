@@ -72,6 +72,47 @@ function stripHtml(html: string): string {
   return html.replace(/<[^\u003e]*>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
+// Format plain text content to HTML with proper paragraphs and indentation
+function formatContentToHtml(content: string): string {
+  if (!content) return '';
+
+  // Split by double newlines to get paragraphs
+  const paragraphs = content
+    .split(/\n\n+/)
+    .map(p => p.trim())
+    .filter(p => p.length > 0);
+
+  // Convert each paragraph to HTML
+  const htmlParagraphs = paragraphs.map(para => {
+    // Check if it's a header (starts with ##)
+    if (para.startsWith('## ')) {
+      const headerText = para.replace(/^##\s*/, '');
+      return `<h2 class="text-2xl font-semibold text-[var(--foreground)] mt-8 mb-4">${escapeHtml(headerText)}</h2>`;
+    }
+
+    // Check if it's a list item block
+    if (para.match(/^[\d•·\-\*•]\s/m)) {
+      const items = para.split('\n').filter(line => line.trim());
+      const listItems = items.map(item => {
+        const cleanItem = item.replace(/^[\d•·\-\*•]\s*/, '').trim();
+        return `<li class="mb-2">${escapeHtml(cleanItem)}</li>`;
+      }).join('');
+      return `<ul class="list-disc list-inside my-4 space-y-1 text-[var(--muted)]">${listItems}</ul>`;
+    }
+
+    // Regular paragraph with text-indent
+    return `<p class="text-[var(--muted)] leading-8 mb-6 text-justify" style="text-indent: 2em;">${escapeHtml(para)}</p>`;
+  });
+
+  return htmlParagraphs.join('\n');
+}
+
+// Escape HTML special characters
+function escapeHtml(text: string): string {
+  const div: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+  return text.replace(/[&<>"']/g, m => div[m] || m);
+}
+
 export async function generateMetadata({ params }: NewsArticlePageProps): Promise<Metadata> {
   try {
     const { slug } = await params;
@@ -85,23 +126,33 @@ export async function generateMetadata({ params }: NewsArticlePageProps): Promis
     
     const firstImage = extractFirstImage(article.content);
     
+    // Use SEO-optimized meta fields if available
+    const title = article.metaTitle || `${article.title} | AI News - Atooli`;
+    const description = article.metaDescription || article.excerpt || stripHtml(article.content).substring(0, 160);
+    
     return {
-      title: `${article.title} | AI News`,
-      description: article.excerpt || stripHtml(article.content).substring(0, 160),
+      title,
+      description,
       alternates: {
         canonical: `/news/${slug}`,
       },
       openGraph: {
         title: article.title,
-        description: article.excerpt || stripHtml(article.content).substring(0, 160),
+        description,
         type: "article",
         publishedTime: article.publishedAt?.toISOString(),
+        images: firstImage ? [firstImage] : undefined,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: article.title,
+        description,
         images: firstImage ? [firstImage] : undefined,
       },
     };
   } catch (error) {
     console.error('Error generating metadata:', error);
-    return { title: "AI News" };
+    return { title: "AI News - Atooli" };
   }
 }
 
@@ -125,6 +176,9 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
   // Extract image from content if no coverImage
   const contentImage = !article.coverImage ? extractFirstImage(article.content) : null;
   const displayImage = article.coverImage || contentImage;
+
+  // Format content with proper paragraphs
+  const formattedContent = formatContentToHtml(article.content || '');
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -190,30 +244,8 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <div 
-              className="article-content prose prose-lg max-w-none
-                       prose-headings:text-[var(--foreground)]
-                       prose-headings:font-semibold
-                       prose-headings:mt-10
-                       prose-headings:mb-5
-                       prose-p:text-[var(--muted)]
-                       prose-p:leading-8
-                       prose-p:mb-6
-                       prose-strong:text-[var(--foreground)]
-                       prose-a:text-[var(--accent)]
-                       prose-a:no-underline
-                       prose-a:hover:underline
-                       prose-img:rounded-xl
-                       prose-img:my-8
-                       prose-blockquote:border-l-4
-                       prose-blockquote:border-[var(--accent)]
-                       prose-blockquote:pl-6
-                       prose-blockquote:italic
-                       prose-blockquote:my-8
-                       prose-ul:my-6
-                       prose-ol:my-6
-                       prose-li:my-2
-                       prose-hr:my-10"
-              dangerouslySetInnerHTML={{ __html: article.content || '' }}
+              className="article-content"
+              dangerouslySetInnerHTML={{ __html: formattedContent }}
             />
             
             {/* Source Link */}

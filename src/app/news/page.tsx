@@ -33,11 +33,12 @@ export default async function NewsPage() {
   const featuredArticles = newsArticles.filter((a) => a.coverImage);
   const recentArticles = newsArticles.filter((a) => !a.coverImage);
 
+  // CollectionPage structured data
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: "AI News",
-    description: "Latest updates in artificial intelligence",
+    name: "AI News & Insights",
+    description: "The latest in AI — tools, trends, and what actually matters. Curated updates without the hype.",
     url: "https://tooli.ai/news",
     mainEntity: {
       "@type": "ItemList",
@@ -50,11 +51,39 @@ export default async function NewsPage() {
     },
   };
 
+  // Breadcrumb structured data
+  const breadcrumbData = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://tooli.ai",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "AI News",
+        item: "https://tooli.ai/news",
+      },
+    ],
+  };
+
   return (
     <>
       <StructuredData data={structuredData} />
+      <StructuredData data={breadcrumbData} />
 
       <div className="max-w-7xl mx-auto px-4 py-12">
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-2 text-sm text-[var(--muted)] mb-6">
+          <Link href="/" className="hover:text-[var(--accent)]">Home</Link>
+          <span>/</span>
+          <span className="text-[var(--foreground)]">AI News</span>
+        </nav>
+
         {/* Header */}
         <header className="mb-12">
           <div className="flex items-center gap-2 mb-4">
