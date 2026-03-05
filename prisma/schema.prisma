@@ -185,3 +185,30 @@ enum PricingTier {
   ENTERPRISE
   OPEN_SOURCE
 }
+
+enum ToolSubmissionStatus {
+  PENDING
+  REVIEWED
+  APPROVED
+  REJECTED
+}
+
+model ToolSubmission {
+  id          String              @id @default(cuid())
+  name        String
+  tagline     String
+  description String
+  website     String
+  category    String
+  pricingTier PricingTier
+  email       String
+  status      ToolSubmissionStatus @default(PENDING)
+  notes       String?             // Admin notes
+  reviewedAt  DateTime?
+  reviewedBy  String?             // Admin user ID
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}

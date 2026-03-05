@@ -1,10 +1,7 @@
-import { Metadata } from "next";
-import Link from "next/link";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Submit Your Tool - Atooli",
-  description: "Add your tool to Atooli. Reach thousands of people actively searching for solutions like yours.",
-};
+import { useState } from "react";
+import Link from "next/link";
 
 const benefits = [
   {
@@ -19,13 +16,63 @@ const benefits = [
     title: "SEO value",
     description: "Quality backlink from a curated resource",
   },
-  {
-    title: "Free",
-    description: "No cost to submit or be listed",
-  },
 ];
 
 export default function SubmitPage() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{
+    type: "success" | "error" | null;
+    message: string;
+  }>({ type: null, message: "" });
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus({ type: null, message: "" });
+
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      name: formData.get("name"),
+      tagline: formData.get("tagline"),
+      description: formData.get("description"),
+      website: formData.get("website"),
+      category: formData.get("category"),
+      pricingTier: formData.get("pricing"),
+      email: formData.get("email"),
+    };
+
+    try {
+      const response = await fetch("/api/submit-tool", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setSubmitStatus({
+          type: "success",
+          message: result.message || "Tool submitted successfully!",
+        });
+        // Reset form
+        (e.target as HTMLFormElement).reset();
+      } else {
+        setSubmitStatus({
+          type: "error",
+          message: result.error || "Failed to submit. Please try again.",
+        });
+      }
+    } catch (error) {
+      setSubmitStatus({
+        type: "error",
+        message: "Network error. Please check your connection and try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
@@ -40,15 +87,20 @@ export default function SubmitPage() {
           <h1 className="text-3xl font-medium text-[var(--foreground)] mb-4">
             List Your Tool
           </h1>
-          
+
           <p className="text-lg text-[var(--muted)] mb-8">
             Get in front of people who are actively looking for tools like yours.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {benefits.map((benefit) => (
-              <div key={benefit.title} className="bg-[var(--surface)] rounded-lg p-4">
-                <h3 className="font-medium text-[var(--foreground)] mb-1">{benefit.title}</h3>
+              <div
+                key={benefit.title}
+                className="bg-[var(--surface)] rounded-lg p-4"
+              >
+                <h3 className="font-medium text-[var(--foreground)] mb-1">
+                  {benefit.title}
+                </h3>
                 <p className="text-sm text-[var(--muted)]">{benefit.description}</p>
               </div>
             ))}
@@ -65,13 +117,47 @@ export default function SubmitPage() {
               <li>No misleading claims</li>
             </ul>
           </div>
+
+          <div className="mt-8 p-4 bg-[var(--accent)]/5 border border-[var(--accent)]/20 rounded-lg">
+            <h3 className="text-sm font-medium text-[var(--foreground)] mb-2">
+              Prefer email?
+            </h3>
+            <p className="text-sm text-[var(--muted)]">
+              You can also reach us at{" "}
+              <a
+                href="mailto:hello@tooli.ai?subject=Tool Submission"
+                className="text-[var(--accent)] hover:underline"
+              >
+                hello@tooli.ai
+              </a>
+              {" "}with your tool details.
+            </p>
+          </div>
         </div>
 
         {/* Right - Form */}
         <div>
-          <form className="bg-[var(--surface)] rounded-lg p-6 space-y-6">
+          <form
+            onSubmit={handleSubmit}
+            className="bg-[var(--surface)] rounded-lg p-6 space-y-6"
+          >
+            {submitStatus.type && (
+              <div
+                className={`p-4 rounded-lg ${
+                  submitStatus.type === "success"
+                    ? "bg-green-500/10 border border-green-500/20 text-green-600"
+                    : "bg-red-500/10 border border-red-500/20 text-red-600"
+                }`}
+              >
+                {submitStatus.message}
+              </div>
+            )}
+
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-[var(--foreground)] mb-2">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-[var(--foreground)] mb-2"
+              >
                 Tool Name *
               </label>
               <input
@@ -85,7 +171,10 @@ export default function SubmitPage() {
             </div>
 
             <div>
-              <label htmlFor="tagline" className="block text-sm font-medium text-[var(--foreground)] mb-2">
+              <label
+                htmlFor="tagline"
+                className="block text-sm font-medium text-[var(--foreground)] mb-2"
+              >
                 One-line description *
               </label>
               <input
@@ -102,7 +191,10 @@ export default function SubmitPage() {
             </div>
 
             <div>
-              <label htmlFor="website" className="block text-sm font-medium text-[var(--foreground)] mb-2">
+              <label
+                htmlFor="website"
+                className="block text-sm font-medium text-[var(--foreground)] mb-2"
+              >
                 Website URL *
               </label>
               <input
@@ -117,7 +209,10 @@ export default function SubmitPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="category" className="block text-sm font-medium text-[var(--foreground)] mb-2">
+                <label
+                  htmlFor="category"
+                  className="block text-sm font-medium text-[var(--foreground)] mb-2"
+                >
                   Category *
                 </label>
                 <select
@@ -139,7 +234,10 @@ export default function SubmitPage() {
               </div>
 
               <div>
-                <label htmlFor="pricing" className="block text-sm font-medium text-[var(--foreground)] mb-2">
+                <label
+                  htmlFor="pricing"
+                  className="block text-sm font-medium text-[var(--foreground)] mb-2"
+                >
                   Pricing *
                 </label>
                 <select
@@ -158,7 +256,10 @@ export default function SubmitPage() {
             </div>
 
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-[var(--foreground)] mb-2">
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-[var(--foreground)] mb-2"
+              >
                 Full description *
               </label>
               <textarea
@@ -172,7 +273,10 @@ export default function SubmitPage() {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-[var(--foreground)] mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-[var(--foreground)] mb-2"
+              >
                 Your email *
               </label>
               <input
@@ -190,9 +294,10 @@ export default function SubmitPage() {
 
             <button
               type="submit"
-              className="w-full py-3 bg-[var(--foreground)] text-[var(--background)] font-medium rounded hover:bg-[var(--secondary)] transition-colors"
+              disabled={isSubmitting}
+              className="w-full py-3 bg-[var(--foreground)] text-[var(--background)] font-medium rounded hover:bg-[var(--secondary)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Submit for Review
+              {isSubmitting ? "Submitting..." : "Submit for Review"}
             </button>
 
             <p className="text-xs text-[var(--muted)] text-center">
