@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { ToolSubmissionStatus } from "@prisma/client";
+import { QuickActions } from "./QuickActions";
 
 export const metadata: Metadata = {
   title: "Tool Submissions - Admin",
@@ -226,12 +227,20 @@ export default async function SubmissionsPage({
                         {formatDate(submission.createdAt)}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <Link
-                          href={`/admin/submissions/${submission.id}`}
-                          className="text-sm text-purple-600 hover:text-purple-800"
-                        >
-                          Review →
-                        </Link>
+                        <div className="flex items-center justify-end gap-3">
+                          {submission.status === "PENDING" && (
+                            <QuickActions
+                              submissionId={submission.id}
+                              currentStatus={submission.status}
+                            />
+                          )}
+                          <Link
+                            href={`/admin/submissions/${submission.id}`}
+                            className="text-sm text-purple-600 hover:text-purple-800"
+                          >
+                            Review →
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   ))}
