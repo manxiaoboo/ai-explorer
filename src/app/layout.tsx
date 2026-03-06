@@ -14,6 +14,11 @@ export const metadata: Metadata = {
   authors: [{ name: "attooli" }],
   creator: "attooli",
   publisher: "attooli",
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
   robots: {
     index: true,
     follow: true,
