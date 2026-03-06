@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/discover-tools",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/discover-tools-advanced",
+      "schedule": "0 6 * * 0"
+    }
+  ]
+}
