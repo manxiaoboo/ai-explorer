@@ -30,17 +30,56 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Image not found' }, { status: 404 });
     }
     
-    // Handle different response types
+    // Handle signed URL response (preferred method)
     if ('url' in blobResult && typeof blobResult.url === 'string') {
-      // Redirect to the signed URL (valid for a few minutes)
-      return NextResponse.redirect(blobResult.url);
-    } else if ('stream' in blobResult) {
-      // Stream the blob directly
-      const headers = new Headers();
-      blobResult.headers.forEach((value, key) => {
-        headers.set(key, value);
+      // Fetch the image from the signed URL and proxy it
+      // This avoids CORS issues and gives us control over caching
+      const imageResponse = await fetch(blobResult.url);
+      
+      if (!imageResponse.ok) {
+        return NextResponse.json({ error: 'Failed to fetch image' }, { status: 502 });
+      }
+      
+      // Get the image data
+      const imageBuffer = await imageResponse.arrayBuffer();
+      const contentType = imageResponse.headers.get('content-type') || 'image/png';
+      
+      // Return with proper headers
+      return new NextResponse(imageBuffer, {
+        status: 200,
+        headers: {
+          'Content-Type': contentType,
+          'Cache-Control': 'public, max-age=3600, s-maxage=86400',
+          'Vary': 'Accept',
+        },
       });
-      return new NextResponse(blobResult.stream, { headers });
+    }
+    
+    // Fallback: stream response
+    if ('stream' in blobResult) {
+      const headers: Record<string, string> = {};
+      
+      // Copy headers safely
+      blobResult.headers.forEach((value, key) => {
+        // Skip problematic headers
+        if (key.toLowerCase() !== 'content-encoding' && 
+            key.toLowerCase() !== 'transfer-encoding') {
+          headers[key] = value;
+        }
+      });
+      
+      // Ensure Content-Type is set
+      if (!headers['content-type']) {
+        headers['content-type'] = 'image/png';
+      }
+      
+      // Add cache headers
+      headers['cache-control'] = 'public, max-age=3600, s-maxage=86400';
+      
+      return new NextResponse(blobResult.stream, { 
+        status: 200,
+        headers 
+      });
     }
     
     return NextResponse.json({ error: 'Unexpected blob response' }, { status: 500 });
