@@ -159,7 +159,7 @@ async function main() {
         description: tool.description,
         website: tool.website,
         categoryId,
-        pricingTier: tool.pricingTier,
+        pricingTier: tool.pricingTier as any,
         hasFreeTier: tool.hasFreeTier,
         features: tool.features,
         useCases: tool.useCases,

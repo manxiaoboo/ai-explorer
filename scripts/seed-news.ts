@@ -55,7 +55,16 @@ async function main() {
       where: { slug: article.slug },
       update: {},
       create: {
-        ...article,
+        title: article.title,
+        slug: article.slug,
+        excerpt: article.excerpt,
+        content: article.content,
+        source: article.source,
+        originalUrl: article.originalUrl,
+        status: article.status as any,
+        isPublished: article.isPublished,
+        metaTitle: article.metaTitle,
+        metaDescription: article.metaDescription,
         publishedAt: new Date(),
       },
     });
