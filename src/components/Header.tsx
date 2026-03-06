@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { Logo } from "./Logo";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -18,18 +19,7 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14">
           {/* Logo */}
-          <Link 
-            href="/" 
-            className="flex items-center gap-2 text-[var(--foreground)] hover:text-[var(--accent)] transition-colors"
-            aria-label="Atooli - Home"
-          >
-            <div className="w-7 h-7 bg-gradient-to-br from-orange-500 to-amber-500 rounded flex items-center justify-center text-white font-bold text-sm">
-              T
-            </div>
-            <span className="text-lg font-semibold tracking-tight">
-              Atooli
-            </span>
-          </Link>
+          <Logo />
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">

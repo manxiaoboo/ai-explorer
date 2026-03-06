@@ -99,7 +99,7 @@ async function getFeaturedTools() {
     prisma.tool.findMany({
       where: { isFeatured: true, isActive: true },
       orderBy: { trendingScore: "desc" },
-      take: 1,
+      take: 3,
       include: { category: true },
     })
   );
@@ -298,33 +298,44 @@ export default async function HomePage() {
 
           {/* Sidebar */}
           <aside className="lg:col-span-3 space-y-6">
-            {/* Featured Highlight */}
-            {featuredTools[0] && (
+            {/* Featured - Top 3 Trending */}
+            {featuredTools.length > 0 && (
               <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-200 p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-sm">⭐</span>
-                  <span className="text-xs font-semibold text-amber-800 uppercase tracking-wider">Editor&apos;s Pick</span>
+                  <span className="text-sm">🔥</span>
+                  <span className="text-xs font-semibold text-amber-800 uppercase tracking-wider">Top Trending</span>
                 </div>
                 
-                <Link
-                  href={`/tools/${featuredTools[0].slug}`}
-                  className="group block"
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <ToolLogo name={featuredTools[0].name} logo={featuredTools[0].logo} size="sm" />
-                    <div>
-                      <h3 className="font-medium text-sm text-slate-900 group-hover:text-orange-600 truncate">
-                        {featuredTools[0].name}
-                      </h3>
-                    </div>
-                  </div>
-                  
-                  <p className="text-xs text-slate-600 mb-2 line-clamp-2">{featuredTools[0].tagline}</p>
-                  
-                  <span className="inline-flex items-center gap-1 text-xs font-medium text-orange-600">
-                    Check it out →
-                  </span>
-                </Link>
+                <div className="space-y-3">
+                  {featuredTools.map((tool, index) => (
+                    <Link
+                      key={tool.id}
+                      href={`/tools/${tool.slug}`}
+                      className="group block"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className={`w-6 h-6 flex items-center justify-center text-xs font-bold rounded-full ${
+                          index === 0 ? 'bg-amber-500 text-white' :
+                          index === 1 ? 'bg-amber-400 text-white' :
+                          'bg-amber-300 text-white'
+                        }`}>
+                          {index + 1}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <ToolLogo name={tool.name} logo={tool.logo} size="sm" />
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-medium text-sm text-slate-900 group-hover:text-orange-600 truncate">
+                                {tool.name}
+                              </h3>
+                              <p className="text-xs text-slate-500 line-clamp-1">{tool.tagline}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
               </div>
             )}
 

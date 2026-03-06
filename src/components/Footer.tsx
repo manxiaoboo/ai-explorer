@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "./Logo";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -19,7 +20,6 @@ export function Footer() {
     "Resources": [
       { href: "/about", label: "About" },
       { href: "/submit", label: "Submit" },
-      { href: "/api", label: "API" },
     ],
   };
 
@@ -29,14 +29,9 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="flex items-center gap-2 mb-4" aria-label="Atooli">
-              <div className="w-7 h-7 bg-gradient-to-br from-orange-500 to-amber-500 rounded flex items-center justify-center text-white font-bold text-sm">
-                T
-              </div>
-              <span className="text-lg font-semibold text-[var(--foreground)]">
-                Atooli
-              </span>
-            </Link>
+            <div className="mb-4">
+              <Logo />
+            </div>
             <p className="text-[var(--muted)] text-sm leading-relaxed">
               Find the perfect tool for your workflow. Curated, categorized, always up to date.
             </p>
@@ -65,7 +60,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-[var(--border)] flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-[var(--muted)] text-sm">
-            © {currentYear} Atooli
+            © {currentYear} attooli
           </p>
           
           <div className="flex items-center gap-6">

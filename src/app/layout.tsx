@@ -4,16 +4,16 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://tooli.ai"),
+  metadataBase: new URL("https://attooli.com"),
   title: {
-    default: "Atooli — Find the Perfect AI Tool",
-    template: "%s | Atooli",
+    default: "attooli — Find the Perfect AI Tool",
+    template: "%s | attooli",
   },
   description: "Discover 500+ AI tools with reviews, pricing, and trending scores. Find free AI tools, compare features, and find the perfect tool for your workflow.",
-  keywords: ["AI tools", "artificial intelligence", "AI software", "machine learning tools", "AI apps", "Atooli"],
-  authors: [{ name: "Atooli" }],
-  creator: "Atooli",
-  publisher: "Atooli",
+  keywords: ["AI tools", "artificial intelligence", "AI software", "machine learning tools", "AI apps", "attooli"],
+  authors: [{ name: "attooli" }],
+  creator: "attooli",
+  publisher: "attooli",
   robots: {
     index: true,
     follow: true,
@@ -28,14 +28,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://tooli.ai",
-    siteName: "Atooli",
-    title: "Atooli — Find the Perfect AI Tool",
+    url: "https://attooli.com",
+    siteName: "attooli",
+    title: "attooli — Find the Perfect AI Tool",
     description: "Discover 500+ AI tools with reviews, pricing, and trending scores.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Atooli — Find the Perfect AI Tool",
+    title: "attooli — Find the Perfect AI Tool",
     description: "Discover 500+ AI tools with reviews, pricing, and trending scores.",
   },
   alternates: {

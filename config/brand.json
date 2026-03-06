@@ -1,0 +1,34 @@
+{
+  "name": "attooli",
+  "displayName": "attooli",
+  "tagline": "Find the Perfect AI Tool",
+  "description": "A curated collection of the best AI tools — organized, categorized, and ready to explore.",
+  "url": "https://attooli.com",
+  "email": {
+    "official": "billman@attooli.com",
+    "support": "support@attooli.com",
+    "contact": "contact@attooli.com"
+  },
+  "social": {
+    "twitter": "@attooli",
+    "github": "attooli"
+  },
+  "seo": {
+    "defaultTitle": "attooli — Find the Perfect AI Tool",
+    "titleTemplate": "%s | attooli",
+    "defaultDescription": "Discover 300+ curated AI tools organized by category, pricing, and popularity.",
+    "keywords": ["AI tools", "artificial intelligence", "AI software", "machine learning tools", "AI apps", "attooli"]
+  },
+  "branding": {
+    "logo": {
+      "type": "text",
+      "icon": "blue-square-a",
+      "text": "attooli"
+    },
+    "colors": {
+      "primary": "#3b82f6",
+      "background": "#0f172a",
+      "foreground": "#f8fafc"
+    }
+  }
+}
