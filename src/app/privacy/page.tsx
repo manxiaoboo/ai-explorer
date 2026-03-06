@@ -52,8 +52,8 @@ export default function PrivacyPage() {
 
           <p>
             Email us at{' '}
-            <a href="mailto:hello@tooli.ai" className="text-[var(--accent)] hover:underline">
-              hello@tooli.ai
+            <a href="mailto:billman@attooli.com" className="text-[var(--accent)] hover:underline">
+              billman@attooli.com
             </a>
           </p>
         </section>

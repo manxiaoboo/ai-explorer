@@ -46,9 +46,9 @@ export default function AboutPage() {
 
         <p className="text-[var(--muted)]">
           Questions, suggestions, or just want to say hi? Drop us a line at{' '}
-          <a href="mailto:hello@tooli.ai" className="text-[var(--accent)] hover:underline"
+          <a href="mailto:billman@attooli.com" className="text-[var(--accent)] hover:underline"
           >
-            hello@tooli.ai
+            billman@attooli.com
           </a>
         </p>
       </article>

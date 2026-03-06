@@ -371,7 +371,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
             <div className="border border-[var(--border)] rounded-lg p-4">
               <p className="text-xs text-[var(--muted)] text-center">
                 Something wrong with this listing?{" "}
-                <a href="mailto:hello@tooli.ai" className="text-[var(--accent)] hover:underline">
+                <a href="mailto:billman@attooli.com" className="text-[var(--accent)] hover:underline">
                   Let us know
                 </a>
               </p>

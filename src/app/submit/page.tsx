@@ -125,10 +125,10 @@ export default function SubmitPage() {
             <p className="text-sm text-[var(--muted)]">
               You can also reach us at{" "}
               <a
-                href="mailto:hello@tooli.ai?subject=Tool Submission"
+                href="mailto:billman@attooli.com?subject=Tool Submission"
                 className="text-[var(--accent)] hover:underline"
               >
-                hello@tooli.ai
+                billman@attooli.com
               </a>
               {" "}with your tool details.
             </p>
