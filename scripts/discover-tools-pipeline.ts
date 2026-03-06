@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 /**
  * AI Tools Discovery Pipeline
- * Combines: Product Hunt + GitHub + SearXNG Search
+ * Combines: Product Hunt + GitHub + SearXNG Search (SearXNG optional)
  * 
- * Usage: npx tsx scripts/discover-tools-pipeline.ts
+ * Usage: 
+ *   npx tsx scripts/discover-tools-pipeline.ts
+ *   SEARXNG_URL=http://localhost:8080 npx tsx scripts/discover-tools-pipeline.ts
  */
 
 import { PrismaClient } from '@prisma/client';
@@ -16,71 +18,55 @@ const prisma = new PrismaClient({
   },
 });
 
-// SearXNG 配置
 const SEARXNG_URL = process.env.SEARXNG_URL || 'http://localhost:8080';
 
-// 搜索关键词列表
+// 搜索关键词
 const SEARCH_QUERIES = [
   'best AI writing tools 2025',
-  'AI image generator tools',
+  'AI image generator tools', 
   'AI code assistant developer tools',
   'AI chatbot conversational AI',
-  'AI voice audio tools',
-  'AI video editing generation',
-  'AI data analysis visualization',
-  'AI productivity workflow automation',
-  'AI search engine research',
-  'AI design creative tools',
 ];
 
-// 通过 SearXNG 搜索
+// SearXNG 搜索
 async function searchWithSearxng(query: string): Promise<any[]> {
   try {
     const response = await fetch(
-      `${SEARXNG_URL}/search?q=${encodeURIComponent(query)}&format=json&engines=google,bing,duckduckgo`
+      `${SEARXNG_URL}/search?q=${encodeURIComponent(query)}&format=json`
     );
-    
-    if (!response.ok) {
-      console.error(`SearXNG error: ${response.status}`);
-      return [];
-    }
-    
+    if (!response.ok) return [];
     const data = await response.json();
     return data.results || [];
-  } catch (error) {
-    console.error(`SearXNG search failed:`, error);
+  } catch {
     return [];
   }
 }
 
-// 从搜索结果提取工具信息
+// 从搜索结果提取工具
 async function extractToolFromResult(result: any) {
   const url = new URL(result.url);
   const domain = url.hostname.replace('www.', '');
-  
   return {
     name: result.title?.split(' - ')[0]?.split(' | ')[0]?.trim() || domain,
     website: result.url,
     description: result.content?.substring(0, 200) || '',
-    source: 'searxng',
   };
 }
 
-// GitHub 抓取开源 AI 项目
-async function fetchGitHubTrending() {
+// GitHub 抓取开源项目
+async function fetchGitHubTrending(): Promise<any[]> {
   console.log('🔍 Fetching GitHub trending AI projects...');
   
-  try {
-    // 使用 GitHub Search API
-    const queries = [
-      'AI tools stars:>1000 language:TypeScript',
-      'AI assistant stars:>500',
-      'chatbot AI stars:>500',
-    ];
-    
-    const allRepos: any[] = [];
-    
-    for (const query of queries) {
+  const queries = [
+    'AI tools stars:>1000',
+    'AI assistant stars:>500', 
+    'chatbot AI stars:>500',
+  ];
+  
+  const allRepos: any[] = [];
+  
+  for (const query of queries) {
+    try {
       const response = await fetch(
         `https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&sort=stars&order=desc&per_page=10`,
         {
@@ -95,81 +81,25 @@ async function fetchGitHubTrending() {
         const data = await response.json();
         allRepos.push(...(data.items || []));
       }
-    }
-    
-    return allRepos.map(repo => ({
-      name: repo.name,
-      slug: repo.name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-      tagline: repo.description?.substring(0, 100) || 'Open source AI tool',
-      description: repo.description || '',
-      website: repo.homepage || repo.html_url,
-      githubUrl: repo.html_url,
-      categorySlug: 'code', // GitHub 项目默认归类为 code
-      pricingTier: 'OPEN_SOURCE',
-      hasFreeTier: true,
-      features: ['Open source', `⭐ ${repo.stargazers_count} stars`],
-      useCases: ['Development', 'Self-hosting'],
-      source: 'github',
-    }));
-  } catch (error) {
-    console.error('GitHub fetch error:', error);
-    return [];
-  }
-}
-
-// 抓取网页获取详细信息
-async function scrapeToolDetails(url: string) {
-  try {
-    // 使用 Jina AI Reader API 提取网页内容
-    const jinaUrl = `https://r.jina.ai/http://${url.replace(/^https?:\/\//, '')}`;
-    const response = await fetch(jinaUrl, {
-      headers: { 'User-Agent': 'Mozilla/5.0' },
-      timeout: 10000,
-    });
-    
-    if (!response.ok) return null;
-    
-    const text = await response.text();
-    
-    // 简单提取关键信息
-    const lines = text.split('\n').filter(l => l.trim());
-    const title = lines[0]?.replace(/^Title:\s*/, '') || '';
-    const description = lines.slice(1, 5).join(' ').substring(0, 300);
-    
-    return { title, description };
-  } catch (error) {
-    return null;
-  }
-}
-
-// 下载 Logo
-async function downloadLogo(toolName: string, website: string): Promise<string | null> {
-  const domain = new URL(website).hostname.replace('www.', '');
-  
-  // 尝试多个 Logo 源
-  const sources = [
-    // Clearbit Logo API
-    `https://logo.clearbit.com/${domain}`,
-    // Google Favicon
-    `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
-    // DuckDuckGo
-    `https://icons.duckduckgo.com/ip3/${domain}.ico`,
-  ];
-  
-  for (const source of sources) {
-    try {
-      const response = await fetch(source, { timeout: 5000 });
-      if (response.ok && response.headers.get('content-type')?.includes('image')) {
-        // 这里应该上传到 R2/CDN，返回 URL
-        // 简化：返回源地址
-        return source;
-      }
-    } catch {
-      continue;
+    } catch (error) {
+      console.error('GitHub fetch error:', error);
     }
   }
   
-  return null;
+  return allRepos.map(repo => ({
+    name: repo.name,
+    slug: repo.name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+    tagline: repo.description?.substring(0, 100) || 'Open source AI tool',
+    description: repo.description || '',
+    website: repo.homepage || repo.html_url,
+    githubUrl: repo.html_url,
+    categorySlug: 'code',
+    pricingTier: 'OPEN_SOURCE',
+    hasFreeTier: true,
+    features: ['Open source', `⭐ ${repo.stargazers_count} stars`],
+    useCases: ['Development', 'Self-hosting'],
+    source: 'github',
+  }));
 }
 
 // 智能分类
@@ -191,66 +121,73 @@ function categorizeTool(name: string, description: string): string {
   return 'other';
 }
 
+// 检查 SearXNG
+async function checkSearxng(): Promise<boolean> {
+  try {
+    const response = await fetch(`${SEARXNG_URL}/healthz`, { timeout: 5000 });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 // 主流程
-async function main() {
+async function main(useSearxng: boolean = true) {
   console.log('🚀 AI Tools Discovery Pipeline\n');
-  console.log(`Using SearXNG: ${SEARXNG_URL}`);
+  console.log(`SearXNG: ${useSearxng ? 'Enabled' : 'Skipped (GitHub only)'}`);
   console.log(`Database: ${process.env.DATABASE_ACCELERATE ? 'Accelerate' : 'Direct'}\n`);
   
-  // 获取分类映射
   const categories = await prisma.category.findMany();
   const categoryMap = new Map(categories.map(c => [c.slug, c.id]));
   
   const discoveredTools: any[] = [];
   
-  // 1. SearXNG 搜索
-  console.log('🔍 Phase 1: SearXNG Search');
-  for (const query of SEARCH_QUERIES.slice(0, 3)) { // 先测试前3个
-    console.log(`\n  Searching: ${query}`);
-    const results = await searchWithSearxng(query);
-    
-    for (const result of results.slice(0, 5)) { // 每个查询取前5个
-      try {
-        const tool = await extractToolFromResult(result);
-        const categorySlug = categorizeTool(tool.name, tool.description);
-        
-        discoveredTools.push({
-          ...tool,
-          slug: tool.name.toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 50),
-          categorySlug,
-          pricingTier: 'FREEMIUM',
-          hasFreeTier: true,
-        });
-        
-        console.log(`    ✅ ${tool.name}`);
-      } catch (error) {
-        // Skip invalid results
+  // Phase 1: SearXNG (如果可用)
+  if (useSearxng) {
+    console.log('🔍 Phase 1: SearXNG Search');
+    for (const query of SEARCH_QUERIES.slice(0, 2)) {
+      console.log(`  Searching: ${query}`);
+      const results = await searchWithSearxng(query);
+      
+      for (const result of results.slice(0, 5)) {
+        try {
+          const tool = await extractToolFromResult(result);
+          const categorySlug = categorizeTool(tool.name, tool.description);
+          discoveredTools.push({
+            ...tool,
+            slug: tool.name.toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 50),
+            categorySlug,
+            pricingTier: 'FREEMIUM',
+            hasFreeTier: true,
+          });
+          console.log(`    ✅ ${tool.name}`);
+        } catch {}
       }
+      await new Promise(r => setTimeout(r, 1000));
     }
-    
-    // 延迟避免限流
-    await new Promise(r => setTimeout(r, 1000));
+  } else {
+    console.log('⏭️  Phase 1: SearXNG skipped\n');
   }
   
-  // 2. GitHub 开源项目
-  console.log('\n🔍 Phase 2: GitHub Trending');
+  // Phase 2: GitHub
+  console.log('🔍 Phase 2: GitHub Trending');
   const githubTools = await fetchGitHubTrending();
   discoveredTools.push(...githubTools);
-  console.log(`  Found ${githubTools.length} GitHub projects`);
+  console.log(`  Found ${githubTools.length} GitHub projects\n`);
   
   // 去重
   const uniqueTools = Array.from(
     new Map(discoveredTools.map(t => [t.slug, t])).values()
   );
   
-  console.log(`\n📊 Discovered ${uniqueTools.length} unique tools\n`);
+  console.log(`📊 Discovered ${uniqueTools.length} unique tools\n`);
   
-  // 3. 保存到数据库
+  // 保存到数据库
   console.log('💾 Saving to database...');
   let saved = 0;
   let skipped = 0;
   
-  for (const tool of uniqueTools.slice(0, 20)) { // 先保存前20个测试
+  for (const tool of uniqueTools.slice(0, 30)) {
     try {
       const categoryId = categoryMap.get(tool.categorySlug);
       if (!categoryId) {
@@ -259,13 +196,12 @@ async function main() {
         continue;
       }
       
-      // 检查是否已存在
       const existing = await prisma.tool.findUnique({
         where: { slug: tool.slug },
       });
       
       if (existing) {
-        console.log(`  ⏭️ Skip ${tool.name}: already exists`);
+        console.log(`  ⏭️ Skip ${tool.name}: exists`);
         skipped++;
         continue;
       }
@@ -275,10 +211,10 @@ async function main() {
           name: tool.name.substring(0, 100),
           slug: tool.slug.substring(0, 60),
           tagline: tool.tagline || tool.description?.substring(0, 100) || `${tool.name} AI tool`,
-          description: tool.description?.substring(0, 500) || tool.tagline || '',
+          description: tool.description?.substring(0, 500) || '',
           website: tool.website,
           categoryId,
-          pricingTier: tool.pricingTier || 'FREEMIUM',
+          pricingTier: (tool.pricingTier || 'FREEMIUM') as any,
           hasFreeTier: tool.hasFreeTier ?? true,
           features: tool.features || ['AI powered'],
           useCases: tool.useCases || ['Automation'],
@@ -293,11 +229,9 @@ async function main() {
       console.error(`  ❌ ${tool.name}:`, error);
       skipped++;
     }
-    
     await new Promise(r => setTimeout(r, 200));
   }
   
-  // 统计
   const totalTools = await prisma.tool.count();
   
   console.log('\n' + '='.repeat(50));
@@ -310,24 +244,7 @@ async function main() {
   await prisma.$disconnect();
 }
 
-// 检查 SearXNG 是否可用
-async function checkSearxng() {
-  try {
-    const response = await fetch(`${SEARXNG_URL}/healthz`, { timeout: 5000 });
-    return response.ok;
-  } catch {
-    return false;
-  }
-}
-
-// 运行前检查
+// 启动
 checkSearxng().then(available => {
-  if (!available) {
-    console.error(`❌ SearXNG not available at ${SEARXNG_URL}`);
-    console.error('Please start SearXNG:');
-    console.error('  docker-compose -f docker-compose.searxng.yml up -d');
-    process.exit(1);
-  }
-  
-  main().catch(console.error);
+  main(available).catch(console.error);
 });
