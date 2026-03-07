@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { updateCategory } from "../../actions";
 
+export const dynamic = 'force-dynamic';
+
 interface EditCategoryPageProps {
   params: Promise<{
     id: string;

@@ -124,7 +124,10 @@ function categorizeTool(name: string, description: string): string {
 // 检查 SearXNG
 async function checkSearxng(): Promise<boolean> {
   try {
-    const response = await fetch(`${SEARXNG_URL}/healthz`, { timeout: 5000 });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const response = await fetch(`${SEARXNG_URL}/healthz`, { signal: controller.signal });
+    clearTimeout(timeoutId);
     return response.ok;
   } catch {
     return false;

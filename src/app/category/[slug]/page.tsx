@@ -5,6 +5,8 @@ import { ToolCard } from "@/components/ToolCard";
 import { StructuredData } from "@/components/StructuredData";
 import Link from "next/link";
 
+export const dynamic = 'force-dynamic';
+
 interface CategoryPageProps {
   params: Promise<{
     slug: string;

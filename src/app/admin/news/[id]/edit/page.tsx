@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { updateNews } from "../../actions";
 
+export const dynamic = 'force-dynamic';
+
 interface EditNewsPageProps {
   params: Promise<{
     id: string;

@@ -3,6 +3,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { createTool } from "../actions";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "Add New Tool - Admin",
 };

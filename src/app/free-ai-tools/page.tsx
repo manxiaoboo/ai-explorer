@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db";
 import { ToolCard } from "@/components/ToolCard";
 import { StructuredData } from "@/components/StructuredData";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "Free AI Tools - No Credit Card Required | Atooli",
   description: "120+ genuinely free AI tools. No trials, no tricks. Find free alternatives for writing, images, coding, and more.",

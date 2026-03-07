@@ -6,6 +6,8 @@ import { StructuredData } from "@/components/StructuredData";
 import { ToolLogo } from "@/components/ToolLogo";
 import Link from "next/link";
 
+export const dynamic = 'force-dynamic';
+
 interface ToolPageProps {
   params: Promise<{
     slug: string;

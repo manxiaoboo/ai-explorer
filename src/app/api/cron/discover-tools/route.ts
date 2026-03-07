@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
-export const runtime = 'edge';
+// Note: Using Node.js runtime for Prisma compatibility
+// export const runtime = 'edge';
 
 const SEARCH_QUERIES = [
   'AI writing tools',
