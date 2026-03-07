@@ -90,7 +90,7 @@ async function fetchGitHubRepos(query: string): Promise<any[]> {
       }
       
       await new Promise(r => setTimeout(r, 800));
-    } catch (error) {
+    } catch (error: any) {
       console.error(`    ❌ 错误:`, error.message);
     }
   }
@@ -157,7 +157,7 @@ async function main() {
   await writeFile(outputPath, JSON.stringify(uniqueTools, null, 2));
   
   // 分类统计
-  const categoryStats = {};
+  const categoryStats: Record<string, number> = {};
   for (const tool of uniqueTools) {
     categoryStats[tool.categorySlug] = (categoryStats[tool.categorySlug] || 0) + 1;
   }

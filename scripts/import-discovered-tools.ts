@@ -39,7 +39,7 @@ async function main() {
   let failed = 0;
   
   // 按 stars 排序
-  const sortedTools = tools.sort((a, b) => b.githubStars - a.githubStars);
+  const sortedTools = tools.sort((a: any, b: any) => b.githubStars - a.githubStars);
   
   for (const tool of sortedTools) {
     try {
@@ -69,7 +69,7 @@ async function main() {
           tagline: tool.tagline,
           description: tool.description,
           website: tool.website,
-          githubUrl: tool.githubUrl,
+          githubRepo: tool.githubUrl,
           categoryId,
           pricingTier: tool.pricingTier,
           hasFreeTier: tool.hasFreeTier,
@@ -83,7 +83,7 @@ async function main() {
       console.log(`  ✅ 已导入: ${tool.name} (${tool.categorySlug})`);
       saved++;
       
-    } catch (error) {
+    } catch (error: any) {
       console.error(`  ❌ 失败 ${tool.name}:`, error.message);
       failed++;
     }

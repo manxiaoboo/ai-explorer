@@ -3,7 +3,8 @@ import { prisma } from '@/lib/db';
 
 // Node.js runtime for longer execution
 export const runtime = 'nodejs';
-export const maxDuration = 300; // 5 minutes (Vercel Pro)
+// Note: maxDuration requires Vercel Pro, removed for compatibility
+// export const maxDuration = 300;
 
 // 扩展的搜索关键词列表
 const GITHUB_QUERIES = [
@@ -258,7 +259,7 @@ export async function POST(request: NextRequest) {
             tagline: tool.tagline,
             description: tool.description?.substring(0, 500) || tool.tagline,
             website: tool.website,
-            githubUrl: tool.githubUrl,
+            githubRepo: tool.githubUrl,
             categoryId,
             pricingTier: tool.pricingTier as any,
             hasFreeTier: tool.hasFreeTier,

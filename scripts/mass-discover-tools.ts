@@ -176,7 +176,7 @@ async function fetchGitHubRepos(query: string, perPage: number = 30): Promise<an
       // 避免限流
       await new Promise(r => setTimeout(r, 1000));
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error(`GitHub fetch error for "${query}":`, error.message);
   }
   
@@ -258,7 +258,7 @@ async function main() {
   console.log(`${'='.repeat(60)}\n`);
   
   // 分类统计
-  const categoryStats = {};
+  const categoryStats: Record<string, number> = {};
   for (const tool of uniqueTools) {
     categoryStats[tool.categorySlug] = (categoryStats[tool.categorySlug] || 0) + 1;
   }
@@ -305,7 +305,7 @@ async function main() {
           tagline: tool.tagline,
           description: tool.description?.substring(0, 500) || '',
           website: tool.website,
-          githubUrl: tool.githubUrl,
+          githubRepo: tool.githubUrl,
           categoryId,
           pricingTier: tool.pricingTier,
           hasFreeTier: tool.hasFreeTier,
@@ -324,7 +324,7 @@ async function main() {
         console.log(`\n📊 已保存 ${saved} 个工具...\n`);
       }
       
-    } catch (error) {
+    } catch (error: any) {
       console.error(`  ❌ 失败 ${tool.name}:`, error.message);
       failed++;
     }
