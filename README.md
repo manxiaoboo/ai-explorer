@@ -10,11 +10,18 @@
 
 | 指标 | 数值 |
 |------|------|
-| **收录工具** | 318+ AI 工具 |
+| **收录工具** | 333+ AI 工具 |
 | **分类数量** | 13 个主要类别 |
-| **数据源** | GitHub API + 自动化抓取 |
+| **数据源** | GitHub API + 严肃手动挖掘 |
 | **更新频率** | 每日自动更新 Trending |
 | **部署平台** | Vercel + Prisma Accelerate |
+
+### 最近新增 (手动挖掘)
+
+**AI 编程工具**: Lovable, Windsurf, Claude Code, Cline, Zed, Aider, OpenAI Codex, bolt.new, Superblocks  
+**AI 图像**: Flux (12B 开源模型), Ideogram  
+**生产力**: Wispr Flow, Screen Studio, Granola  
+**语音 AI**: Vapi
 
 ---
 
@@ -76,30 +83,91 @@ Category {
 
 ### 1. 数据抓取脚本
 
+#### 🎯 严肃工具挖掘 (Serious Tool Mining) - **推荐方式**
+
+> **核心理念**: 质量 > 数量 | 从权威来源发现 | 多维度验证
+
 | 脚本 | 功能 | 触发方式 | 说明 |
 |------|------|----------|------|
-| `discover-to-json.ts` | 从 GitHub 抓取 AI 工具 | 手动 | 使用 GitHub API 搜索 33+ 关键词 |
+| `serious-tool-mining.ts` | **严肃工具挖掘** | 手动 | 质量优先的挖掘管道 |
+| `import-quality-tools.ts` | 导入高质量工具 | 手动 | 筛选 Score >= 60 的工具 |
+
+**挖掘策略** (`docs/SERIOUS-MINING-STRATEGY.md`):
+```typescript
+// 权威来源 (按可信度排序)
+const SOURCES = [
+  'GitHub Trending',      // 开发者真实行为
+  'Product Hunt',         // 产品化程度高
+  'Hacker News',          // 技术社区认可
+  'Reddit r/MachineLearning'  // 社区讨论热度
+];
+
+// 质量评分体系 (满分 100)
+const QUALITY_SCORE = {
+  githubHealth: 40,      // Stars + Forks + 更新频率
+  productCompleteness: 30,  // 官网 + 文档 + 示例
+  popularity: 20,        // PH votes + 社交传播
+  technicalQuality: 10   // 测试 + CI + 开源协议
+};
+
+// 准入门槛
+const MIN_THRESHOLD = {
+  githubStars: 500,
+  updatedWithin: 90,     // 天内
+  qualityScore: 60,      // 分
+  hasDocumentation: true,
+  websiteAccessible: true
+};
+```
+
+**智能功能分类** (非关键词匹配):
+```typescript
+// 基于 Topics + 功能意图，而非简单关键词
+function categorizeByFunction(tool) {
+  const signals = {
+    'chat': ['chatbot', 'conversational', 'llm'],
+    'image': ['image-generation', 'diffusion'],
+    'code': ['code-assistant', 'developer-tools']
+  };
+  // 排除法避免误判
+  return categoryWithConfidenceScoring();
+}
+```
+
+**运行命令**:
+```bash
+# 严肃挖掘 (质量优先)
+npx tsx scripts/serious-tool-mining.ts
+
+# 查看挖掘结果
+cat data/serious-mined-tools.json | jq '.[] | {name, qualityScore, category}'
+
+# 导入高质量工具
+npx tsx scripts/import-quality-tools.ts --min-score=60
+```
+
+#### 📊 传统批量抓取 (Legacy)
+
+| 脚本 | 功能 | 触发方式 | 说明 |
+|------|------|----------|------|
+| `discover-to-json.ts` | 从 GitHub 抓取 AI 工具 | 手动 | 33+ 关键词批量搜索 |
 | `import-discovered-tools.ts` | 导入 JSON 到数据库 | 手动 | 批量导入，自动去重 |
 | `mass-discover-tools.ts` | 完整抓取流程 | 手动 | 抓取 → 分类 → 入库 |
 
-**抓取逻辑**:
+**旧抓取逻辑** (已不推荐):
 ```typescript
-// 33 个 GitHub 搜索查询
+// 33 个 GitHub 搜索查询 (宽泛匹配)
 const GITHUB_QUERIES = [
   'AI tools stars:>500',
   'AI writing assistant stars:>200',
-  'AI image generator stars:>300',
-  'AI code assistant stars:>300',
   // ... 30+ more
 ];
 
-// 智能分类算法
+// 简单关键词分类 (误判率高)
 function categorizeTool(name, description) {
   const text = `${name} ${description}`.toLowerCase();
-  if (text.includes('write')) return 'writing';
-  if (text.includes('image')) return 'image';
-  if (text.includes('code')) return 'code';
-  // ... 12 categories
+  if (text.includes('write')) return 'writing';  // 误判: "write code"
+  // ... 
 }
 ```
 
