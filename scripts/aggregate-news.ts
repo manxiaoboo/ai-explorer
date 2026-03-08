@@ -228,7 +228,7 @@ function htmlToMarkdown(html: string, baseUrl: string): string {
   // Extract images with markdown format
   processed = processed.replace(/<img[^>]+src=["']([^"']+)["'][^>]*>/gi, (match, src) => {
     const altMatch = match.match(/alt=["']([^"]*)["']/i);
-    const alt = altMatch ? altMatch[1] : '';
+    const alt = altMatch ? altMatch[1].replace(/\s+/g, ' ').trim() : '';
     // Make relative URLs absolute
     let fullUrl = src;
     if (src.startsWith('/')) {
@@ -250,9 +250,9 @@ function htmlToMarkdown(html: string, baseUrl: string): string {
     .replace(/<h3[^>]*>([\s\S]*?)<\/h3>/gi, '\n\n### $1\n\n')
     .replace(/<h4[^>]*>([\s\S]*?)<\/h4>/gi, '\n\n#### $1\n\n')
     
-    // Bold and italic
-    .replace(/<(strong|b)[^>]*>([\s\S]*?)<\/(strong|b)>/gi, '**$2**')
-    .replace(/<(em|i)[^>]*>([\s\S]*?)<\/(em|i)>/gi, '*$2*')
+    // Bold and italic - remove newlines inside
+    .replace(/<(strong|b)[^>]*>([\s\S]*?)<\/(strong|b)>/gi, (match, _, text) => '**' + text.replace(/\s+/g, ' ').trim() + '**')
+    .replace(/<(em|i)[^>]*>([\s\S]*?)<\/(em|i)>/gi, (match, _, text) => '*' + text.replace(/\s+/g, ' ').trim() + '*')
     
     // Code blocks
     .replace(/<pre[^>]*>[\s\S]*?<code[^>]*>([\s\S]*?)<\/code>[\s\S]*?<\/pre>/gi, '\n\n```\n$1\n```\n\n')
@@ -280,7 +280,7 @@ function htmlToMarkdown(html: string, baseUrl: string): string {
       }).join('\n') + '\n\n';
     })
     
-    // Links
+    // Links - ensure no newlines in link text
     .replace(/<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi, (match, href, text) => {
       let fullUrl = href;
       if (!href.startsWith('http')) {
@@ -288,7 +288,9 @@ function htmlToMarkdown(html: string, baseUrl: string): string {
           fullUrl = new URL(href, baseUrl).href;
         } catch {}
       }
-      return `[${text.trim()}](${fullUrl})`;
+      // Remove newlines and extra spaces from link text
+      const cleanText = text.replace(/\s+/g, ' ').trim();
+      return `[${cleanText}](${fullUrl})`;
     })
     
     // Tables - convert to placeholder (complex to format properly)
