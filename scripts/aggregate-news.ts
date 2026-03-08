@@ -250,9 +250,15 @@ function htmlToMarkdown(html: string, baseUrl: string): string {
     .replace(/<h3[^>]*>([\s\S]*?)<\/h3>/gi, '\n\n### $1\n\n')
     .replace(/<h4[^>]*>([\s\S]*?)<\/h4>/gi, '\n\n#### $1\n\n')
     
-    // Bold and italic - remove newlines inside
-    .replace(/<(strong|b)[^>]*>([\s\S]*?)<\/(strong|b)>/gi, (match, _, text) => '**' + text.replace(/\s+/g, ' ').trim() + '**')
-    .replace(/<(em|i)[^>]*>([\s\S]*?)<\/(em|i)>/gi, (match, _, text) => '*' + text.replace(/\s+/g, ' ').trim() + '*')
+    // Bold and italic - remove newlines inside, skip empty tags
+    .replace(/<(strong|b)[^>]*>([\s\S]*?)<\/(strong|b)>/gi, (match, _, text) => {
+      const cleanText = text.replace(/\s+/g, ' ').trim();
+      return cleanText ? '**' + cleanText + '**' : '';
+    })
+    .replace(/<(em|i)[^>]*>([\s\S]*?)<\/(em|i)>/gi, (match, _, text) => {
+      const cleanText = text.replace(/\s+/g, ' ').trim();
+      return cleanText ? '*' + cleanText + '*' : '';
+    })
     
     // Code blocks
     .replace(/<pre[^>]*>[\s\S]*?<code[^>]*>([\s\S]*?)<\/code>[\s\S]*?<\/pre>/gi, '\n\n```\n$1\n```\n\n')
@@ -330,6 +336,9 @@ function htmlToMarkdown(html: string, baseUrl: string): string {
     .replace(/\[([^\]]+)\]\s+\(/g, '[$1](')
     // Fix any remaining "Loading..." text
     .replace(/Loading\.\.\.?/gi, '')
+    // Remove empty bold/italic markers
+    .replace(/\*\*\*\*/g, '')
+    .replace(/\*\*\s*\*\*/g, '')
     // Clean up multiple empty lines
     .replace(/\n{3,}/g, '\n\n')
     .trim();
