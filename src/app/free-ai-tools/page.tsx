@@ -6,7 +6,7 @@ import FreeToolsPageClient from "./FreeToolsPageClient";
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: "Free AI Tools - No Credit Card Required | Atooli",
+  title: "Free AI Tools - No Credit Card Required",
   description: "120+ genuinely free AI tools. No trials, no tricks. Find free alternatives for writing, images, coding, and more.",
   alternates: {
     canonical: "/free-ai-tools",
