@@ -15,6 +15,7 @@ interface Tool {
   hasTrial: boolean;
   trendingScore: number;
   githubStars: number | null;
+  features: string[];
   category: {
     id: string;
     name: string;
