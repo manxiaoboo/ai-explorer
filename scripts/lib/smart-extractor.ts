@@ -126,7 +126,7 @@ function findMainContent(doc: Document): Element {
   
   // Fallback: find element with highest text density
   const candidates = doc.querySelectorAll('div, section');
-  let bestElement = doc.body;
+  let bestElement: Element = doc.body;
   let bestScore = 0;
   
   candidates.forEach(el => {

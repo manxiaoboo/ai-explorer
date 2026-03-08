@@ -81,7 +81,6 @@ function formatContentToHtml(content: string): string {
   marked.setOptions({
     gfm: true, // GitHub Flavored Markdown
     breaks: true, // Convert line breaks to <br>
-    headerIds: true, // Add ids to headers for TOC
   });
   
   // Parse markdown to HTML

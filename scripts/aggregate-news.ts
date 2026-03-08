@@ -335,7 +335,7 @@ function extractMetaDescription(content: string, maxLength: number = 160): strin
 // Smart content extraction - removes noise (nav, ads, buttons, etc.)
 async function extractCleanContent(page: any, selectors: string[], url: string): Promise<{ content: string; contentHtml?: string }> {
   // Use page.evaluate to run content filtering in browser context
-  const result = await page.evaluate(({ selectors, pageUrl }) => {
+  const result = await page.evaluate(({ selectors, pageUrl }: { selectors: string[]; pageUrl: string }) => {
     // Noise selectors to remove
     const noiseSelectors = [
       'nav', 'header', '.header', '#header', '.navbar', '#navbar',
