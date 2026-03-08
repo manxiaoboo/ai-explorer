@@ -422,17 +422,14 @@ async function extractCleanContent(page: any, selectors: string[], url: string):
       }
     });
     
-    // Remove "Loading..." text nodes
-    const removeLoadingText = (node: Node) => {
-      if (node.nodeType === Node.TEXT_NODE) {
-        if (node.textContent?.includes('Loading...')) {
-          node.textContent = node.textContent.replace(/Loading\.\.\./g, '');
-        }
-      } else {
-        node.childNodes.forEach(child => removeLoadingText(child));
+    // Remove "Loading..." text
+    const walker = document.createTreeWalker(clone, NodeFilter.SHOW_TEXT, null);
+    let textNode;
+    while (textNode = walker.nextNode()) {
+      if (textNode.textContent && textNode.textContent.includes('Loading...')) {
+        textNode.textContent = textNode.textContent.replace(/Loading\.\.\./g, '');
       }
-    };
-    removeLoadingText(clone);
+    }
     
     // Remove elements containing only "Loading..."
     clone.querySelectorAll('*').forEach(el => {
