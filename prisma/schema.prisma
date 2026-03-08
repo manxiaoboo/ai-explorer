@@ -139,7 +139,8 @@ model News {
   slug            String            @unique
   title           String
   excerpt         String
-  content         String
+  content         String            // Markdown format (SEO primary)
+  contentHtml     String?           // Original HTML (optional, for "read original" mode)
   coverImage      String?
   metaTitle       String?
   metaDescription String?
@@ -150,6 +151,8 @@ model News {
   originalUrl     String?
   source          String?
   status          NewsStatus?       @default(PENDING)
+  aiAnalysis      Json?
+  displayMode     String            @default("markdown") // "markdown" | "original"
   mentions        NewsToolMention[]
 
   @@index([status])

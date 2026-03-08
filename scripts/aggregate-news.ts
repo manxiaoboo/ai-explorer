@@ -216,6 +216,100 @@ function formatContent(content: string): string {
   return formatted;
 }
 
+// Convert HTML to Markdown preserving structure
+function htmlToMarkdown(html: string, baseUrl: string): string {
+  if (!html) return '';
+  
+  let processed = html
+    // Remove script and style tags
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+  
+  // Extract images with markdown format
+  processed = processed.replace(/<img[^>]+src=["']([^"']+)["'][^>]*>/gi, (match, src) => {
+    const altMatch = match.match(/alt=["']([^"]*)["']/i);
+    const alt = altMatch ? altMatch[1] : '';
+    // Make relative URLs absolute
+    let fullUrl = src;
+    if (src.startsWith('/')) {
+      const base = new URL(baseUrl);
+      fullUrl = `${base.protocol}//${base.host}${src}`;
+    } else if (!src.startsWith('http')) {
+      try {
+        fullUrl = new URL(src, baseUrl).href;
+      } catch {}
+    }
+    return alt ? `\n\n![${alt}](${fullUrl})\n\n` : `\n\n![](${fullUrl})\n\n`;
+  });
+  
+  // Convert HTML to Markdown
+  return processed
+    // Headers
+    .replace(/<h1[^>]*>([\s\S]*?)<\/h1>/gi, '\n\n# $1\n\n')
+    .replace(/<h2[^>]*>([\s\S]*?)<\/h2>/gi, '\n\n## $1\n\n')
+    .replace(/<h3[^>]*>([\s\S]*?)<\/h3>/gi, '\n\n### $1\n\n')
+    .replace(/<h4[^>]*>([\s\S]*?)<\/h4>/gi, '\n\n#### $1\n\n')
+    
+    // Bold and italic
+    .replace(/<(strong|b)[^>]*>([\s\S]*?)<\/(strong|b)>/gi, '**$2**')
+    .replace(/<(em|i)[^>]*>([\s\S]*?)<\/(em|i)>/gi, '*$2*')
+    
+    // Code blocks
+    .replace(/<pre[^>]*>[\s\S]*?<code[^>]*>([\s\S]*?)<\/code>[\s\S]*?<\/pre>/gi, '\n\n```\n$1\n```\n\n')
+    .replace(/<code[^>]*>([\s\S]*?)<\/code>/gi, '`$1`')
+    
+    // Blockquotes
+    .replace(/<blockquote[^>]*>([\s\S]*?)<\/blockquote>/gi, '\n\n> $1\n\n')
+    
+    // Lists - unordered
+    .replace(/<ul[^>]*>([\s\S]*?)<\/ul>/gi, (match, content) => {
+      const items = content.match(/<li[^>]*>([\s\S]*?)<\/li>/gi) || [];
+      return '\n\n' + items.map((item: string) => {
+        const text = item.replace(/<li[^>]*>|<\/li>/gi, '').trim();
+        return '* ' + text;
+      }).join('\n') + '\n\n';
+    })
+    
+    // Lists - ordered
+    .replace(/<ol[^>]*>([\s\S]*?)<\/ol>/gi, (match, content) => {
+      const items = content.match(/<li[^>]*>([\s\S]*?)<\/li>/gi) || [];
+      let counter = 1;
+      return '\n\n' + items.map((item: string) => {
+        const text = item.replace(/<li[^>]*>|<\/li>/gi, '').trim();
+        return `${counter++}. ` + text;
+      }).join('\n') + '\n\n';
+    })
+    
+    // Links
+    .replace(/<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi, (match, href, text) => {
+      let fullUrl = href;
+      if (!href.startsWith('http')) {
+        try {
+          fullUrl = new URL(href, baseUrl).href;
+        } catch {}
+      }
+      return `[${text.trim()}](${fullUrl})`;
+    })
+    
+    // Tables - convert to placeholder (complex to format properly)
+    .replace(/<table[^>]*>[\s\S]*?<\/table>/gi, '\n\n*[Table: See original article for data]*\n\n')
+    
+    // Line breaks and paragraphs
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<p[^>]*>([\s\S]*?)<\/p>/gi, '\n\n$1\n\n')
+    .replace(/<div[^>]*>([\s\S]*?)<\/div>/gi, '\n\n$1\n\n')
+    
+    // Remove remaining tags
+    .replace(/<[^>]+>/g, ' ')
+    
+    // Clean up whitespace
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n +/g, '\n')
+    .replace(/ +\n/g, '\n')
+    .trim();
+}
+
 // Extract meta description from content (SEO enhancement)
 function extractMetaDescription(content: string, maxLength: number = 160): string {
   // Remove markdown-style headers
@@ -238,8 +332,118 @@ function extractMetaDescription(content: string, maxLength: number = 160): strin
   return description;
 }
 
+// Smart content extraction - removes noise (nav, ads, buttons, etc.)
+async function extractCleanContent(page: any, selectors: string[], url: string): Promise<{ content: string; contentHtml?: string }> {
+  // Use page.evaluate to run content filtering in browser context
+  const result = await page.evaluate(({ selectors, pageUrl }) => {
+    // Noise selectors to remove
+    const noiseSelectors = [
+      'nav', 'header', '.header', '#header', '.navbar', '#navbar',
+      '.navigation', '#navigation', '.menu', '#menu', '.sidebar', '#sidebar',
+      '.ad', '.ads', '.advertisement', '.sponsored', '[class*="ad-"]',
+      '[class*="ads-"]', '[id*="ad-"]', '[id*="ads-"]', '.banner-ad',
+      '.social-share', '.share-buttons', '.social-media', '.follow-us',
+      '.comments', '#comments', '.comment-section', '#disqus',
+      '.related', '.related-posts', '.related-articles', '.recommended',
+      '.you-may-like', '.more-stories', '.read-more', '.see-also',
+      'footer', '.footer', '#footer', '.site-footer', '.copyright',
+      '.newsletter', '.subscribe', '.signup-form', '.email-capture',
+      '.tag-list', '.category-list', '.post-tags', '.entry-tags',
+      '.breadcrumb', '.breadcrumbs', '.pagination', '.pager',
+    ];
+    
+    // Noise link patterns
+    const noiseLinkPatterns = [
+      /^read more$/i, /^continue reading$/i, /^learn more$/i,
+      /^click here$/i, /^download$/i, /^subscribe$/i, /^sign up$/i,
+      /^share$/i, /^tweet$/i, /^facebook$/i, /^linkedin$/i,
+      /^copy link$/i, /^print$/i, /^edit$/i, /^delete$/i,
+      /^reply$/i, /^comment$/i, /^load more$/i, /^show more$/i,
+      /^view all$/i, /^see all$/i, /^previous$/i, /^next$/i,
+    ];
+    
+    // Find main content container
+    let mainContent: Element | null = null;
+    
+    for (const selector of selectors) {
+      try {
+        mainContent = document.querySelector(selector);
+        if (mainContent && mainContent.textContent && mainContent.textContent.length > 200) {
+          break;
+        }
+      } catch {}
+    }
+    
+    if (!mainContent) {
+      mainContent = document.querySelector('article, main, [role="main"]');
+    }
+    
+    if (!mainContent) {
+      mainContent = document.body;
+    }
+    
+    // Clone to avoid modifying actual page
+    const clone = mainContent.cloneNode(true) as Element;
+    
+    // Remove noise elements
+    noiseSelectors.forEach(selector => {
+      try {
+        clone.querySelectorAll(selector).forEach(el => {
+          // Check if it contains substantial article text
+          const text = el.textContent || '';
+          const hasParagraphs = el.querySelector('p');
+          // Only remove if it's clearly noise (short or no paragraphs)
+          if (text.length < 150 || !hasParagraphs) {
+            el.remove();
+          }
+        });
+      } catch {}
+    });
+    
+    // Remove buttons
+    clone.querySelectorAll('button').forEach(btn => btn.remove());
+    
+    // Clean up links with noise patterns
+    clone.querySelectorAll('a').forEach(link => {
+      const text = (link.textContent || '').trim();
+      if (noiseLinkPatterns.some(pattern => pattern.test(text))) {
+        // Replace with text only
+        const textNode = document.createTextNode(text + ' ');
+        link.parentNode?.replaceChild(textNode, link);
+      }
+    });
+    
+    // Remove empty elements
+    clone.querySelectorAll('p, div, span').forEach(el => {
+      if (!el.textContent?.trim() && !el.querySelector('img, iframe, video')) {
+        el.remove();
+      }
+    });
+    
+    // Clean HTML for storage (remove scripts, styles, events)
+    let cleanHtml = clone.innerHTML
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/\s*on\w+=["'][^"']*["']/gi, '')
+      .substring(0, 50000);
+    
+    return {
+      html: cleanHtml,
+      textLength: clone.textContent?.length || 0
+    };
+  }, { selectors, url });
+  
+  // Convert HTML to Markdown
+  const markdown = htmlToMarkdown(result.html, url);
+  
+  return {
+    content: markdown,
+    contentHtml: result.html
+  };
+}
+
 // Fetch full article content using Playwright
-async function fetchFullContent(url: string, selectors: string[]): Promise<{ content: string; imageUrl?: string }> {
+async function fetchFullContent(url: string, selectors: string[]): Promise<{ content: string; contentHtml?: string; imageUrl?: string }> {
   let browser;
   try {
     browser = await chromium.launch({ 
@@ -300,37 +504,22 @@ async function fetchFullContent(url: string, selectors: string[]): Promise<{ con
       } catch {}
     }
     
-    // Extract content
-    let content = '';
-    for (const selector of selectors) {
-      try {
-        const elements = await page.locator(selector).all();
-        for (const element of elements) {
-          const text = await element.innerText().catch(() => '');
-          if (text.length > content.length && text.length > 300) {
-            content = text;
-          }
-        }
-        if (content.length > 1500) break;
-      } catch {
-        continue;
-      }
-    }
+    // Extract rich content using smart filtering
+    const { content, contentHtml } = await extractCleanContent(page, selectors, url);
     
-    // Fallback
-    if (content.length < 800) {
+    // Fallback to plain text if extraction fails
+    let finalContent = content;
+    if (content.length < 500) {
       try {
         const paragraphs = await page.locator('p').allInnerTexts();
-        content = paragraphs.filter(p => p.length > 40).join('\n\n');
+        finalContent = formatContent(paragraphs.filter(p => p.length > 40).join('\n\n'));
       } catch {}
     }
     
-    content = formatContent(content);
-    
-    return { content, imageUrl };
+    return { content: finalContent, contentHtml, imageUrl };
   } catch (error) {
     console.error(`     ❌ Failed: ${(error as Error).message.substring(0, 100)}`);
-    return { content: '' };
+    return { content: '', contentHtml: undefined };
   } finally {
     if (browser) {
       await browser.close();
@@ -491,7 +680,7 @@ async function aggregateNews() {
       console.log(`   🔍 ${article.title.substring(0, 50)}...`);
       
       // Fetch full content
-      const { content: fullContent, imageUrl } = await fetchFullContent(article.url, [
+      const { content: fullContent, contentHtml, imageUrl } = await fetchFullContent(article.url, [
         source.contentSelector,
         'article',
         'main',
@@ -530,6 +719,7 @@ async function aggregateNews() {
           title: article.title,
           excerpt: excerpt,
           content: finalContent,
+          contentHtml: contentHtml || null,  // Save original HTML
           coverImage: imageUrl || null,
           originalUrl: article.url,
           source: article.source,
@@ -537,7 +727,8 @@ async function aggregateNews() {
           isPublished: false,
           publishedAt: article.publishedAt,
           metaTitle: `${metaTitle} | Atooli AI News`,
-          metaDescription: excerpt
+          metaDescription: excerpt,
+          displayMode: 'markdown'  // Default to markdown for SEO
         }
       });
       

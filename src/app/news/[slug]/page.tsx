@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { StructuredData } from "@/components/StructuredData";
 import { ArticleSidebar, extractTableOfContents } from "@/components/ArticleSidebar";
+import { marked } from "marked";
 
 interface NewsArticlePageProps {
   params: Promise<{
@@ -72,39 +73,43 @@ function stripHtml(html: string): string {
   return html.replace(/<[^\u003e]*>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-// Format plain text content to HTML with proper paragraphs and indentation
+// Format Markdown content to HTML using marked
 function formatContentToHtml(content: string): string {
   if (!content) return '';
-
-  // Split by double newlines to get paragraphs
-  const paragraphs = content
-    .split(/\n\n+/)
-    .map(p => p.trim())
-    .filter(p => p.length > 0);
-
-  // Convert each paragraph to HTML
-  const htmlParagraphs = paragraphs.map(para => {
-    // Check if it's a header (starts with ##)
-    if (para.startsWith('## ')) {
-      const headerText = para.replace(/^##\s*/, '');
-      return `<h2 class="text-2xl font-semibold text-[var(--foreground)] mt-8 mb-4">${escapeHtml(headerText)}</h2>`;
-    }
-
-    // Check if it's a list item block
-    if (para.match(/^[\d•·\-\*•]\s/m)) {
-      const items = para.split('\n').filter(line => line.trim());
-      const listItems = items.map(item => {
-        const cleanItem = item.replace(/^[\d•·\-\*•]\s*/, '').trim();
-        return `<li class="mb-2">${escapeHtml(cleanItem)}</li>`;
-      }).join('');
-      return `<ul class="list-disc list-inside my-4 space-y-1 text-[var(--muted)]">${listItems}</ul>`;
-    }
-
-    // Regular paragraph with text-indent
-    return `<p class="text-[var(--muted)] leading-8 mb-6 text-justify" style="text-indent: 2em;">${escapeHtml(para)}</p>`;
+  
+  // Configure marked options
+  marked.setOptions({
+    gfm: true, // GitHub Flavored Markdown
+    breaks: true, // Convert line breaks to <br>
+    headerIds: true, // Add ids to headers for TOC
   });
-
-  return htmlParagraphs.join('\n');
+  
+  // Parse markdown to HTML
+  const html = marked.parse(content) as string;
+  
+  // Add Tailwind classes to rendered HTML elements
+  return html
+    // Style paragraphs
+    .replace(/<p>/g, '<p class="text-[var(--muted)] leading-8 mb-6 text-justify" style="text-indent: 2em;">')
+    // Style headings
+    .replace(/<h1>/g, '<h1 class="text-3xl font-bold text-[var(--foreground)] mt-10 mb-6">')
+    .replace(/<h2>/g, '<h2 class="text-2xl font-semibold text-[var(--foreground)] mt-8 mb-4">')
+    .replace(/<h3>/g, '<h3 class="text-xl font-semibold text-[var(--foreground)] mt-6 mb-3">')
+    .replace(/<h4>/g, '<h4 class="text-lg font-semibold text-[var(--foreground)] mt-5 mb-2">')
+    // Style lists
+    .replace(/<ul>/g, '<ul class="list-disc list-inside my-4 space-y-2 text-[var(--muted)] ml-4">')
+    .replace(/<ol>/g, '<ol class="list-decimal list-inside my-4 space-y-2 text-[var(--muted)] ml-4">')
+    // Style code blocks
+    .replace(/<pre><code>/g, '<pre class="bg-[var(--surface)] p-4 rounded-lg overflow-x-auto my-6"><code class="text-sm font-mono text-[var(--foreground)]">')
+    .replace(/<\/code><\/pre>/g, '</code></pre>')
+    // Style inline code
+    .replace(/<code>/g, '<code class="bg-[var(--surface)] px-1.5 py-0.5 rounded text-sm font-mono text-[var(--accent)]">')
+    // Style blockquotes
+    .replace(/<blockquote>/g, '<blockquote class="border-l-4 border-[var(--accent)] pl-4 my-6 italic text-[var(--muted)]">')
+    // Style images
+    .replace(/<img/g, '<img class="rounded-lg my-6 max-w-full"')
+    // Style links (open in new tab)
+    .replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" class="text-[var(--accent)] hover:underline" ');
 }
 
 // Escape HTML special characters
