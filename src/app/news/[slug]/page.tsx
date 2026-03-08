@@ -224,11 +224,40 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
             {article.title}
           </h1>          
           
-          {article.excerpt && (
-            <p className="text-xl text-[var(--muted)] leading-relaxed"
-            >
-              {article.excerpt}
-            </p>
+          {/* AI Analysis */}
+          {article.aiAnalysis && (
+            <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-6 mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">🤖</span>
+                <span className="text-sm font-semibold text-[var(--accent)] uppercase tracking-wider">
+                  AI Analysis
+                </span>
+                {(article.aiAnalysis as any)?.impact && (
+                  <span className={`ml-auto px-2 py-0.5 text-xs font-medium rounded ${
+                    ((article.aiAnalysis as any).impact === 'high') 
+                      ? 'bg-red-500/20 text-red-400' 
+                      : ((article.aiAnalysis as any).impact === 'medium')
+                        ? 'bg-yellow-500/20 text-yellow-400'
+                        : 'bg-green-500/20 text-green-400'
+                  }`}>
+                    {((article.aiAnalysis as any).impact).toUpperCase()} IMPACT
+                  </span>
+                )}
+              </div>
+              <p className="text-lg text-[var(--foreground)] leading-relaxed">
+                {(article.aiAnalysis as any)?.whyItMatters || ''}
+              </p>
+              {(article.aiAnalysis as any)?.keyPoints && (
+                <ul className="mt-4 space-y-2">
+                  {((article.aiAnalysis as any).keyPoints as string[]).slice(0, 3).map((point: string, i: number) => (
+                    <li key={i} className="flex items-start gap-2 text-[var(--muted)]">
+                      <span className="text-[var(--accent)] mt-1">•</span>
+                      <span>{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           )}
         </header>
 
