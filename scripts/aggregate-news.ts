@@ -280,7 +280,7 @@ function htmlToMarkdown(html: string, baseUrl: string): string {
       }).join('\n') + '\n\n';
     })
     
-    // Links - ensure no newlines in link text
+    // Links - ensure no newlines in link text and remove noise
     .replace(/<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi, (match, href, text) => {
       let fullUrl = href;
       if (!href.startsWith('http')) {
@@ -289,7 +289,11 @@ function htmlToMarkdown(html: string, baseUrl: string): string {
         } catch {}
       }
       // Remove newlines and extra spaces from link text
-      const cleanText = text.replace(/\s+/g, ' ').trim();
+      let cleanText = text.replace(/\s+/g, ' ').trim();
+      // Remove "(opens in a new window)" and similar noise
+      cleanText = cleanText.replace(/\s*\([^)]*new window[^)]*\)/gi, '');
+      cleanText = cleanText.replace(/\s*\(opens[^)]*\)/gi, '');
+      cleanText = cleanText.trim();
       return `[${cleanText}](${fullUrl})`;
     })
     
@@ -300,6 +304,9 @@ function htmlToMarkdown(html: string, baseUrl: string): string {
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<p[^>]*>([\s\S]*?)<\/p>/gi, '\n\n$1\n\n')
     .replace(/<div[^>]*>([\s\S]*?)<\/div>/gi, '\n\n$1\n\n')
+    
+    // Add spaces between inline elements to prevent text concatenation
+    .replace(/(<\/span>|<\/a>|<\/strong>|<\/em>|<\/b>|<\/i>)(<span|<a|<strong|<em|<b|<i)/gi, '$1 $2')
     
     // Remove remaining tags
     .replace(/<[^>]+>/g, ' ')
@@ -412,6 +419,25 @@ async function extractCleanContent(page: any, selectors: string[], url: string):
         // Replace with text only
         const textNode = document.createTextNode(text + ' ');
         link.parentNode?.replaceChild(textNode, link);
+      }
+    });
+    
+    // Remove "Loading..." text nodes
+    const removeLoadingText = (node: Node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        if (node.textContent?.includes('Loading...')) {
+          node.textContent = node.textContent.replace(/Loading\.\.\./g, '');
+        }
+      } else {
+        node.childNodes.forEach(child => removeLoadingText(child));
+      }
+    };
+    removeLoadingText(clone);
+    
+    // Remove elements containing only "Loading..."
+    clone.querySelectorAll('*').forEach(el => {
+      if (el.textContent?.trim() === 'Loading...') {
+        el.remove();
       }
     });
     
