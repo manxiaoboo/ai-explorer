@@ -10,7 +10,7 @@ interface Tool {
   tagline: string;
   description: string;
   logo: string | null;
-  pricingTier: string;
+  pricingTier: 'FREE' | 'FREEMIUM' | 'PAID' | 'ENTERPRISE' | 'OPEN_SOURCE';
   hasFreeTier: boolean;
   hasTrial: boolean;
   trendingScore: number;
