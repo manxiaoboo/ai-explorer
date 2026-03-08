@@ -95,9 +95,11 @@ function formatContentToHtml(content: string): string {
     .replace(/<h2>/g, '<h2 class="text-2xl font-semibold text-[var(--foreground)] mt-8 mb-4">')
     .replace(/<h3>/g, '<h3 class="text-xl font-semibold text-[var(--foreground)] mt-6 mb-3">')
     .replace(/<h4>/g, '<h4 class="text-lg font-semibold text-[var(--foreground)] mt-5 mb-2">')
-    // Style lists
-    .replace(/<ul>/g, '<ul class="list-disc list-inside my-4 space-y-2 text-[var(--muted)] ml-4">')
-    .replace(/<ol>/g, '<ol class="list-decimal list-inside my-4 space-y-2 text-[var(--muted)] ml-4">')
+    // Style lists - no bullet points
+    .replace(/<ul>/g, '<ul class="list-none my-4 space-y-2 text-[var(--muted)]">')
+    .replace(/<ol>/g, '<ol class="list-none my-4 space-y-2 text-[var(--muted)]">')
+    // Style list items with custom marker
+    .replace(/<li>/g, '<li class="pl-0">')
     // Style code blocks
     .replace(/<pre><code>/g, '<pre class="bg-[var(--surface)] p-4 rounded-lg overflow-x-auto my-6"><code class="text-sm font-mono text-[var(--foreground)]">')
     .replace(/<\/code><\/pre>/g, '</code></pre>')
