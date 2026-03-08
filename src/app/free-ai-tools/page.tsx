@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { prisma } from "@/lib/db";
-import { ToolCard } from "@/components/ToolCard";
 import { StructuredData } from "@/components/StructuredData";
+import FreeToolsPageClient from "./FreeToolsPageClient";
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +20,9 @@ async function getFreeTools() {
       OR: [
         { pricingTier: "FREE" },
         { pricingTier: "FREEMIUM" },
-        { hasFreeTier: true }
+        { pricingTier: "OPEN_SOURCE" },
+        { hasFreeTier: true },
+        { hasTrial: true }
       ]
     },
     orderBy: { trendingScore: "desc" },
@@ -28,8 +30,31 @@ async function getFreeTools() {
   });
 }
 
+async function getCategories() {
+  return prisma.category.findMany({
+    where: {
+      tools: {
+        some: {
+          isActive: true,
+          OR: [
+            { pricingTier: "FREE" },
+            { pricingTier: "FREEMIUM" },
+            { pricingTier: "OPEN_SOURCE" },
+            { hasFreeTier: true },
+            { hasTrial: true }
+          ]
+        }
+      }
+    },
+    orderBy: { sortOrder: "asc" }
+  });
+}
+
 export default async function FreeToolsPage() {
-  const tools = await getFreeTools();
+  const [tools, categories] = await Promise.all([
+    getFreeTools(),
+    getCategories()
+  ]);
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -51,22 +76,10 @@ export default async function FreeToolsPage() {
   return (
     <>
       <StructuredData data={structuredData} />
-      
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <header className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">🆓 Free Tools</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            {tools.length}+ tools that won&apos;t ask for your credit card. 
-            Free tiers, open source, and genuinely no-cost options.
-          </p>
-        </header>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tools.map((tool) => (
-            <ToolCard key={tool.id} tool={tool} />
-          ))}
-        </div>
-      </div>
+      <FreeToolsPageClient 
+        tools={tools} 
+        categories={categories} 
+      />
     </>
   );
 }
