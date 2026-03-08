@@ -243,7 +243,7 @@ function htmlToMarkdown(html: string, baseUrl: string): string {
   });
   
   // Convert HTML to Markdown
-  return processed
+  let markdown = processed
     // Headers
     .replace(/<h1[^>]*>([\s\S]*?)<\/h1>/gi, '\n\n# $1\n\n')
     .replace(/<h2[^>]*>([\s\S]*?)<\/h2>/gi, '\n\n## $1\n\n')
@@ -317,6 +317,20 @@ function htmlToMarkdown(html: string, baseUrl: string): string {
     .replace(/\n +/g, '\n')
     .replace(/ +\n/g, '\n')
     .trim();
+  
+  // Final cleanup: fix broken markdown links with newlines inside
+  markdown = markdown
+    // Fix links with newlines between text and URL
+    .replace(/\[([^\]]+)\]\s*\n\s*\(/g, '[$1](')
+    // Remove empty lines in the middle of link definitions
+    .replace(/\[([^\]]+)\n+([^\]]*)\]\s*\(/g, '[$1 $2](')
+    // Fix any remaining "Loading..." text
+    .replace(/Loading\.\.\.?/gi, '')
+    // Clean up multiple empty lines
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+  
+  return markdown;
 }
 
 // Extract meta description from content (SEO enhancement)
@@ -422,18 +436,26 @@ async function extractCleanContent(page: any, selectors: string[], url: string):
       }
     });
     
-    // Remove "Loading..." text
-    const walker = document.createTreeWalker(clone, NodeFilter.SHOW_TEXT, null);
-    let textNode;
-    while (textNode = walker.nextNode()) {
-      if (textNode.textContent && textNode.textContent.includes('Loading...')) {
-        textNode.textContent = textNode.textContent.replace(/Loading\.\.\./g, '');
-      }
-    }
-    
-    // Remove elements containing only "Loading..."
+    // Remove "Loading..." and similar text
+    const loadingPatterns = ['Loading...', 'Loading…', 'Loading']; 
     clone.querySelectorAll('*').forEach(el => {
-      if (el.textContent?.trim() === 'Loading...') {
+      if (el.childNodes) {
+        el.childNodes.forEach(node => {
+          if (node.nodeType === 3 && node.textContent) { // Text node
+            loadingPatterns.forEach(pattern => {
+              if (node.textContent?.includes(pattern)) {
+                node.textContent = node.textContent.replace(pattern, '');
+              }
+            });
+          }
+        });
+      }
+    });
+    
+    // Remove elements containing only loading text
+    clone.querySelectorAll('*').forEach(el => {
+      const text = el.textContent?.trim();
+      if (text && loadingPatterns.some(p => text === p || text.startsWith(p))) {
         el.remove();
       }
     });
