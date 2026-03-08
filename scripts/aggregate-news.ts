@@ -320,10 +320,14 @@ function htmlToMarkdown(html: string, baseUrl: string): string {
   
   // Final cleanup: fix broken markdown links with newlines inside
   markdown = markdown
-    // Fix links with newlines between text and URL
+    // Fix links with newlines between ] and (
     .replace(/\[([^\]]+)\]\s*\n\s*\(/g, '[$1](')
-    // Remove empty lines in the middle of link definitions
-    .replace(/\[([^\]]+)\n+([^\]]*)\]\s*\(/g, '[$1 $2](')
+    // Fix links with newlines inside the brackets [text\nmore](url)
+    .replace(/\[([^\]]*?)\n\s*([^\]]*?)\]\s*\(/g, '[$1 $2](')
+    // Fix multiple newlines in link text
+    .replace(/\[([^\]]*?)\n+([^\]]*?)\]\s*\(/g, '[$1 $2](')
+    // Remove spaces/newlines between bracket and paren [text]   (url)
+    .replace(/\[([^\]]+)\]\s+\(/g, '[$1](')
     // Fix any remaining "Loading..." text
     .replace(/Loading\.\.\.?/gi, '')
     // Clean up multiple empty lines
