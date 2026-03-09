@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# security - exported secrets
+SECRET_KEYS_EXPORT.txt
