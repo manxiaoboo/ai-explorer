@@ -49,7 +49,7 @@ async function getToolsByCategory(): Promise<Record<string, ToolWithCategory[]>>
     if (!grouped[categoryName]) {
       grouped[categoryName] = [];
     }
-    if (grouped[categoryName].length < 3) {
+    if (grouped[categoryName].length < 5) {
       grouped[categoryName].push(tool);
     }
   }
@@ -76,7 +76,7 @@ async function getTrendingTools() {
     prisma.tool.findMany({
       where: { isActive: true },
       orderBy: { trendingScore: "desc" },
-      take: 5,
+      take: 8,
       include: { category: true },
     })
   );
@@ -87,7 +87,7 @@ async function getFeaturedTools() {
     prisma.tool.findMany({
       where: { isFeatured: true, isActive: true },
       orderBy: { trendingScore: "desc" },
-      take: 3,
+      take: 5,
       include: { category: true },
     })
   );
@@ -110,11 +110,11 @@ const pricingLabels: Record<string, string> = {
 };
 
 const pricingColors: Record<string, string> = {
-  FREE: "bg-[var(--accent-2-muted)] text-[var(--accent-2)]",
-  FREEMIUM: "bg-[var(--accent-3-muted)] text-[#b8860b]",
-  PAID: "bg-[var(--surface-soft)] text-[var(--foreground-muted)]",
-  ENTERPRISE: "bg-[var(--surface-soft)] text-[var(--foreground-muted)]",
-  OPEN_SOURCE: "bg-blue-50 text-blue-600",
+  FREE: "text-[var(--accent-2)]",
+  FREEMIUM: "text-[#b8860b]",
+  PAID: "text-[var(--foreground-muted)]",
+  ENTERPRISE: "text-[var(--foreground-muted)]",
+  OPEN_SOURCE: "text-blue-600",
 };
 
 function isTrendingTool(trendingScore: number): boolean {
@@ -127,46 +127,110 @@ function isNewTool(createdAt: Date): boolean {
   return new Date(createdAt) > threeDaysAgo;
 }
 
-// Warm Tool Card with organic feel
-function CompactToolCard({ tool }: { tool: ToolWithCategory }) {
+// Open List Item - No card, just clean row
+function ToolListItem({ tool, index }: { tool: ToolWithCategory; index: number }) {
   const isTrending = isTrendingTool(tool.trendingScore);
   
   return (
     <Link
       href={`/tools/${tool.slug}`}
-      className="group block bg-white rounded-2xl border border-[var(--border)] p-4
-                 hover:border-[var(--accent-soft)] hover:shadow-xl hover:shadow-[var(--accent)]/5
-                 hover:-translate-y-1 transition-all duration-300"
+      className="group flex items-center gap-4 py-4 px-4 -mx-4 rounded-xl
+                 hover:bg-[var(--surface-warm)] transition-all duration-200"
     >
-      <div className="flex items-start gap-4">
-        <div className="shrink-0">
-          <ToolLogo name={tool.name} logo={tool.logo} size="md" />
-        </div>
-        
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1.5">
-            <h3 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--accent)] truncate text-sm">
-              {tool.name}
-            </h3>
-            {isTrending && (
-              <span className="text-xs" title="Trending">🔥</span>
-            )}
-            {isNewTool(tool.createdAt) && (
-              <span className="text-[10px] px-2 py-0.5 bg-[var(--accent-2-muted)] text-[var(--accent-2)] rounded-full font-medium">
-                New
-              </span>
-            )}
-          </div>
-          
-          <p className="text-xs text-[var(--foreground-muted)] line-clamp-2 mb-3 leading-relaxed">
-            {tool.tagline}
-          </p>
-          
-          <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ${pricingColors[tool.pricingTier]}`}>
-            {pricingLabels[tool.pricingTier]}
-          </span>
-        </div>
+      {/* Number */}
+      <span className="w-6 text-center text-sm text-[var(--foreground-muted)] font-medium">
+        {index + 1}
+      </span>
+      
+      {/* Logo */}
+      <div className="shrink-0">
+        <ToolLogo name={tool.name} logo={tool.logo} size="md" />
       </div>
+      
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-0.5">
+          <h3 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--accent)] transition-colors">
+            {tool.name}
+          </h3>
+          {isNewTool(tool.createdAt) && (
+            <span className="text-[10px] px-2 py-0.5 bg-[var(--accent-2-muted)] text-[var(--accent-2)] rounded-full font-medium">
+              New
+            </span>
+          )}
+          {isTrending && (
+            <span className="text-xs" title="Trending">🔥</span>
+          )}
+        </div>
+        <p className="text-sm text-[var(--foreground-muted)] truncate">
+          {tool.tagline}
+        </p>
+      </div>
+      
+      {/* Pricing - subtle text */}
+      <span className={`text-xs font-medium ${pricingColors[tool.pricingTier]} hidden sm:block`}>
+        {pricingLabels[tool.pricingTier]}
+      </span>
+      
+      {/* Arrow on hover */}
+      <svg 
+        className="w-5 h-5 text-[var(--foreground-muted)] opacity-0 group-hover:opacity-100 
+                   group-hover:translate-x-1 transition-all duration-200 hidden sm:block"
+        fill="none" 
+        stroke="currentColor" 
+        viewBox="0 0 24 24"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
+      </svg>
+    </Link>
+  );
+}
+
+// Featured Item - Larger, more prominent but still open
+function FeaturedItem({ tool, rank }: { tool: ToolWithCategory; rank: number }) {
+  return (
+    <Link
+      href={`/tools/${tool.slug}`}
+      className="group flex items-start gap-4 py-5 px-4 -mx-4 rounded-xl
+                 hover:bg-[var(--accent-muted)] transition-all duration-200"
+    >
+      {/* Rank Badge */}
+      <span className={`shrink-0 w-10 h-10 flex items-center justify-center text-lg font-bold rounded-xl
+        ${rank === 1 ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/30' :
+          rank === 2 ? 'bg-[var(--accent-soft)] text-white' :
+          rank === 3 ? 'bg-[var(--accent-3)] text-[var(--foreground)]' :
+          'bg-[var(--surface-warm)] text-[var(--foreground-muted)]'}`}>
+        {rank}
+      </span>
+      
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-3 mb-1">
+          <ToolLogo name={tool.name} logo={tool.logo} size="sm" />
+          <h3 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--accent)] transition-colors">
+            {tool.name}
+          </h3>
+        </div>
+        <p className="text-sm text-[var(--foreground-muted)] line-clamp-2">
+          {tool.tagline}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
+// Simple trending row
+function TrendingRow({ tool, index }: { tool: ToolWithCategory; index: number }) {
+  return (
+    <Link
+      href={`/tools/${tool.slug}`}
+      className="group flex items-center gap-3 py-2.5 hover:opacity-70 transition-opacity"
+    >
+      <span className={`w-5 text-sm font-bold ${index < 3 ? 'text-[var(--accent)]' : 'text-[var(--foreground-muted)]'}`}>
+        {index + 1}
+      </span>
+      <span className="text-sm text-[var(--foreground)] group-hover:text-[var(--accent)] truncate transition-colors">
+        {tool.name}
+      </span>
     </Link>
   );
 }
@@ -204,237 +268,212 @@ export default async function HomePage() {
     <>
       <StructuredData data={websiteStructuredData} />
 
-      {/* Hero Section - Warm Organic Feel */}
-      <section className="relative overflow-hidden">
-        {/* Decorative Background Blobs */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute -top-20 -right-20 w-96 h-96 bg-[var(--accent-3)]/20 rounded-full blur-3xl" />
-          <div className="absolute top-40 -left-20 w-72 h-72 bg-[var(--accent)]/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-[var(--accent-2)]/10 rounded-full blur-3xl" />
-        </div>
+      {/* Hero Section - Clean & Open */}
+      <section className="relative">
+        {/* Subtle gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[var(--accent-3-muted)]/30 via-transparent to-transparent pointer-events-none" />
         
-        <div className="relative bg-gradient-to-b from-[var(--background-warm)] via-[var(--background)] to-[var(--background)]">
-          <div className="max-w-6xl mx-auto px-4 py-16 md:py-24">
-            <div className="max-w-2xl">
-              {/* Logo Badge */}
-              <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 bg-white rounded-full shadow-sm border border-[var(--border-soft)]">
-                <span className="w-8 h-8 bg-gradient-to-br from-[var(--accent)] to-[var(--accent-soft)] rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-[var(--accent)]/20">
-                  T
-                </span>
-                <span className="text-sm font-medium text-[var(--foreground-soft)]">Atooli</span>
-              </div>
+        <div className="relative max-w-6xl mx-auto px-4 pt-16 pb-12 md:pt-24 md:pb-16">
+          <div className="max-w-2xl">
+            {/* Simple Logo */}
+            <div className="inline-flex items-center gap-2 mb-6 text-[var(--foreground-soft)]">
+              <span className="w-8 h-8 bg-gradient-to-br from-[var(--accent)] to-[var(--accent-soft)] rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                T
+              </span>
+              <span className="text-sm font-medium">Atooli</span>
+            </div>
 
-              <h1 className="text-4xl md:text-5xl font-bold text-[var(--foreground)] mb-5 leading-tight">
-                Discover the perfect
-                <span className="block mt-1 bg-gradient-to-r from-[var(--accent)] to-[var(--accent-soft)] bg-clip-text text-transparent">
-                  AI tool for you
-                </span>
-              </h1>
+            <h1 className="text-4xl md:text-5xl font-bold text-[var(--foreground)] mb-5 leading-tight">
+              Discover the perfect
+              <span className="block mt-1 bg-gradient-to-r from-[var(--accent)] to-[var(--accent-soft)] bg-clip-text text-transparent">
+                AI tool for you
+              </span>
+            </h1>
 
-              <p className="text-lg text-[var(--foreground-muted)] mb-8 leading-relaxed">
-                500+ carefully curated AI tools, organized by category. 
-                Find exactly what you need for writing, images, code, and more.
-              </p>
+            <p className="text-lg text-[var(--foreground-muted)] mb-8 leading-relaxed max-w-xl">
+              500+ carefully curated AI tools, organized by category. 
+              Find exactly what you need for writing, images, code, and more.
+            </p>
 
-              {/* Search Box */}
-              <div className="mb-8">
-                <HeroSearch />
-              </div>
+            {/* Search Box */}
+            <div className="mb-8">
+              <HeroSearch />
+            </div>
 
-              <div className="flex flex-wrap items-center gap-3 mb-8">
-                <Link
-                  href="/tools"
-                  className="px-6 py-3 bg-[var(--accent)] text-white font-medium rounded-full 
-                           hover:bg-[var(--accent-hover)] transition-all duration-200
-                           shadow-lg shadow-[var(--accent)]/25 hover:shadow-xl hover:shadow-[var(--accent)]/30
-                           hover:-translate-y-0.5"
-                >
-                  Browse all tools
-                </Link>
-                
-                <Link
-                  href="/submit"
-                  className="px-6 py-3 bg-white text-[var(--foreground)] font-medium rounded-full 
-                           border border-[var(--border)] hover:border-[var(--accent)] hover:text-[var(--accent)]
-                           hover:bg-[var(--accent-muted)] transition-all duration-200"
-                >
-                  Submit a tool
-                </Link>
-              </div>
+            {/* CTA Buttons */}
+            <div className="flex flex-wrap items-center gap-3 mb-8">
+              <Link
+                href="/tools"
+                className="px-6 py-3 bg-[var(--accent)] text-white font-medium rounded-full 
+                         hover:bg-[var(--accent-hover)] transition-all duration-200
+                         shadow-lg shadow-[var(--accent)]/25"
+              >
+                Browse all tools
+              </Link>
+              
+              <Link
+                href="/submit"
+                className="px-6 py-3 text-[var(--foreground)] font-medium rounded-full 
+                         hover:bg-[var(--surface-warm)] transition-all duration-200"
+              >
+                Submit a tool
+              </Link>
+            </div>
 
-              {/* Popular Tags - Pill Style */}
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm text-[var(--foreground-muted)] mr-1">Popular:</span>
-                {['Writing', 'Image', 'Code', 'Chat', 'Video', 'Free'].map((tag) => (
+            {/* Popular Tags - Inline text style */}
+            <div className="flex flex-wrap items-center gap-x-1 gap-y-2 text-sm text-[var(--foreground-muted)]">
+              <span>Popular:</span>
+              {['Writing', 'Image', 'Code', 'Chat', 'Video'].map((tag, i) => (
+                <span key={tag}>
                   <Link
-                    key={tag}
                     href={`/tools?category=${tag.toLowerCase()}`}
-                    className="px-4 py-1.5 text-sm text-[var(--foreground-soft)] bg-white 
-                             border border-[var(--border-soft)] rounded-full 
-                             hover:border-[var(--accent-soft)] hover:text-[var(--accent)] 
-                             hover:bg-[var(--accent-muted)] transition-all duration-200"
+                    className="text-[var(--foreground-soft)] hover:text-[var(--accent)] transition-colors"
                   >
                     {tag}
                   </Link>
-                ))}
-              </div>
+                  {i < 4 && <span className="text-[var(--border)]">,</span>}
+                </span>
+              ))}
+              <Link href="/tools" className="text-[var(--accent)] hover:underline ml-1">
+                all categories →
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      <div className="max-w-6xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          {/* Main Content - Tools by Category */}
-          <main className="lg:col-span-9">
-            {Object.entries(toolsByCategory).map(([categoryName, tools]) => (
+      {/* Main Content - Open Layout */}
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          
+          {/* Left Column - Tools by Category */}
+          <main className="lg:col-span-8">
+            {Object.entries(toolsByCategory).slice(0, 6).map(([categoryName, tools]) => (
               <section key={categoryName} className="mb-12">
-                {/* Category Header */}
-                <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-xl font-bold text-[var(--foreground)]">
+                {/* Category Header - Clean */}
+                <div className="flex items-center justify-between mb-2 pb-3 border-b border-[var(--border-soft)]">
+                  <h2 className="text-lg font-bold text-[var(--foreground)]">
                     {categoryName}
                   </h2>
                   <Link 
                     href={`/tools?category=${tools[0]?.category.slug || categoryName.toLowerCase().replace(/\s+/g, '-')}`}
-                    className="text-sm text-[var(--foreground-muted)] hover:text-[var(--accent)] 
-                             flex items-center gap-1 transition-colors"
+                    className="text-sm text-[var(--foreground-muted)] hover:text-[var(--accent)] transition-colors"
                   >
-                    View all 
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+                    View all
                   </Link>
                 </div>
                 
-                {/* 3-Column Grid with larger gap */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {tools.map((tool) => (
-                    <CompactToolCard key={tool.id} tool={tool} />
+                {/* Tools List - No cards, just rows */}
+                <div className="divide-y divide-[var(--border-soft)]">
+                  {tools.map((tool, index) => (
+                    <ToolListItem key={tool.id} tool={tool} index={index} />
                   ))}
                 </div>
               </section>
             ))}
+            
+            {/* Browse All CTA */}
+            <div className="mt-16 text-center">
+              <Link
+                href="/tools"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--foreground)] text-white 
+                         font-medium rounded-full hover:bg-[var(--foreground)]/90 transition-all duration-200"
+              >
+                Browse all 500+ tools
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </Link>
+            </div>
           </main>
 
-          {/* Sidebar - Warm Cards */}
-          <aside className="lg:col-span-3 space-y-6">
-            {/* Featured - Top 3 Trending */}
+          {/* Right Column - Sidebar */}
+          <aside className="lg:col-span-4 space-y-10">
+            
+            {/* Featured Section */}
             {featuredTools.length > 0 && (
-              <div className="bg-gradient-to-br from-[var(--accent-muted)] to-[var(--accent-3-muted)] 
-                            rounded-2xl border border-[var(--accent-soft)]/30 p-5">
+              <div>
                 <div className="flex items-center gap-2 mb-4">
                   <span className="text-lg">🔥</span>
-                  <span className="text-xs font-bold text-[var(--accent)] uppercase tracking-wider">
-                    Top Trending
-                  </span>
+                  <h3 className="font-bold text-[var(--foreground)]">Top Trending</h3>
                 </div>
                 
-                <div className="space-y-4">
-                  {featuredTools.map((tool, index) => (
-                    <Link
-                      key={tool.id}
-                      href={`/tools/${tool.slug}`}
-                      className="group block"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className={`w-8 h-8 flex items-center justify-center text-sm font-bold rounded-xl ${
-                          index === 0 ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/30' :
-                          index === 1 ? 'bg-[var(--accent-soft)] text-white' :
-                          'bg-white text-[var(--accent)] border border-[var(--accent-soft)]'
-                        }`}>
-                          {index + 1}
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <ToolLogo name={tool.name} logo={tool.logo} size="sm" />
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-sm text-[var(--foreground)] group-hover:text-[var(--accent)] truncate transition-colors">
-                                {tool.name}
-                              </h3>
-                              <p className="text-xs text-[var(--foreground-muted)] line-clamp-1">{tool.tagline}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
+                <div className="divide-y divide-[var(--border-soft)]">
+                  {featuredTools.slice(0, 5).map((tool, index) => (
+                    <FeaturedItem key={tool.id} tool={tool} rank={index + 1} />
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Trending Mini - Warm Card */}
-            <div className="bg-white rounded-2xl border border-[var(--border)] p-5 shadow-sm">
+            {/* Trending Mini */}
+            <div>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <span className="text-lg">📈</span>
-                  <h3 className="font-bold text-[var(--foreground)] text-sm">Trending Now</h3>
+                  <h3 className="font-bold text-[var(--foreground)]">Trending Now</h3>
                 </div>
-                <Link href="/trending" className="text-xs text-[var(--foreground-muted)] hover:text-[var(--accent)] transition-colors">
-                  View all →
+                <Link href="/trending" className="text-sm text-[var(--accent)] hover:underline">
+                  View all
                 </Link>
               </div>
               
-              <div className="space-y-3">
-                {trendingTools.slice(0, 5).map((tool, index) => (
-                  <Link
-                    key={tool.id}
-                    href={`/tools/${tool.slug}`}
-                    className="flex items-center gap-3 group"
-                  >
-                    <span className={`w-6 text-center text-sm font-bold ${
-                      index < 3 ? 'text-[var(--accent)]' : 'text-[var(--foreground-muted)]'
-                    }`}>
-                      {index + 1}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm text-[var(--foreground)] group-hover:text-[var(--accent)] truncate transition-colors">
-                        {tool.name}
-                      </div>
-                    </div>
-                  </Link>
+              <div className="divide-y divide-[var(--border-soft)]">
+                {trendingTools.slice(0, 6).map((tool, index) => (
+                  <TrendingRow key={tool.id} tool={tool} index={index} />
                 ))}
               </div>
             </div>
 
-            {/* Categories - Warm Tags */}
-            <div className="bg-white rounded-2xl border border-[var(--border)] p-5 shadow-sm">
-              <h3 className="font-bold text-[var(--foreground)] mb-4 text-sm">Categories</h3>
+            {/* Categories - Simple list */}
+            <div>
+              <h3 className="font-bold text-[var(--foreground)] mb-4">Categories</h3>
               
               <div className="flex flex-wrap gap-2">
-                {categories.slice(0, 10).map((cat) => (
+                {categories.slice(0, 12).map((cat) => (
                   <Link
                     key={cat.id}
                     href={`/tools?category=${cat.slug}`}
-                    className="px-3 py-1.5 text-xs text-[var(--foreground-soft)] 
+                    className="px-3 py-1.5 text-sm text-[var(--foreground-soft)] 
                              bg-[var(--surface-warm)] hover:bg-[var(--accent-muted)] 
-                             hover:text-[var(--accent)] rounded-full 
-                             border border-transparent hover:border-[var(--accent-soft)]
-                             transition-all duration-200"
+                             hover:text-[var(--accent)] rounded-full transition-colors"
                   >
                     {cat.name}
                   </Link>
                 ))}
               </div>
+              
+              <Link 
+                href="/tools" 
+                className="inline-block mt-4 text-sm text-[var(--foreground-muted)] hover:text-[var(--accent)] transition-colors"
+              >
+                View all categories →
+              </Link>
             </div>
 
-            {/* Stats - Warm Dark Card */}
-            <div className="bg-[var(--foreground)] rounded-2xl p-6 text-white relative overflow-hidden">
-              {/* Subtle glow effect */}
-              <div className="absolute -top-10 -right-10 w-32 h-32 bg-[var(--accent)]/20 rounded-full blur-2xl" />
-              
-              <div className="relative text-center mb-5">
-                <div className="text-4xl font-bold mb-1">500+</div>
-                <div className="text-sm text-white/60">Tools curated</div>
-              </div>
-              
+            {/* Submit CTA - No card, just styled section */}
+            <div className="pt-6 border-t border-[var(--border)]">
+              <p className="text-sm text-[var(--foreground-muted)] mb-4">
+                Have an AI tool to share?
+              </p>
               <Link
                 href="/submit"
-                className="block w-full py-3 bg-[var(--accent)] text-white text-center text-sm font-medium 
-                         rounded-xl hover:bg-[var(--accent-soft)] transition-colors
-                         shadow-lg shadow-[var(--accent)]/30"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--accent)] text-white 
+                         text-sm font-medium rounded-full hover:bg-[var(--accent-hover)] transition-colors"
               >
                 Submit a tool
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
               </Link>
+            </div>
+
+            {/* Stats - Simple text */}
+            <div className="pt-6 border-t border-[var(--border)]">
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold text-[var(--foreground)]">500+</span>
+                <span className="text-sm text-[var(--foreground-muted)]">tools curated</span>
+              </div>
             </div>
           </aside>
         </div>

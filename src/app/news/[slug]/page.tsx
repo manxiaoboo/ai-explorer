@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { StructuredData } from "@/components/StructuredData";
-import { ArticleSidebar, extractTableOfContents } from "@/components/ArticleSidebar";
 import { marked } from "marked";
 
 interface NewsArticlePageProps {
@@ -12,7 +11,6 @@ interface NewsArticlePageProps {
   }>;
 }
 
-// Force dynamic rendering to avoid build-time DB connection
 export const dynamic = 'force-dynamic';
 
 async function getArticle(slug: string) {
@@ -60,63 +58,42 @@ function formatDate(date: Date | null) {
   });
 }
 
-// Extract first image from HTML content
-function extractFirstImage(content: string): string | null {
-  if (!content) return null;
-  const imgMatch = content.match(/<img[^\u003e]+src=["']([^"']+)["'][^\u003e]*>/i);
-  return imgMatch ? imgMatch[1] : null;
-}
-
-// Strip HTML tags for plain text preview
 function stripHtml(html: string): string {
   if (!html) return "";
-  return html.replace(/<[^\u003e]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-// Format Markdown content to HTML using marked
 function formatContentToHtml(content: string): string {
   if (!content) return '';
   
-  // Configure marked options
   marked.setOptions({
-    gfm: true, // GitHub Flavored Markdown
-    breaks: true, // Convert line breaks to <br>
+    gfm: true,
+    breaks: true,
   });
   
-  // Parse markdown to HTML
   const html = marked.parse(content) as string;
   
-  // Add Tailwind classes to rendered HTML elements
   return html
-    // Style paragraphs
-    .replace(/<p>/g, '<p class="text-[var(--muted)] leading-8 mb-6 text-justify" style="text-indent: 2em;">')
-    // Style headings
+    .replace(/<p>/g, '<p class="text-[var(--foreground-muted)] leading-8 mb-6">')
     .replace(/<h1>/g, '<h1 class="text-3xl font-bold text-[var(--foreground)] mt-10 mb-6">')
     .replace(/<h2>/g, '<h2 class="text-2xl font-semibold text-[var(--foreground)] mt-8 mb-4">')
     .replace(/<h3>/g, '<h3 class="text-xl font-semibold text-[var(--foreground)] mt-6 mb-3">')
     .replace(/<h4>/g, '<h4 class="text-lg font-semibold text-[var(--foreground)] mt-5 mb-2">')
-    // Style lists - no bullet points
-    .replace(/<ul>/g, '<ul class="list-none my-4 space-y-2 text-[var(--muted)]">')
-    .replace(/<ol>/g, '<ol class="list-none my-4 space-y-2 text-[var(--muted)]">')
-    // Style list items with custom marker
+    .replace(/<ul>/g, '<ul class="list-none my-4 space-y-2 text-[var(--foreground-muted)]">')
+    .replace(/<ol>/g, '<ol class="list-none my-4 space-y-2 text-[var(--foreground-muted)]">')
     .replace(/<li>/g, '<li class="pl-0">')
-    // Style code blocks
-    .replace(/<pre><code>/g, '<pre class="bg-[var(--surface)] p-4 rounded-lg overflow-x-auto my-6"><code class="text-sm font-mono text-[var(--foreground)]">')
+    .replace(/<pre><code>/g, '<pre class="bg-[var(--surface-warm)] p-4 rounded-lg overflow-x-auto my-6"><code class="text-sm font-mono text-[var(--foreground)]">')
     .replace(/<\/code><\/pre>/g, '</code></pre>')
-    // Style inline code
-    .replace(/<code>/g, '<code class="bg-[var(--surface)] px-1.5 py-0.5 rounded text-sm font-mono text-[var(--accent)]">')
-    // Style blockquotes
-    .replace(/<blockquote>/g, '<blockquote class="border-l-4 border-[var(--accent)] pl-4 my-6 italic text-[var(--muted)]">')
-    // Style images
+    .replace(/<code>/g, '<code class="bg-[var(--surface-warm)] px-1.5 py-0.5 rounded text-sm font-mono text-[var(--accent)]">')
+    .replace(/<blockquote>/g, '<blockquote class="border-l-4 border-[var(--accent)] pl-4 my-6 italic text-[var(--foreground-muted)]">')
     .replace(/<img/g, '<img class="rounded-lg my-6 max-w-full"')
-    // Style links (open in new tab)
     .replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" class="text-[var(--accent)] hover:underline" ');
 }
 
-// Escape HTML special characters
-function escapeHtml(text: string): string {
-  const div: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-  return text.replace(/[&<>"']/g, m => div[m] || m);
+function extractFirstImage(content: string): string | null {
+  if (!content) return null;
+  const imgMatch = content.match(/<img[^>]+src=["']([^"']+)["'][^>]*>/i);
+  return imgMatch ? imgMatch[1] : null;
 }
 
 export async function generateMetadata({ params }: NewsArticlePageProps): Promise<Metadata> {
@@ -131,8 +108,6 @@ export async function generateMetadata({ params }: NewsArticlePageProps): Promis
     }
     
     const firstImage = extractFirstImage(article.content);
-    
-    // Use SEO-optimized meta fields if available
     const title = article.metaTitle || `${article.title} | AI News - Atooli`;
     const description = article.metaDescription || article.excerpt || stripHtml(article.content).substring(0, 160);
     
@@ -171,19 +146,9 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
   }
 
   const relatedArticles = await getRelatedArticles(slug);
-  const relatedTools = article.mentions?.map((m: any) => ({
-    ...m.tool,
-    mentions: m.mentions
-  })) || [];
-
-  // Extract table of contents from content
-  const tableOfContents = extractTableOfContents(article.content || '');
-
-  // Extract image from content if no coverImage
+  const relatedTools = article.mentions?.map((m: any) => m.tool) || [];
   const contentImage = !article.coverImage ? extractFirstImage(article.content) : null;
   const displayImage = article.coverImage || contentImage;
-
-  // Format content with proper paragraphs
   const formattedContent = formatContentToHtml(article.content || '');
 
   const structuredData = {
@@ -196,10 +161,6 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
     publisher: {
       "@type": "Organization",
       name: "Atooli",
-      logo: {
-        "@type": "ImageObject",
-        url: "https://atooli.ai/logo.png",
-      },
     },
   };
 
@@ -207,65 +168,26 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
     <>
       <StructuredData data={structuredData} />
 
-      <article className="max-w-4xl mx-auto px-4 py-12">
+      <article className="max-w-3xl mx-auto px-4 py-12">
         {/* Header */}
-        <header className="mb-8">
+        <header className="mb-8 pb-6 border-b border-[var(--border-soft)]">
           <div className="flex items-center gap-3 mb-4">
             {article.source && (
-              <span className="px-3 py-1 bg-[var(--accent)]/10 text-[var(--accent)] text-sm font-medium rounded-full">
-                {article.source}
-              </span>
+              <span className="text-sm text-[var(--accent)]">{article.source}</span>
             )}
-            <span className="text-[var(--muted)]">
+            <span className="text-sm text-[var(--foreground-muted)]">
               {formatDate(article.publishedAt)}
             </span>
           </div>
           
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-[var(--foreground)] mb-4 leading-tight"
-          >
+          <h1 className="text-3xl md:text-4xl font-bold text-[var(--foreground)] leading-tight">
             {article.title}
           </h1>          
-          
-          {/* AI Analysis */}
-          {article.aiAnalysis && (
-            <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-6 mb-6">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-lg">🤖</span>
-                <span className="text-sm font-semibold text-[var(--accent)] uppercase tracking-wider">
-                  AI Analysis
-                </span>
-                {(article.aiAnalysis as any)?.impact && (
-                  <span className={`ml-auto px-2 py-0.5 text-xs font-medium rounded ${
-                    ((article.aiAnalysis as any).impact === 'high') 
-                      ? 'bg-red-500/20 text-red-400' 
-                      : ((article.aiAnalysis as any).impact === 'medium')
-                        ? 'bg-yellow-500/20 text-yellow-400'
-                        : 'bg-green-500/20 text-green-400'
-                  }`}>
-                    {((article.aiAnalysis as any).impact).toUpperCase()} IMPACT
-                  </span>
-                )}
-              </div>
-              <p className="text-lg text-[var(--foreground)] leading-relaxed">
-                {(article.aiAnalysis as any)?.whyItMatters || ''}
-              </p>
-              {(article.aiAnalysis as any)?.keyPoints && (
-                <ul className="mt-4 space-y-2">
-                  {((article.aiAnalysis as any).keyPoints as string[]).slice(0, 3).map((point: string, i: number) => (
-                    <li key={i} className="flex items-start gap-2 text-[var(--muted)]">
-                      <span className="text-[var(--accent)] mt-1">•</span>
-                      <span>{point}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
         </header>
 
         {/* Featured Image */}
         {displayImage && (
-          <div className="aspect-video rounded-2xl overflow-hidden mb-8 bg-[var(--surface)]">
+          <div className="aspect-video rounded-xl overflow-hidden mb-8 bg-[var(--surface-warm)]">
             <img 
               src={displayImage} 
               alt={article.title}
@@ -276,68 +198,71 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
         )}
 
         {/* Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <div 
-              className="article-content"
-              dangerouslySetInnerHTML={{ __html: formattedContent }}
-            />
-            
-            {/* Source Link */}
-            {article.originalUrl && (
-              <div className="mt-8 pt-6 border-t border-[var(--border)]">
-                <p className="text-sm text-[var(--muted)]">
-                  Source: <a 
-                    href={article.originalUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-[var(--accent)] hover:underline"
-                  >
-                    {article.source || 'Original Article'} ↗
-                  </a>
-                </p>
-              </div>
-            )}
-          </div>          
-          
-          <aside className="lg:col-span-1">
-            <ArticleSidebar 
-              tools={relatedTools}
-              tableOfContents={tableOfContents}
-              source={article.source}
-              originalUrl={article.originalUrl}
-            />
-          </aside>
-        </div>
+        <div 
+          className="article-content"
+          dangerouslySetInnerHTML={{ __html: formattedContent }}
+        />
+        
+        {/* Source Link */}
+        {article.originalUrl && (
+          <div className="mt-8 pt-6 border-t border-[var(--border-soft)]">
+            <p className="text-sm text-[var(--foreground-muted)]">
+              Source: <a 
+                href={article.originalUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-[var(--accent)] hover:underline"
+              >
+                {article.source || 'Original Article'} ↗
+              </a>
+            </p>
+          </div>
+        )}
+
+        {/* Related Tools */}
+        {relatedTools.length > 0 && (
+          <section className="mt-12 pt-8 border-t border-[var(--border-soft)]">
+            <h2 className="text-lg font-bold text-[var(--foreground)] mb-4">Tools mentioned</h2>
+            <div className="space-y-3">
+              {relatedTools.map((tool: any) => (
+                <Link
+                  key={tool.id}
+                  href={`/tools/${tool.slug}`}
+                  className="group flex items-center gap-3 py-2 -mx-2 px-2 rounded-lg hover:bg-[var(--surface-warm)] transition-colors"
+                >
+                  <span className="text-[var(--foreground)] group-hover:text-[var(--accent)] transition-colors">
+                    {tool.name}
+                  </span>
+                  <span className="text-sm text-[var(--foreground-muted)] truncate flex-1">
+                    {tool.tagline}
+                  </span>
+                  <svg className="w-4 h-4 text-[var(--foreground-muted)] opacity-0 group-hover:opacity-100 transition-opacity" 
+                       fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Related Articles */}
         {relatedArticles.length > 0 && (
-          <section className="mt-16">
-            <h2 className="text-2xl font-semibold text-[var(--foreground)] mb-6"
-            >
-              Related Articles
-            </h2>            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <section className="mt-12 pt-8 border-t border-[var(--border-soft)]">
+            <h2 className="text-lg font-bold text-[var(--foreground)] mb-4">Related Articles</h2>            
+            <div className="space-y-4">
               {relatedArticles.map((related) => (
-                <article
-                  key={related.id}
-                  className="group bg-[var(--surface)] rounded-xl border border-[var(--border)] p-5
-                           hover:border-[var(--accent)]/30 transition-all duration-300"
-                >
-                  <Link href={`/news/${related.slug}`}>
-                    <div className="text-xs text-[var(--accent)] font-medium uppercase tracking-wider mb-2"
-                    >
+                <article key={related.id}>
+                  <Link 
+                    href={`/news/${related.slug}`}
+                    className="group block py-3 -mx-3 px-3 rounded-lg hover:bg-[var(--surface-warm)] transition-colors"
+                  >
+                    <div className="text-xs text-[var(--accent)] mb-1">
                       {formatDate(related.publishedAt)}
                     </div>                    
-                    <h3 className="font-semibold text-[var(--foreground)] mb-2 
-                                   group-hover:text-[var(--accent)] transition-colors line-clamp-2"
-                    >
+                    <h3 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--accent)] transition-colors">
                       {related.title}
-                    </h3>                    
-                    <p className="text-sm text-[var(--muted)] line-clamp-2"
-                    >
-                      {related.excerpt || stripHtml(related.content).substring(0, 100) + '...'}
-                    </p>
+                    </h3>
                   </Link>
                 </article>
               ))}

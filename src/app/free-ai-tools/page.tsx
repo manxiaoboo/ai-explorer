@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 async function getFreeTools() {
-  return prisma.tool.findMany({
+  const tools = await prisma.tool.findMany({
     where: { 
       isActive: true, 
       OR: [
@@ -28,6 +28,13 @@ async function getFreeTools() {
     orderBy: { trendingScore: "desc" },
     include: { category: true },
   });
+  
+  // Serialize dates to strings
+  return tools.map(tool => ({
+    ...tool,
+    createdAt: tool.createdAt.toISOString(),
+    updatedAt: tool.updatedAt.toISOString(),
+  }));
 }
 
 async function getCategories() {

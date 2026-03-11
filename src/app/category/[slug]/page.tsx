@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { ToolCard } from "@/components/ToolCard";
+import { ToolListItem } from "@/components/ToolListItem";
 import { StructuredData } from "@/components/StructuredData";
 import Link from "next/link";
 
@@ -57,7 +57,6 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
   const tools = await getToolsByCategory(category.id);
 
-  // CollectionPage structured data
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -75,29 +74,13 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     },
   };
 
-  // Breadcrumb structured data
   const breadcrumbData = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "Home",
-        item: "https://tooli.ai",
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "Tools",
-        item: "https://tooli.ai/tools",
-      },
-      {
-        "@type": "ListItem",
-        position: 3,
-        name: category.name,
-        item: `https://tooli.ai/category/${slug}`,
-      },
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://tooli.ai" },
+      { "@type": "ListItem", position: 2, name: "Tools", item: "https://tooli.ai/tools" },
+      { "@type": "ListItem", position: 3, name: category.name, item: `https://tooli.ai/category/${slug}` },
     ],
   };
 
@@ -106,9 +89,9 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       <StructuredData data={structuredData} />
       <StructuredData data={breadcrumbData} />
       
-      <div className="max-w-7xl mx-auto px-4 py-12">
+      <div className="max-w-6xl mx-auto px-4 py-12">
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-sm text-[var(--muted)] mb-6">
+        <nav className="flex items-center gap-2 text-sm text-[var(--foreground-muted)] mb-6">
           <Link href="/" className="hover:text-[var(--accent)]">Home</Link>
           <span>/</span>
           <Link href="/tools" className="hover:text-[var(--accent)]">Tools</Link>
@@ -116,16 +99,39 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           <span className="text-[var(--foreground)]">{category.name}</span>
         </nav>
 
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold text-[var(--foreground)]">{category.name} AI Tools</h1>
-          <p className="text-[var(--muted)] mt-2">{category.description}</p>
-          <p className="text-sm text-[var(--muted)] mt-4">{tools.length} tools in this category</p>
+        {/* Header */}
+        <header className="mb-8 pb-6 border-b border-[var(--border-soft)]">
+          <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">{category.name} AI Tools</h1>
+          {category.description && (
+            <p className="text-[var(--foreground-muted)] max-w-2xl">{category.description}</p>
+          )}
+          <p className="text-sm text-[var(--foreground-muted)] mt-4">{tools.length} tools in this category</p>
         </header>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tools.map((tool) => (
-            <ToolCard key={tool.id} tool={tool} />
-          ))}
+        {/* Tools List */}
+        {tools.length > 0 ? (
+          <div className="divide-y divide-[var(--border-soft)]">
+            {tools.map((tool) => (
+              <ToolListItem key={tool.id} tool={tool} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <p className="text-[var(--foreground-muted)]">No tools found in this category yet.</p>
+          </div>
+        )}
+
+        {/* Browse All CTA */}
+        <div className="mt-12 pt-8 border-t border-[var(--border-soft)] text-center">
+          <Link
+            href="/tools"
+            className="inline-flex items-center gap-2 text-[var(--accent)] hover:underline"
+          >
+            Browse all categories
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </Link>
         </div>
       </div>
     </>

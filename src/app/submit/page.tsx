@@ -55,7 +55,6 @@ export default function SubmitPage() {
           type: "success",
           message: result.message || "Tool submitted successfully!",
         });
-        // Reset form
         (e.target as HTMLFormElement).reset();
       } else {
         setSubmitStatus({
@@ -74,64 +73,57 @@ export default function SubmitPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
+    <div className="max-w-6xl mx-auto px-4 py-12">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
         {/* Left - Value Prop */}
         <div className="lg:sticky lg:top-24 lg:self-start">
-          <div className="flex items-center gap-2 text-sm text-[var(--muted)] mb-6">
+          <div className="flex items-center gap-2 text-sm text-[var(--foreground-muted)] mb-6">
             <Link href="/" className="hover:text-[var(--accent)]">Home</Link>
             <span>/</span>
-            <span>Submit</span>
+            <span className="text-[var(--foreground)]">Submit</span>
           </div>
 
-          <h1 className="text-3xl font-medium text-[var(--foreground)] mb-4">
+          <h1 className="text-3xl font-bold text-[var(--foreground)] mb-4">
             List Your Tool
           </h1>
 
-          <p className="text-lg text-[var(--muted)] mb-8">
+          <p className="text-lg text-[var(--foreground-muted)] mb-8">
             Get in front of people who are actively looking for tools like yours.
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Benefits - No cards */}
+          <div className="space-y-4 mb-8">
             {benefits.map((benefit) => (
-              <div
-                key={benefit.title}
-                className="bg-[var(--surface)] rounded-lg p-4"
-              >
-                <h3 className="font-medium text-[var(--foreground)] mb-1">
-                  {benefit.title}
-                </h3>
-                <p className="text-sm text-[var(--muted)]">{benefit.description}</p>
+              <div key={benefit.title} className="flex items-start gap-3">
+                <span className="text-[var(--accent)] mt-1">✓</span>
+                <div>
+                  <h3 className="font-medium text-[var(--foreground)]">{benefit.title}</h3>
+                  <p className="text-sm text-[var(--foreground-muted)]">{benefit.description}</p>
+                </div>
               </div>
             ))}
           </div>
 
-          <div className="mt-8 p-4 border border-[var(--border)] rounded-lg">
-            <h3 className="text-sm font-medium text-[var(--foreground)] mb-2">
+          <div className="pt-6 border-t border-[var(--border-soft)]">
+            <h3 className="font-medium text-[var(--foreground)] mb-2">
               What we look for
             </h3>
-            <ul className="space-y-1.5 text-sm text-[var(--muted)]">
-              <li>Working product (not just a landing page)</li>
-              <li>Clear value proposition</li>
-              <li>Active development or maintenance</li>
-              <li>No misleading claims</li>
+            <ul className="space-y-1.5 text-sm text-[var(--foreground-muted)]">
+              <li>• Working product (not just a landing page)</li>
+              <li>• Clear value proposition</li>
+              <li>• Active development or maintenance</li>
+              <li>• No misleading claims</li>
             </ul>
           </div>
 
-          <div className="mt-8 p-4 bg-[var(--accent)]/5 border border-[var(--accent)]/20 rounded-lg">
-            <h3 className="text-sm font-medium text-[var(--foreground)] mb-2">
-              Prefer email?
-            </h3>
-            <p className="text-sm text-[var(--muted)]">
-              You can also reach us at{" "}
-              <a
-                href="mailto:billman@attooli.com?subject=Tool Submission"
-                className="text-[var(--accent)] hover:underline"
-              >
-                billman@attooli.com
-              </a>
-              {" "}with your tool details.
-            </p>
+          <div className="mt-8 text-sm text-[var(--foreground-muted)]">
+            Prefer email?{" "}
+            <a
+              href="mailto:billman@attooli.com?subject=Tool Submission"
+              className="text-[var(--accent)] hover:underline"
+            >
+              billman@attooli.com
+            </a>
           </div>
         </div>
 
@@ -139,7 +131,7 @@ export default function SubmitPage() {
         <div>
           <form
             onSubmit={handleSubmit}
-            className="bg-[var(--surface)] rounded-lg p-6 space-y-6"
+            className="space-y-6"
           >
             {submitStatus.type && (
               <div
@@ -165,7 +157,8 @@ export default function SubmitPage() {
                 id="name"
                 name="name"
                 required
-                className="w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)]"
+                className="w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg 
+                         text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)] transition-colors"
                 placeholder="e.g., Notion"
               />
             </div>
@@ -182,10 +175,11 @@ export default function SubmitPage() {
                 id="tagline"
                 name="tagline"
                 required
-                className="w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)]"
+                className="w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg 
+                         text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)] transition-colors"
                 placeholder="e.g., All-in-one workspace for notes, docs, and wikis"
               />
-              <p className="text-xs text-[var(--muted)] mt-1">
+              <p className="text-xs text-[var(--foreground-muted)] mt-1">
                 Keep it under 10 words. This appears in search results.
               </p>
             </div>
@@ -202,7 +196,8 @@ export default function SubmitPage() {
                 id="website"
                 name="website"
                 required
-                className="w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)]"
+                className="w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg 
+                         text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)] transition-colors"
                 placeholder="https://example.com"
               />
             </div>
@@ -219,9 +214,10 @@ export default function SubmitPage() {
                   id="category"
                   name="category"
                   required
-                  className="w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)]"
+                  className="w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg 
+                           text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)] transition-colors"
                 >
-                  <option value="">Select category...</option>
+                  <option value="">Select...</option>
                   <option value="writing">Writing</option>
                   <option value="image">Image</option>
                   <option value="code">Code</option>
@@ -244,9 +240,10 @@ export default function SubmitPage() {
                   id="pricing"
                   name="pricing"
                   required
-                  className="w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)]"
+                  className="w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg 
+                           text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)] transition-colors"
                 >
-                  <option value="">Select pricing...</option>
+                  <option value="">Select...</option>
                   <option value="FREE">Free</option>
                   <option value="FREEMIUM">Freemium</option>
                   <option value="PAID">Paid</option>
@@ -267,7 +264,8 @@ export default function SubmitPage() {
                 name="description"
                 required
                 rows={4}
-                className="w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)] resize-none"
+                className="w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg 
+                         text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)] transition-colors resize-none"
                 placeholder="Describe what your tool does, who it's for, and why people should care..."
               />
             </div>
@@ -284,10 +282,11 @@ export default function SubmitPage() {
                 id="email"
                 name="email"
                 required
-                className="w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)]"
+                className="w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg 
+                         text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)] transition-colors"
                 placeholder="you@example.com"
               />
-              <p className="text-xs text-[var(--muted)] mt-1">
+              <p className="text-xs text-[var(--foreground-muted)] mt-1">
                 We&apos;ll use this to notify you when your listing is approved.
               </p>
             </div>
@@ -295,12 +294,13 @@ export default function SubmitPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 bg-[var(--foreground)] text-[var(--background)] font-medium rounded hover:bg-[var(--secondary)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 bg-[var(--foreground)] text-[var(--background)] font-medium rounded-lg 
+                       hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? "Submitting..." : "Submit for Review"}
             </button>
 
-            <p className="text-xs text-[var(--muted)] text-center">
+            <p className="text-xs text-[var(--foreground-muted)] text-center">
               We review all submissions within 48 hours.
             </p>
           </form>

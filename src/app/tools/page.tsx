@@ -1,9 +1,8 @@
 import { Metadata } from "next";
 import { prisma } from "@/lib/db";
-import { ToolCard } from "@/components/ToolCard";
+import { ToolListItem } from "@/components/ToolListItem";
 import { StructuredData } from "@/components/StructuredData";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 interface ToolsPageProps {
   searchParams: Promise<{
@@ -36,7 +35,6 @@ export async function generateMetadata({ searchParams }: ToolsPageProps): Promis
     ? `Discover ${filters.join(', ')} AI tools curated by Atooli. Compare features, pricing, and find the right tool for your needs.`
     : 'Explore 500+ AI tools curated by Atooli. Filter by category, pricing, and features to find exactly what you need.';
 
-  // Build canonical URL
   const canonicalParams: Record<string, string> = {};
   if (params.category) canonicalParams.category = params.category;
   if (params.pricing) canonicalParams.pricing = params.pricing;
@@ -55,11 +53,8 @@ export async function generateMetadata({ searchParams }: ToolsPageProps): Promis
   };
 }
 
-// Use ISR for better performance - regenerate every 5 minutes
 export const dynamic = 'force-dynamic';
 export const revalidate = 300;
-
-// Disable static generation for this page - it uses database
 export const dynamicParams = true;
 
 async function getTools(filters: {
@@ -72,7 +67,6 @@ async function getTools(filters: {
   try {
     const where: any = { isActive: true };
     
-    // Category filter
     if (filters.category) {
       const category = await prisma.category.findUnique({
         where: { slug: filters.category },
@@ -82,7 +76,6 @@ async function getTools(filters: {
       }
     }
     
-    // Pricing filter
     if (filters.pricing) {
       const pricingTiers = filters.pricing.split(',').filter(Boolean);
       if (pricingTiers.length > 0) {
@@ -90,7 +83,6 @@ async function getTools(filters: {
       }
     }
     
-    // Search filter
     if (filters.q) {
       where.OR = [
         { name: { contains: filters.q, mode: 'insensitive' } },
@@ -99,7 +91,6 @@ async function getTools(filters: {
       ];
     }
     
-    // Sort order
     let orderBy: any = { trendingScore: 'desc' };
     switch (filters.sort) {
       case 'newest':
@@ -108,9 +99,6 @@ async function getTools(filters: {
       case 'name':
         orderBy = { name: 'asc' };
         break;
-      case 'trending':
-      default:
-        orderBy = { trendingScore: 'desc' };
     }
     
     const page = filters.page || 1;
@@ -130,7 +118,6 @@ async function getTools(filters: {
     return { tools, totalCount, totalPages: Math.ceil(totalCount / ITEMS_PER_PAGE) };
   } catch (error) {
     console.error('Failed to fetch tools:', error);
-    // Return empty data during build or on error
     return { tools: [], totalCount: 0, totalPages: 0 };
   }
 }
@@ -157,7 +144,6 @@ function buildUrl(base: string, params: Record<string, string | undefined>) {
 
 export default async function ToolsPage({ searchParams }: ToolsPageProps) {
   const params = await searchParams;
-  
   const currentPage = parseInt(params.page || '1', 10);
   
   const [{ tools, totalCount, totalPages }, categories] = await Promise.all([
@@ -165,27 +151,16 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
     getCategories(),
   ]);
   
-  // Current filter state
   const currentCategory = params.category;
   const currentPricing = params.pricing?.split(',').filter(Boolean) || [];
   const currentSort = params.sort || 'trending';
   const currentQuery = params.q || '';
   
-  // Helper to build filter URLs
   const getCategoryUrl = (slug: string | null) => {
     if (slug === null) {
-      return buildUrl('/tools', {
-        pricing: params.pricing,
-        sort: params.sort,
-        q: params.q,
-      });
+      return buildUrl('/tools', { pricing: params.pricing, sort: params.sort, q: params.q });
     }
-    return buildUrl('/tools', {
-      category: slug,
-      pricing: params.pricing,
-      sort: params.sort,
-      q: params.q,
-    });
+    return buildUrl('/tools', { category: slug, pricing: params.pricing, sort: params.sort, q: params.q });
   };
   
   const getPricingUrl = (tier: string) => {
@@ -215,14 +190,8 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
     page: page > 1 ? page.toString() : undefined,
   });
   
-  const getSearchUrl = (q: string) => buildUrl('/tools', {
-    category: params.category,
-    pricing: params.pricing,
-    sort: params.sort,
-    q: q || undefined,
-  });
-  
-  // Structured data
+  const activeFiltersCount = (currentCategory ? 1 : 0) + currentPricing.length + (currentQuery ? 1 : 0);
+
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -241,17 +210,14 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
       })),
     },
   };
-  
-  // Active filters count
-  const activeFiltersCount = (currentCategory ? 1 : 0) + currentPricing.length + (currentQuery ? 1 : 0);
 
   return (
     <>
       <StructuredData data={structuredData} />
       
-      <div className="max-w-7xl mx-auto px-4 py-12">
+      <div className="max-w-6xl mx-auto px-4 py-12">
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-sm text-[var(--muted)] mb-4">
+        <nav className="flex items-center gap-2 text-sm text-[var(--foreground-muted)] mb-4">
           <Link href="/" className="hover:text-[var(--accent)]">Home</Link>
           <span>/</span>
           {currentCategory ? (
@@ -267,23 +233,23 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
         
         {/* Header */}
         <header className="mb-8">
-          <h1 className="text-3xl font-medium text-[var(--foreground)] mb-2">
+          <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
             {currentCategory 
               ? categories.find(c => c.slug === currentCategory)?.name || currentCategory
               : 'All Tools'}
           </h1>
-          <p className="text-[var(--muted)]">
-            {tools.length} tool{tools.length !== 1 ? 's' : ''}
+          <p className="text-[var(--foreground-muted)]">
+            {totalCount} tool{totalCount !== 1 ? 's' : ''}
             {currentQuery && ` matching "${currentQuery}"`}
           </p>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Filters Sidebar */}
-          <aside className="lg:col-span-3 space-y-6">
+          {/* Filters Sidebar - Open Design */}
+          <aside className="lg:col-span-3">
             {/* Search */}
-            <div className="bg-[var(--surface)] rounded-lg p-4">
-              <label className="block text-xs font-medium text-[var(--muted)] uppercase tracking-wider mb-2">
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
                 Search
               </label>
               <form action="/tools" method="GET">
@@ -296,11 +262,11 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
                     name="q"
                     defaultValue={currentQuery}
                     placeholder="Search tools..."
-                    className="w-full px-3 py-2 pr-10 bg-[var(--background)] border border-[var(--border)] rounded text-sm focus:outline-none focus:border-[var(--accent)]"
+                    className="w-full px-3 py-2 pr-10 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--accent)]"
                   />
                   <button 
                     type="submit"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-[var(--accent)]"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] hover:text-[var(--accent)]"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -311,8 +277,8 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
             </div>
 
             {/* Categories */}
-            <div className="bg-[var(--surface)] rounded-lg p-4">
-              <h3 className="text-xs font-medium text-[var(--muted)] uppercase tracking-wider mb-3">
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-[var(--foreground)] mb-3">
                 Categories
               </h3>
               <ul className="space-y-1">
@@ -322,7 +288,7 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
                     className={`block py-1.5 text-sm ${
                       !currentCategory 
                         ? 'text-[var(--accent)] font-medium' 
-                        : 'text-[var(--foreground)] hover:text-[var(--accent)]'
+                        : 'text-[var(--foreground-muted)] hover:text-[var(--foreground)]'
                     }`}
                   >
                     All Categories
@@ -335,7 +301,7 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
                       className={`block py-1.5 text-sm ${
                         currentCategory === category.slug
                           ? 'text-[var(--accent)] font-medium'
-                          : 'text-[var(--muted)] hover:text-[var(--foreground)]'
+                          : 'text-[var(--foreground-muted)] hover:text-[var(--foreground)]'
                       }`}
                     >
                       {category.name}
@@ -346,8 +312,8 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
             </div>
 
             {/* Pricing Filter */}
-            <div className="bg-[var(--surface)] rounded-lg p-4">
-              <h3 className="text-xs font-medium text-[var(--muted)] uppercase tracking-wider mb-3">
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-[var(--foreground)] mb-3">
                 Pricing
               </h3>
               <ul className="space-y-2">
@@ -365,7 +331,7 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
                         className={`flex items-center gap-2 text-sm ${
                           isActive 
                             ? 'text-[var(--accent)]' 
-                            : 'text-[var(--muted)] hover:text-[var(--foreground)]'
+                            : 'text-[var(--foreground-muted)] hover:text-[var(--foreground)]'
                         }`}
                       >
                         <span className={`w-4 h-4 rounded border flex items-center justify-center ${
@@ -391,24 +357,24 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
             {activeFiltersCount > 0 && (
               <Link
                 href="/tools"
-                className="block w-full py-2 text-center text-sm text-[var(--muted)] hover:text-[var(--accent)] border border-[var(--border)] rounded-lg hover:border-[var(--accent)] transition-colors"
+                className="text-sm text-[var(--foreground-muted)] hover:text-[var(--accent)] transition-colors"
               >
                 Clear all filters ({activeFiltersCount})
               </Link>
             )}
           </aside>
 
-          {/* Tools Grid */}
+          {/* Tools List */}
           <main className="lg:col-span-9">
             {/* Toolbar */}
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-[var(--border)]">
-              <span className="text-sm text-[var(--muted)]">
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-[var(--border-soft)]">
+              <span className="text-sm text-[var(--foreground-muted)]">
                 Showing {tools.length} result{tools.length !== 1 ? 's' : ''}
               </span>
               
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-[var(--muted)]">Sort by:</span>
-                <div className="flex items-center border border-[var(--border)] rounded overflow-hidden">
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-[var(--foreground-muted)]">Sort:</span>
+                <div className="flex items-center gap-1">
                   {[
                     { value: 'trending', label: 'Trending' },
                     { value: 'newest', label: 'Newest' },
@@ -417,10 +383,10 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
                     <Link
                       key={option.value}
                       href={getSortUrl(option.value)}
-                      className={`px-3 py-1.5 text-sm ${
+                      className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
                         currentSort === option.value
                           ? 'bg-[var(--foreground)] text-[var(--background)]'
-                          : 'text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface)]'
+                          : 'text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-warm)]'
                       }`}
                     >
                       {option.label}
@@ -431,20 +397,20 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
             </div>
 
             {tools.length === 0 ? (
-              <div className="text-center py-16 bg-[var(--surface)] rounded-lg">
-                <p className="text-[var(--muted)] mb-2">No tools found.</p>
-                <p className="text-sm text-[var(--muted-foreground)]">Try adjusting your filters.</p>
+              <div className="text-center py-16">
+                <p className="text-[var(--foreground-muted)] mb-2">No tools found.</p>
+                <p className="text-sm text-[var(--foreground-muted)]">Try adjusting your filters.</p>
                 <Link
                   href="/tools"
-                  className="inline-block mt-4 px-4 py-2 text-sm text-[var(--accent)] hover:underline"
+                  className="inline-block mt-4 text-[var(--accent)] hover:underline"
                 >
                   Clear all filters
                 </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="divide-y divide-[var(--border-soft)]">
                 {tools.map((tool) => (
-                  <ToolCard key={tool.id} tool={tool} />
+                  <ToolListItem key={tool.id} tool={tool} />
                 ))}
               </div>
             )}
@@ -452,25 +418,22 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="mt-8 flex items-center justify-center gap-2">
-                {/* Previous */}
                 {currentPage > 1 ? (
                   <Link
                     href={getPageUrl(currentPage - 1)}
-                    className="px-3 py-2 text-sm text-[var(--muted)] hover:text-[var(--accent)] border border-[var(--border)] rounded-lg hover:border-[var(--accent)] transition-colors"
+                    className="px-3 py-2 text-sm text-[var(--foreground-muted)] hover:text-[var(--accent)] transition-colors"
                   >
                     ← Prev
                   </Link>
                 ) : (
-                  <span className="px-3 py-2 text-sm text-[var(--muted-foreground)] border border-[var(--border)] rounded-lg opacity-50 cursor-not-allowed">
+                  <span className="px-3 py-2 text-sm text-[var(--foreground-muted)] opacity-50 cursor-not-allowed">
                     ← Prev
                   </span>
                 )}
 
-                {/* Page Numbers */}
                 <div className="flex items-center gap-1">
                   {Array.from({ length: totalPages }, (_, i) => i + 1)
                     .filter(page => {
-                      // Show first, last, current, and neighbors
                       return page === 1 || 
                              page === totalPages || 
                              Math.abs(page - currentPage) <= 1;
@@ -480,14 +443,14 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
                       return (
                         <div key={page} className="flex items-center gap-1">
                           {showEllipsis && (
-                            <span className="px-2 text-[var(--muted)]">...</span>
+                            <span className="px-2 text-[var(--foreground-muted)]">...</span>
                           )}
                           <Link
                             href={getPageUrl(page)}
                             className={`min-w-[40px] px-3 py-2 text-sm text-center rounded-lg transition-colors ${
                               currentPage === page
                                 ? 'bg-[var(--accent)] text-white'
-                                : 'text-[var(--muted)] hover:text-[var(--accent)] border border-[var(--border)] hover:border-[var(--accent)]'
+                                : 'text-[var(--foreground-muted)] hover:text-[var(--accent)] hover:bg-[var(--surface-warm)]'
                             }`}
                           >
                             {page}
@@ -497,16 +460,15 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
                     })}
                 </div>
 
-                {/* Next */}
                 {currentPage < totalPages ? (
                   <Link
                     href={getPageUrl(currentPage + 1)}
-                    className="px-3 py-2 text-sm text-[var(--muted)] hover:text-[var(--accent)] border border-[var(--border)] rounded-lg hover:border-[var(--accent)] transition-colors"
+                    className="px-3 py-2 text-sm text-[var(--foreground-muted)] hover:text-[var(--accent)] transition-colors"
                   >
                     Next →
                   </Link>
                 ) : (
-                  <span className="px-3 py-2 text-sm text-[var(--muted-foreground)] border border-[var(--border)] rounded-lg opacity-50 cursor-not-allowed">
+                  <span className="px-3 py-2 text-sm text-[var(--foreground-muted)] opacity-50 cursor-not-allowed">
                     Next →
                   </span>
                 )}
@@ -514,7 +476,7 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
             )}
 
             {/* Page Info */}
-            <div className="mt-4 text-center text-sm text-[var(--muted)]">
+            <div className="mt-4 text-center text-sm text-[var(--foreground-muted)]">
               Page {currentPage} of {totalPages} • {totalCount} tools total
             </div>
           </main>
