@@ -202,6 +202,82 @@ function generateSlug(title: string): string {
 }
 
 /**
+ * 清理文章内容 - 移除无关信息
+ */
+function cleanArticleContent(html: string, source: string): string {
+  let cleaned = html;
+  
+  // 通用清理：移除脚本、样式、导航
+  cleaned = cleaned
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<nav[\s\S]*?<\/nav>/gi, "")
+    .replace(/<header[\s\S]*?<\/header>/gi, "")
+    .replace(/<footer[\s\S]*?<\/footer>/gi, "")
+    .replace(/<aside[\s\S]*?<\/aside>/gi, "");
+  
+  // TechCrunch: 移除作者简介
+  if (source.includes("TechCrunch")) {
+    // 移除 "XXX covers..." 作者简介段落
+    cleaned = cleaned.replace(/\s+[A-Z][a-z]+\s+covers[\s\S]*?Signal\./gi, "");
+    // 移除 "View Bio" 链接
+    cleaned = cleaned.replace(/\s*View\s*Bio\s*/gi, "");
+    // 移除 "You can contact or verify outreach..."
+    cleaned = cleaned.replace(/\s*You can contact or verify outreach[\s\S]*?Signal\./gi, "");
+  }
+  
+  // Google AI Blog: 移除订阅表单
+  if (source.includes("Google")) {
+    // 移除订阅相关文本
+    cleaned = cleaned.replace(/\s*Get more stories from Google in your inbox\.[\s\S]*?Confirm your subscription[\s\S]*?\/svg>/gi, "");
+    cleaned = cleaned.replace(/\s*Done\. Just one step more\.[\s\S]*?Check your inbox to confirm your subscription\./gi, "");
+    cleaned = cleaned.replace(/\s*You are already subscribed to our newsletter\.[\s\S]*?You can also subscribe with a/gi, "");
+    cleaned = cleaned.replace(/\s*Get more stories from Google in your inbox\.[\s\S]*/gi, "");
+    // 移除日期标记 "Mar 06, 2026" 格式
+    cleaned = cleaned.replace(/^\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},?\s+\d{4}\s*/i, "");
+  }
+  
+  // OpenAI Blog: 清理特定格式
+  if (source.includes("OpenAI")) {
+    // 移除多余的 OpenAI 标志重复
+    cleaned = cleaned.replace(/\s*OpenAI\s*OpenAI\s*/gi, " OpenAI ");
+  }
+  
+  // The Verge: 移除 "Read the full story at..."
+  cleaned = cleaned.replace(/\s*Read the full story at[^.]+\.\s*/gi, "");
+  cleaned = cleaned.replace(/\s*Read the full story at[\s\S]*$/gi, "");
+  
+  // Ars Technica: 移除评论和阅读全文链接
+  cleaned = cleaned.replace(/\s*Read full article\s*/gi, "");
+  cleaned = cleaned.replace(/\s*Comments\s*$/gi, "");
+  cleaned = cleaned.replace(/\s*Comments\s*$/gim, "");
+  
+  // MIT Tech Review: 移除邮件订阅和社交链接
+  cleaned = cleaned.replace(/\s*Send asteroids to[\s\S]*?$/gi, "");
+  cleaned = cleaned.replace(/\s*You can follow me on[\s\S]*?Thanks for reading![\s\S]*$/gi, "");
+  cleaned = cleaned.replace(/\s*—[A-Z][a-z]+\s*$/gi, ""); // 移除作者署名如 "—Thomas"
+  cleaned = cleaned.replace(/\s*We can still have nice things[\s\S]*$/gi, ""); // 移除结尾栏目
+  cleaned = cleaned.replace(/\s*Read the full story[\s\S]*?\.[\s\S]*$/gi, ""); // 移除"Read the full story"
+  
+  // 移除 "Top image credit" 及其后续内容
+  cleaned = cleaned.replace(/\s*Top image credit:[\s\S]*$/gi, "");
+  
+  // 移除 "+ ..." 格式的新闻列表（MIT Tech Review）
+  cleaned = cleaned.replace(/\s*\+\s+[^\n]+(?:won't hit Earth|has arrived|are still|is publishing)[\s\S]*$/gi, "");
+  
+  // 通用：移除赞助/广告声明
+  cleaned = cleaned.replace(/\s*This content was produced by[\s\S]*?$/gi, "");
+  cleaned = cleaned.replace(/\s*Download the full report\./gi, "");
+  
+  // 移除作者信息块（常见模式）
+  cleaned = cleaned
+    .replace(/\s*[A-Z][a-zA-Z\s]+is\s+a\s+(reporter|writer|editor|journalist)[\s\S]*?$/gi, "")
+    .replace(/\s*Follow\s+@[\w]+\s+on\s+(Twitter|X|LinkedIn)[\s\S]*/gi, "");
+  
+  return cleaned;
+}
+
+/**
  * 生成excerpt
  */
 function generateExcerpt(content: string): string {
@@ -277,17 +353,22 @@ async function saveNews(item: NewsItem): Promise<boolean> {
     item = await enrichContent(item);
     
     const slug = generateSlug(item.title);
-    const excerpt = item.excerpt || generateExcerpt(item.content || item.title);
     
-    // 清理内容为Markdown
-    const content = item.content
-      ? item.content
-          .replace(/<script[\s\S]*?<\/script>/gi, "")
-          .replace(/<style[\s\S]*?<\/style>/gi, "")
-          .replace(/<[^>]*>/g, "\n")
-          .replace(/\n{3,}/g, "\n\n")
-          .trim()
-      : excerpt;
+    // 清理 HTML 内容（移除无关信息）
+    const cleanedHtml = cleanArticleContent(item.content || "", item.source);
+    const excerpt = item.excerpt || generateExcerpt(cleanedHtml || item.title);
+    
+    // 转换为纯文本 Markdown
+    let content = cleanedHtml
+      .replace(/<[^>]*>/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+    
+    // 最终清理：移除残留的页脚文本
+    content = content
+      .replace(/\n\s*Comments\s*$/i, "") // Ars Technica
+      .replace(/\n\s*Read full article\s*$/i, "")
+      .replace(/\n\s*View Bio\s*$/i, "");
     
     await prisma.news.create({
       data: {
@@ -295,7 +376,7 @@ async function saveNews(item: NewsItem): Promise<boolean> {
         title: item.title,
         excerpt,
         content,
-        contentHtml: item.content,
+        contentHtml: cleanedHtml,
         originalUrl: item.link,
         source: item.source,
         coverImage: item.coverImage,
