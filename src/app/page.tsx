@@ -6,6 +6,35 @@ import { ToolLogo } from "@/components/ToolLogo";
 import { HeroSearch } from "@/components/HeroSearch";
 import type { Tool, Category, Prisma } from "@prisma/client";
 
+// Get brand icon URL from API
+async function getBrandIconUrl(): Promise<string> {
+  try {
+    // In production, use API route to get signed URL for private blob
+    // For local dev, fallback to local favicon
+    const isDev = process.env.NODE_ENV === 'development';
+    
+    if (isDev) {
+      return "/favicon.svg";
+    }
+    
+    // Call internal API to get signed URL
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const res = await fetch(`${baseUrl}/api/brand-icon`, { 
+      cache: 'no-store',
+    });
+    
+    if (!res.ok) {
+      return "/favicon.svg";
+    }
+    
+    const data = await res.json();
+    return data.url || "/favicon.svg";
+  } catch (error) {
+    console.error("Failed to get brand icon URL:", error);
+    return "/favicon.svg";
+  }
+}
+
 // Type for tool with category relation
 type ToolWithCategory = Tool & { category: Category };
 
@@ -264,8 +293,8 @@ export default async function HomePage() {
     },
   };
 
-  // CDN icon URL
-  const cdnFaviconUrl = "https://gyqld3z17j5o0ygm.private.blob.vercel-storage.com/brand/favicon.svg";
+  // Get signed URL for brand icon from CDN
+  const brandIconUrl = await getBrandIconUrl();
   
   // Get top 5 categories for Popular section
   const popularCategories = categories.slice(0, 5);
@@ -284,7 +313,7 @@ export default async function HomePage() {
             {/* Logo with CDN icon */}
             <div className="inline-flex items-center gap-2 mb-6 text-[var(--foreground-soft)]">
               <img 
-                src={cdnFaviconUrl} 
+                src={brandIconUrl} 
                 alt="Atooli" 
                 className="w-8 h-8 rounded-lg"
               />
