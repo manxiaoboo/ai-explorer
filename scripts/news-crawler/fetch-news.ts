@@ -10,6 +10,10 @@
 
 import { prisma } from "./lib/db.js";
 import * as xml2js from "xml2js";
+import { extract } from "@extractus/article-extractor";
+
+// 内容长度阈值 - 少于这个字符数会触发网页抓取
+const CONTENT_MIN_LENGTH = 800;
 
 const MAX_PENDING = parseInt(process.env.MAX_PENDING_NEWS || "10");
 const DAILY_LIMIT = parseInt(process.env.DAILY_FETCH_LIMIT || "5");
@@ -215,6 +219,43 @@ async function isDuplicate(link: string, title: string): Promise<boolean> {
 }
 
 /**
+ * 从网页提取完整内容（当RSS内容过短时）
+ */
+async function enrichContent(item: NewsItem): Promise<NewsItem> {
+  const contentLength = item.content?.length || 0;
+  
+  // 如果内容足够长，直接返回
+  if (contentLength >= CONTENT_MIN_LENGTH) {
+    return item;
+  }
+  
+  console.log(`  🌐 Fetching full content from: ${item.link.slice(0, 60)}...`);
+  
+  try {
+    const article = await extract(item.link, {
+      descriptionTruncateLen: 300,
+      contentLengthThreshold: 200,
+    });
+    
+    if (article && article.content && article.content.length > contentLength) {
+      console.log(`     ✓ Enriched: ${contentLength} → ${article.content.length} chars`);
+      return {
+        ...item,
+        content: article.content,
+        excerpt: article.description || item.excerpt,
+        coverImage: article.image || item.coverImage,
+      };
+    } else {
+      console.log(`     ⚠️ Could not extract better content, using RSS version`);
+    }
+  } catch (error) {
+    console.log(`     ⚠️ Extraction failed: ${(error as Error).message}`);
+  }
+  
+  return item;
+}
+
+/**
  * 保存新闻到数据库
  */
 async function saveNews(item: NewsItem): Promise<boolean> {
@@ -224,6 +265,9 @@ async function saveNews(item: NewsItem): Promise<boolean> {
       console.log(`  ⚠️  Duplicate: ${item.title.slice(0, 50)}...`);
       return false;
     }
+    
+    // 增强内容（从网页抓取完整内容）
+    item = await enrichContent(item);
     
     const slug = generateSlug(item.title);
     const excerpt = item.excerpt || generateExcerpt(item.content || item.title);
