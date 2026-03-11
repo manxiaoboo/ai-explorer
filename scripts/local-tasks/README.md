@@ -106,10 +106,26 @@ tail -n 100 /tmp/atooli.log
 | 任务 | 文件 | 说明 | 频率建议 |
 |------|------|------|----------|
 | 检查连接 | `check-db.ts` | 测试数据库连接 | 手动 |
+| 修复数据 | `fix-missing-stats.ts` | 从 features 提取 GitHub stars | 首次运行 |
 | GitHub 更新 | `update-github.ts` | 更新 stars/growth | 每天 1-2 次 |
 | HuggingFace 更新 | `update-huggingface.ts` | 更新 downloads/likes | 每天 1 次 |
-| 趋势分数 | `calculate-trending.ts` | 计算所有工具分数 | 每天 1 次 |
+| 趋势分数 | `calculate-trending.ts` | 计算真实热度分数 | 每天 1 次 |
 | 全部运行 | `run-all.ts` | 顺序执行以上任务 | 每天 1 次 |
+
+## 热度算法 V2
+
+### 权重分配
+- **网站流量** (30%) - 近期点击、访问时长
+- **用户互动** (20%) - 收藏、转化率  
+- **增长率** (15%) - 热度加速度
+- **平台数据** (25%) - GitHub/HF/PH (20万+ stars 可获得超额分数)
+- **新鲜度** (10%) - 按小时递减
+
+### 特点
+- ✅ 真实反映工具热度，而非静态属性
+- ✅ 高 stars 工具获得合理排名 (如 openclaw 29万 stars 排第1)
+- ✅ 新工具有热度扶持，但随时间衰减
+- ✅ 流量数据主导，避免只看出身
 
 ## 安全说明
 
