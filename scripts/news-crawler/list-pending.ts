@@ -4,7 +4,7 @@
  * 列出所有待审核的新闻
  */
 
-import { prisma } from "./lib/db";
+import { prisma } from "./lib/db.js";
 
 async function listPendingNews() {
   console.log("📋 Pending News for Review\n");

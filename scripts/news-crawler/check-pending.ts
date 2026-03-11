@@ -4,7 +4,7 @@
  * 检查未审核新闻数量，用于决定是否继续抓取
  */
 
-import { prisma } from "./lib/db";
+import { prisma } from "./lib/db.js";
 
 const MAX_PENDING = parseInt(process.env.MAX_PENDING_NEWS || "10");
 

@@ -5,7 +5,7 @@
  * Usage: npx tsx scripts/news-crawler/reject-news.ts [slug]
  */
 
-import { prisma } from "./lib/db";
+import { prisma } from "./lib/db.js";
 
 async function rejectNews() {
   const slug = process.argv[2];

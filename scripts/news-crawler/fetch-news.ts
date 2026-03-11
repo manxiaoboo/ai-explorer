@@ -8,7 +8,7 @@
  * - 保存为PENDING状态
  */
 
-import { prisma } from "./lib/db";
+import { prisma } from "./lib/db.js";
 import * as xml2js from "xml2js";
 
 const MAX_PENDING = parseInt(process.env.MAX_PENDING_NEWS || "10");
@@ -23,7 +23,7 @@ const RSS_SOURCES = [
   },
   {
     name: "The Verge AI",
-    url: "https://www.theverge.com/ai-artificial-intelligence/rss/index.xml",
+    url: "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
     weight: 10,
   },
   {
@@ -43,7 +43,7 @@ const RSS_SOURCES = [
   },
   {
     name: "Google AI Blog",
-    url: "https://ai.googleblog.com/feeds/posts/default",
+    url: "https://blog.google/technology/ai/rss",
     weight: 10,
   },
   {
@@ -130,15 +130,29 @@ function parseRSSItems(feed: any, sourceName: string): NewsItem[] {
                    feed.feed?.entry || [];
     
     for (const entry of entries.slice(0, 3)) { // 每个源取前3条
-      const title = entry.title?.[0] || entry.title;
-      const link = entry.link?.[0]?.$?.href || 
-                   entry.link?.[0] || 
-                   entry.id?.[0];
+      // 处理 title（可能是字符串或对象）
+      let title = entry.title?.[0] || entry.title;
+      if (typeof title === 'object' && title !== null) {
+        title = title._ || title;
+      }
+      
+      // 处理 link（RSS vs Atom 格式）
+      let link = entry.link?.[0]?.$?.href || 
+                 entry.link?.[0] || 
+                 entry.id?.[0];
+      if (typeof link === 'object' && link !== null) {
+        link = link._ || link.href || link;
+      }
+      
       const pubDate = new Date(entry.pubDate?.[0] || entry.updated?.[0] || Date.now());
-      const content = entry["content:encoded"]?.[0] || 
-                      entry.content?.[0]?._ || 
-                      entry.content?.[0] ||
-                      entry.description?.[0];
+      
+      // 处理 content
+      let content = entry["content:encoded"]?.[0] || 
+                    entry.content?.[0]?._ || 
+                    entry.content?.[0] ||
+                    entry.summary?.[0]?._ ||
+                    entry.summary?.[0] ||
+                    entry.description?.[0];
       
       // 提取封面图
       let coverImage = null;
