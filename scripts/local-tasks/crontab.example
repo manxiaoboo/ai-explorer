@@ -1,0 +1,46 @@
+# Atooli Local Tasks - Crontab Configuration
+# 
+# 设置方法:
+# 1. 编辑 crontab: crontab -e
+# 2. 复制以下内容 (修改路径)
+# 3. 保存
+#
+# 查看日志: tail -f /tmp/atooli.log
+
+# =============================================
+# 方案一: 每天执行一次完整更新 (推荐)
+# =============================================
+# 每天早上 8 点执行所有任务
+0 8 * * * cd /path/to/ai-explorer && npx tsx scripts/local-tasks/run-all.ts >> /tmp/atooli.log 2>&1
+
+# =============================================
+# 方案二: 分别执行各个任务
+# =============================================
+# 每小时更新 GitHub 数据
+0 * * * * cd /path/to/ai-explorer && npx tsx scripts/local-tasks/update-github.ts >> /tmp/atooli-github.log 2>&1
+
+# 每天早上 7 点更新 HuggingFace
+0 7 * * * cd /path/to/ai-explorer && npx tsx scripts/local-tasks/update-huggingface.ts >> /tmp/atooli-hf.log 2>&1
+
+# 每天早上 8 点计算趋势分数 (重要!)
+0 8 * * * cd /path/to/ai-explorer && npx tsx scripts/local-tasks/calculate-trending.ts >> /tmp/atooli-trending.log 2>&1
+
+# =============================================
+# 方案三: 每周重置
+# =============================================
+# 每周一早上 3 点重置周统计数据
+0 3 * * 1 cd /path/to/ai-explorer && npx tsx scripts/local-tasks/reset-weekly.ts >> /tmp/atooli-reset.log 2>&1
+
+# =============================================
+# 说明
+# =============================================
+# * * * * * 命令
+# │ │ │ │ │
+# │ │ │ │ └─ 星期几 (0-7, 0和7都是周日)
+# │ │ │ └── 月份 (1-12)
+# │ │ └── 日期 (1-31)
+# │ └── 小时 (0-23)
+# └── 分钟 (0-59)
+#
+# @daily = 每天 0:00
+# @hourly = 每小时 0分

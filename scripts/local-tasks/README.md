@@ -47,19 +47,23 @@ npx tsx scripts/local-tasks/calculate-trending.ts
 # 编辑 crontab
 crontab -e
 
-# 每天早上 8 点运行完整更新
+# ========== 推荐方案：每天执行一次完整更新 ==========
+# 每天早上 8 点执行所有任务 (包括 GitHub + HF + Trending)
 0 8 * * * cd /path/to/ai-explorer && npx tsx scripts/local-tasks/run-all.ts >> /tmp/atooli.log 2>&1
 
-# 或者更细粒度的控制：
-# 每小时更新 GitHub
+
+# ========== 或者：分别执行各个任务 ==========
+# 每小时更新 GitHub 数据
 0 * * * * cd /path/to/ai-explorer && npx tsx scripts/local-tasks/update-github.ts >> /tmp/atooli-github.log 2>&1
 
 # 每天早上 7 点更新 HuggingFace
 0 7 * * * cd /path/to/ai-explorer && npx tsx scripts/local-tasks/update-huggingface.ts >> /tmp/atooli-hf.log 2>&1
 
-# 每天早上 8 点计算趋势分数
+# ⚠️ 重要：每天早上 8 点计算趋势分数 (必须每天执行!)
 0 8 * * * cd /path/to/ai-explorer && npx tsx scripts/local-tasks/calculate-trending.ts >> /tmp/atooli-trending.log 2>&1
 ```
+
+> 📋 复制 `crontab.example` 文件中的配置到你的 crontab
 
 ### Windows - 任务计划程序
 
@@ -101,7 +105,7 @@ grep "ERROR" /tmp/atooli.log
 tail -n 100 /tmp/atooli.log
 ```
 
-## 任务列表
+## 📋 任务列表
 
 | 任务 | 文件 | 说明 | 频率建议 |
 |------|------|------|----------|
@@ -109,8 +113,10 @@ tail -n 100 /tmp/atooli.log
 | 修复数据 | `fix-missing-stats.ts` | 从 features 提取 GitHub stars | 首次运行 |
 | GitHub 更新 | `update-github.ts` | 更新 stars/growth | 每天 1-2 次 |
 | HuggingFace 更新 | `update-huggingface.ts` | 更新 downloads/likes | 每天 1 次 |
-| 趋势分数 | `calculate-trending.ts` | 计算真实热度分数 | 每天 1 次 |
-| 全部运行 | `run-all.ts` | 顺序执行以上任务 | 每天 1 次 |
+| **🔥 趋势分数** | **`calculate-trending.ts`** | **计算所有工具热度分数** | **⚠️ 必须每天执行** |
+| 全部运行 | `run-all.ts` | 一键执行所有任务 | 每天 1 次 |
+
+> ⚠️ **重要**: `calculate-trending.ts` 必须每天执行一次，否则 trending 页面数据不会更新！
 
 ## 热度算法 V2
 
