@@ -1,0 +1,43 @@
+{
+  "project": "Atooli",
+  "generated": "2026-03-11T12:50:00.000Z",
+  "cdn_base": "https://gyqld3z17j5o0ygm.private.blob.vercel-storage.com",
+  "assets": {
+    "favicon_svg": {
+      "url": "https://gyqld3z17j5o0ygm.private.blob.vercel-storage.com/brand/favicon.svg",
+      "type": "image/svg+xml",
+      "size": "32x32"
+    },
+    "icon_svg": {
+      "url": "https://gyqld3z17j5o0ygm.private.blob.vercel-storage.com/brand/icon.svg",
+      "type": "image/svg+xml",
+      "size": "512x512"
+    },
+    "favicon_32": {
+      "url": "https://gyqld3z17j5o0ygm.private.blob.vercel-storage.com/brand/favicon-32x32.png",
+      "type": "image/png",
+      "size": "32x32"
+    },
+    "apple_touch_icon": {
+      "url": "https://gyqld3z17j5o0ygm.private.blob.vercel-storage.com/brand/apple-touch-icon.png",
+      "type": "image/png",
+      "size": "180x180"
+    },
+    "icon_192": {
+      "url": "https://gyqld3z17j5o0ygm.private.blob.vercel-storage.com/brand/icon-192x192.png",
+      "type": "image/png",
+      "size": "192x192"
+    },
+    "icon_512": {
+      "url": "https://gyqld3z17j5o0ygm.private.blob.vercel-storage.com/brand/icon-512x512.png",
+      "type": "image/png",
+      "size": "512x512"
+    }
+  },
+  "usage": {
+    "favicon": "/favicon.svg",
+    "apple_touch_icon": "/apple-touch-icon.png",
+    "pwa_icon": "/icon-192x192.png",
+    "pwa_icon_large": "/icon-512x512.png"
+  }
+}

@@ -15,9 +15,15 @@ export const metadata: Metadata = {
   creator: "attooli",
   publisher: "attooli",
   icons: {
-    icon: "/favicon.svg",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+    ],
     shortcut: "/favicon.svg",
-    apple: "/favicon.svg",
+    apple: { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    other: [
+      { rel: "mask-icon", url: "/favicon.svg", color: "#e07a5f" },
+    ],
   },
   robots: {
     index: true,
@@ -56,6 +62,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <link rel="manifest" href="/manifest.json" />
         <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
         <meta name="theme-color" content="#fefdfb" />
         {/* Preconnect to external domains for faster loading */}

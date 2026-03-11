@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="warmGradLarge" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e07a5f;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#e88d6a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f4a261;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="warmGradDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#d86a52;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e88d6a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Main icon background - organic blob shape -->
+  <path d="M448 256c0 106-86 192-192 192S64 362 64 256 150 64 256 64s192 86 192 192z" fill="url(#warmGradLarge)"/>
+  <!-- Inner accent shape for depth -->
+  <ellipse cx="256" cy="256" rx="160" ry="160" fill="url(#warmGradDark)" opacity="0.3"/>
+  <!-- Letter 'a' - warm and friendly -->
+  <text x="256" y="340" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="280" font-weight="800" text-anchor="middle" fill="white" style="letter-spacing: -8px; font-feature-settings: 'ss01' on;">a</text>
+</svg>
