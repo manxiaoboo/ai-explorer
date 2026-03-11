@@ -1,38 +1,59 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from './lib/prisma';
 
-const prisma = new PrismaClient();
-
-async function analyzeCategories() {
-  console.log('=== Category Analysis ===\n');
+async function main() {
+  console.log('='.repeat(80));
+  console.log('📊 现有分类分析');
+  console.log('='.repeat(80));
   
-  // Get all categories with tool counts
   const categories = await prisma.category.findMany({
-    orderBy: { sortOrder: 'asc' },
     include: {
-      _count: {
-        select: { tools: true }
-      }
+      _count: { select: { tools: true } }
+    },
+    orderBy: { name: 'asc' }
+  });
+  
+  console.log(`\n总分类数: ${categories.length}\n`);
+  console.log('-'.repeat(80));
+  console.log('分类名称              | slug                | 工具数量');
+  console.log('-'.repeat(80));
+  
+  for (const cat of categories) {
+    const name = cat.name.padEnd(20, ' ');
+    const slug = cat.slug.padEnd(20, ' ');
+    const count = String(cat._count.tools).padStart(5, ' ');
+    console.log(`${name}| ${slug}| ${count}`);
+  }
+  
+  console.log('-'.repeat(80));
+  
+  // 分析工具的分类分布
+  const tools = await prisma.tool.findMany({
+    select: {
+      name: true,
+      category: { select: { name: true, slug: true } }
     }
   });
   
-  console.log('Current Categories:');
-  console.log('-'.repeat(50));
+  console.log(`\n📈 统计信息:`);
+  console.log(`   总工具数: ${tools.length}`);
+  console.log(`   总分类数: ${categories.length}`);
+  console.log(`   平均每分类工具数: ${(tools.length / categories.length).toFixed(1)}`);
   
-  for (const cat of categories) {
-    const activeTools = await prisma.tool.count({
-      where: {
-        categoryId: cat.id,
-        isActive: true
-      }
-    });
-    
-    console.log(`${cat.name.padEnd(20)} | ${activeTools.toString().padStart(3)} tools | slug: ${cat.slug}`);
+  // 找出工具数为0的分类
+  const emptyCats = categories.filter(c => c._count.tools === 0);
+  if (emptyCats.length > 0) {
+    console.log(`\n⚠️  空分类 (${emptyCats.length}个):`);
+    emptyCats.forEach(c => console.log(`   - ${c.name}`));
   }
   
-  console.log('\n' + '='.repeat(50));
-  console.log(`Total: ${categories.length} categories`);
+  // 找出只有1个工具的分类
+  const singleToolCats = categories.filter(c => c._count.tools === 1);
+  if (singleToolCats.length > 0) {
+    console.log(`\n⚠️  单工具分类 (${singleToolCats.length}个):`);
+    singleToolCats.forEach(c => console.log(`   - ${c.name} (${c._count.tools}个工具)`));
+  }
   
-  await prisma.$disconnect();
+  console.log('\n' + '='.repeat(80));
 }
 
-analyzeCategories().catch(console.error);
+main().catch(console.error);

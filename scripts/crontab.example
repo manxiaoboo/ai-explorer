@@ -1,0 +1,23 @@
+# AI Tools Directory 自动抓取系统 Cron 配置
+# 
+# 安装方法:
+# 1. 复制此文件内容
+# 2. 运行 crontab -e
+# 3. 粘贴并修改路径
+#
+# 或者运行: crontab scripts/crontab.example
+
+# 环境变量
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+NODE_ENV=production
+
+# 每天凌晨 2:00 抓取新工具
+0 2 * * * cd /root/.openclaw/extensions/feishu/ai-explorer && /usr/bin/npx tsx scripts/daily-scrape-aitools.ts >> /var/log/aitools-scraper.log 2>&1
+
+# 每周日凌晨 3:00 更新现有工具数据
+0 3 * * 0 cd /root/.openclaw/extensions/feishu/ai-explorer && /usr/bin/npx tsx scripts/weekly-update-tools.ts >> /var/log/aitools-updater.log 2>&1
+
+# 日志轮转 (每月 1 日压缩旧日志)
+0 0 1 * * cd /var/log && gzip -c aitools-scraper.log > aitools-scraper-$(date +\%Y\%m).log.gz && > aitools-scraper.log
+0 0 1 * * cd /var/log && gzip -c aitools-updater.log > aitools-updater-$(date +\%Y\%m).log.gz && > aitools-updater.log

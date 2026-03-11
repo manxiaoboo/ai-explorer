@@ -1,156 +1,250 @@
-import { PrismaClient } from '@prisma/client';
+#!/usr/bin/env tsx
+/**
+ * 批量迁移Logo到CDN
+ * 将现有的外部URL Logo下载并上传到Vercel Blob CDN
+ * 
+ * 处理来源：
+ * - Clearbit (logo.clearbit.com)
+ * - DuckDuckGo (icons.duckduckgo.com)
+ * - Google (google.com/s2/favicons)
+ * - 其他外部URL
+ */
+
+import { prisma } from './lib/prisma';
 import { put } from '@vercel/blob';
-import * as https from 'https';
-import * as http from 'http';
 
-const prisma = new PrismaClient();
-
-// 使用 Node 原生 http/https 模块下载图片
-async function downloadImage(url: string): Promise<{ buffer: Buffer; contentType: string } | null> {
-  return new Promise((resolve, reject) => {
-    const client = url.startsWith('https:') ? https : http;
-    
-    const req = client.get(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
-      },
-      timeout: 15000,
-    }, (res) => {
-      if (res.statusCode !== 200) {
-        resolve(null);
-        return;
-      }
-
-      const chunks: Buffer[] = [];
-      const contentType = res.headers['content-type'] || 'image/png';
-
-      res.on('data', (chunk) => chunks.push(chunk));
-      res.on('end', () => {
-        const buffer = Buffer.concat(chunks);
-        resolve({ buffer, contentType });
-      });
-    });
-
-    req.on('error', (err) => {
-      console.log(`   下载错误: ${err.message}`);
-      resolve(null);
-    });
-    req.on('timeout', () => {
-      req.destroy();
-      resolve(null);
-    });
-  });
+// 生成slug
+function generateSlug(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
-// 下载并上传 logo 到 Vercel Blob
-async function migrateLogoToCDN(tool: { id: string; name: string; logo: string | null }) {
-  if (!tool.logo || !tool.logo.startsWith('http')) {
-    return { success: false, reason: 'not_external_url' };
-  }
+// 检查URL是否是CDN链接
+function isCdnUrl(url: string | null): boolean {
+  if (!url) return false;
+  return url.includes('vercel-storage.com') || 
+         url.includes('blob.vercel-storage.com');
+}
 
+// 下载并上传Logo到CDN
+async function downloadAndUploadToCdn(
+  logoUrl: string, 
+  toolName: string
+): Promise<string | null> {
   try {
-    // 下载图片
-    const downloadResult = await downloadImage(tool.logo);
+    console.log(`    📥 下载: ${logoUrl.slice(0, 60)}...`);
     
-    if (!downloadResult) {
-      return { success: false, reason: 'download_failed' };
+    // 根据来源设置不同的headers
+    const headers: Record<string, string> = {
+      'Accept': 'image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+    };
+    
+    // Google和Clearbit需要特定的User-Agent
+    if (logoUrl.includes('google.com')) {
+      headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+      headers['Referer'] = 'https://www.google.com/';
+    } else if (logoUrl.includes('clearbit.com')) {
+      headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+    } else {
+      headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36';
+    }
+    
+    const response = await fetch(logoUrl, {
+      headers,
+      signal: AbortSignal.timeout(15000)
+    });
+
+    if (!response.ok) {
+      console.log(`    ⚠️ 下载失败: ${response.status}`);
+      return null;
     }
 
-    const { buffer, contentType } = downloadResult;
-
-    // 检查文件大小（最大 500KB）
-    if (buffer.length > 500 * 1024) {
-      return { success: false, reason: 'file_too_large' };
-    }
-
-    // 检查是否真的是图片
+    const contentType = response.headers.get('content-type') || '';
     if (!contentType.startsWith('image/')) {
-      return { success: false, reason: 'not_an_image' };
+      console.log(`    ⚠️ 非图片: ${contentType.slice(0, 30)}`);
+      return null;
     }
 
-    // 生成文件名
-    const ext = contentType.includes('svg') ? 'svg' : 
-                contentType.includes('png') ? 'png' : 
-                contentType.includes('jpg') || contentType.includes('jpeg') ? 'jpg' : 'png';
-    const filename = `logos/${tool.id}.${ext}`;
-
-    console.log(`☁️  上传: ${filename} (${(buffer.length / 1024).toFixed(1)}KB)`);
+    const buffer = await response.arrayBuffer();
     
-    // 上传到 Vercel Blob (使用私有访问)
-    const blob = await put(filename, buffer, {
-      access: 'private',  // 改为私有访问
+    // 验证大小
+    if (buffer.byteLength < 100) {
+      console.log(`    ⚠️ 文件太小: ${buffer.byteLength} bytes`);
+      return null;
+    }
+    
+    if (buffer.byteLength > 5 * 1024 * 1024) {
+      console.log(`    ⚠️ 文件太大: ${(buffer.byteLength/1024/1024).toFixed(1)}MB`);
+      return null;
+    }
+
+    // 确定扩展名
+    const ext = contentType.includes('svg') ? 'svg' :
+                contentType.includes('jpg') || contentType.includes('jpeg') ? 'jpg' :
+                contentType.includes('ico') ? 'ico' : 'png';
+
+    const filename = `logos/migrated/${generateSlug(toolName)}-${Date.now()}.${ext}`;
+
+    console.log(`    📤 上传到CDN...`);
+    const blob = await put(filename, Buffer.from(buffer), {
       contentType,
-      addRandomSuffix: false,
+      access: 'private', // Vercel Blob配置为private
     });
 
-    // 更新数据库
-    await prisma.tool.update({
-      where: { id: tool.id },
-      data: { logo: blob.url },
-    });
+    console.log(`    ✅ 上传成功: ${(buffer.byteLength/1024).toFixed(1)}KB`);
+    return blob.url;
 
-    console.log(`✅ 完成: ${tool.name}`);
-    return { success: true, url: blob.url };
-
-  } catch (error) {
-    console.error(`❌ 失败: ${tool.name}`, error);
-    return { success: false, reason: String(error) };
+  } catch (error: any) {
+    console.log(`    ❌ 错误: ${error.message.slice(0, 50)}`);
+    return null;
   }
 }
 
-async function main() {
-  console.log('🚀 开始迁移外部 Logo 到 CDN\n');
+interface MigrationResult {
+  success: number;
+  failed: number;
+  skipped: number;
+  alreadyCdn: number;
+  errors: Array<{ name: string; url: string; error: string }>;
+}
 
-  // 获取所有使用外部 URL 的工具
+async function migrateLogos() {
+  console.log('='.repeat(70));
+  console.log('🚀 批量迁移Logo到CDN');
+  console.log(`时间: ${new Date().toISOString()}`);
+  console.log('='.repeat(70));
+  console.log();
+
+  // 获取所有有logo的工具
   const tools = await prisma.tool.findMany({
     where: {
-      logo: {
-        startsWith: 'http',
-      },
+      logo: { not: null }
     },
-    select: { id: true, name: true, logo: true },
+    select: { id: true, name: true, website: true, logo: true },
+    orderBy: { name: 'asc' }
   });
 
-  console.log(`找到 ${tools.length} 个需要迁移的工具\n`);
+  console.log(`📊 总共 ${tools.length} 个工具有Logo\n`);
 
-  let success = 0;
-  let failed = 0;
-  const failedTools: { name: string; reason: string }[] = [];
+  // 分类统计
+  const cdnTools = tools.filter(t => isCdnUrl(t.logo));
+  const externalTools = tools.filter(t => !isCdnUrl(t.logo));
 
-  // 逐个处理（避免并发导致限流）
-  for (let i = 0; i < tools.length; i++) {
-    const tool = tools[i];
-    console.log(`\n[${i + 1}/${tools.length}] ${tool.name}`);
-    console.log(`   源: ${tool.logo?.substring(0, 50)}...`);
-    
-    const result = await migrateLogoToCDN(tool);
-    
-    if (result.success) {
-      success++;
-    } else {
-      failed++;
-      failedTools.push({ name: tool.name, reason: result.reason as string });
-    }
+  console.log(`   ✅ 已在CDN: ${cdnTools.length} 个`);
+  console.log(`   📦 需要迁移: ${externalTools.length} 个`);
+  console.log();
 
-    // 延迟 300ms 避免限流
-    await new Promise(resolve => setTimeout(resolve, 300));
+  // 显示需要迁移的分布
+  const clearbitTools = externalTools.filter(t => t.logo?.includes('clearbit.com'));
+  const ddgTools = externalTools.filter(t => t.logo?.includes('duckduckgo.com'));
+  const googleTools = externalTools.filter(t => t.logo?.includes('google.com/s2/favicons'));
+  const otherTools = externalTools.filter(t => 
+    !t.logo?.includes('clearbit.com') && 
+    !t.logo?.includes('duckduckgo.com') && 
+    !t.logo?.includes('google.com/s2/favicons')
+  );
+
+  console.log('📦 外部Logo来源分布:');
+  console.log(`   Clearbit: ${clearbitTools.length} 个`);
+  console.log(`   DuckDuckGo: ${ddgTools.length} 个`);
+  console.log(`   Google: ${googleTools.length} 个`);
+  console.log(`   其他: ${otherTools.length} 个`);
+  console.log();
+
+  if (externalTools.length === 0) {
+    console.log('✅ 所有Logo都已在CDN，无需迁移！');
+    await prisma.$disconnect();
+    return;
   }
 
-  console.log('\n' + '='.repeat(50));
-  console.log('📊 迁移完成:\n');
-  console.log(`  ✅ 成功: ${success}`);
-  console.log(`  ❌ 失败: ${failed}`);
-  console.log(`  📦 总计: ${tools.length}\n`);
+  // 开始迁移
+  const result: MigrationResult = {
+    success: 0,
+    failed: 0,
+    skipped: 0,
+    alreadyCdn: cdnTools.length,
+    errors: []
+  };
 
-  if (failedTools.length > 0) {
-    console.log('失败列表:');
-    failedTools.forEach(t => {
-      console.log(`  - ${t.name}: ${t.reason}`);
-    });
+  console.log('='.repeat(70));
+  console.log('开始迁移...');
+  console.log('='.repeat(70));
+  console.log();
+
+  // 分批处理，每批10个
+  const BATCH_SIZE = 10;
+  const batches = Math.ceil(externalTools.length / BATCH_SIZE);
+
+  for (let batchIndex = 0; batchIndex < batches; batchIndex++) {
+    const batch = externalTools.slice(batchIndex * BATCH_SIZE, (batchIndex + 1) * BATCH_SIZE);
+    
+    console.log(`\n📦 批次 ${batchIndex + 1}/${batches} (${batch.length} 个工具)`);
+    console.log('-'.repeat(70));
+
+    for (let i = 0; i < batch.length; i++) {
+      const tool = batch[i];
+      const globalIndex = batchIndex * BATCH_SIZE + i + 1;
+
+      console.log(`\n[${globalIndex}/${externalTools.length}] ${tool.name}`);
+      console.log(`   来源: ${tool.logo?.slice(0, 60)}...`);
+
+      // 下载并上传
+      const cdnUrl = await downloadAndUploadToCdn(tool.logo!, tool.name);
+
+      if (cdnUrl) {
+        // 更新数据库
+        await prisma.tool.update({
+          where: { id: tool.id },
+          data: { logo: cdnUrl }
+        });
+        console.log(`   ✅ 已更新数据库`);
+        result.success++;
+      } else {
+        result.failed++;
+        result.errors.push({
+          name: tool.name,
+          url: tool.logo!,
+          error: '下载或上传失败'
+        });
+      }
+
+      // 小延迟避免过载
+      await new Promise(r => setTimeout(r, 300));
+    }
+
+    // 批次间休息
+    if (batchIndex < batches - 1) {
+      console.log(`\n⏳ 批次间休息5秒...`);
+      await new Promise(r => setTimeout(r, 5000));
+    }
   }
 
   await prisma.$disconnect();
+
+  // 生成报告
+  console.log();
+  console.log('='.repeat(70));
+  console.log('📊 迁移报告');
+  console.log('='.repeat(70));
+  console.log(`✅ 成功迁移: ${result.success} 个`);
+  console.log(`❌ 失败: ${result.failed} 个`);
+  console.log(`⏭️  已在CDN: ${result.alreadyCdn} 个`);
+  console.log(`─────────────────────────────`);
+  console.log(`📈 总计: ${tools.length} 个工具`);
+  console.log(`   CDN占比: ${(((result.success + result.alreadyCdn) / tools.length) * 100).toFixed(1)}%`);
+  console.log('='.repeat(70));
+
+  if (result.errors.length > 0) {
+    console.log('\n⚠️ 失败的工具:');
+    result.errors.slice(0, 10).forEach(e => {
+      console.log(`   - ${e.name}: ${e.error}`);
+    });
+    if (result.errors.length > 10) {
+      console.log(`   ... 还有 ${result.errors.length - 10} 个`);
+    }
+  }
 }
 
-main().catch(console.error);
+migrateLogos().catch(error => {
+  console.error('迁移出错:', error);
+  process.exit(1);
+});

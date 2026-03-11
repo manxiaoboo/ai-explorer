@@ -57,7 +57,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
-        <meta name="theme-color" content="#0a0a0c" />
+        <meta name="theme-color" content="#fefdfb" />
         {/* Preconnect to external domains for faster loading */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

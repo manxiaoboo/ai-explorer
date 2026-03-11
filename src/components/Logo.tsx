@@ -1,15 +1,20 @@
+import Link from "next/link";
+
 export function Logo() {
   return (
-    <a href="/" className="flex items-center gap-2 group">
-      {/* 图标占位符 - 蓝色方块 + 白色字母 a */}
-      <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center transition-transform group-hover:scale-105">
+    <Link href="/" className="flex items-center gap-2.5 group">
+      {/* Warm Logo Icon */}
+      <div className="w-9 h-9 bg-gradient-to-br from-[var(--accent)] to-[var(--accent-soft)] 
+                    rounded-xl flex items-center justify-center 
+                    shadow-lg shadow-[var(--accent)]/25
+                    transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl group-hover:shadow-[var(--accent)]/30">
         <span className="text-white font-bold text-lg">a</span>
       </div>
       
-      {/* 文字 Logo */}
-      <span className="text-2xl font-bold tracking-tight text-slate-900 lowercase">
+      {/* Text Logo */}
+      <span className="text-xl font-bold tracking-tight text-[var(--foreground)] lowercase">
         attooli
       </span>
-    </a>
+    </Link>
   );
 }
