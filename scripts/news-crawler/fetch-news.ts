@@ -165,6 +165,13 @@ function parseRSSItems(feed: any, sourceName: string): NewsItem[] {
       if (mediaContent) coverImage = mediaContent;
       if (enclosure) coverImage = enclosure;
       
+      // 从 content HTML 中提取第一张图片
+      if (!coverImage && content) {
+        const contentStr = content.toString();
+        const imgMatch = contentStr.match(/<img[^>]+src=["']([^"']+)["']/i);
+        if (imgMatch) coverImage = imgMatch[1];
+      }
+      
       if (title && link) {
         items.push({
           title: title.toString().trim(),
