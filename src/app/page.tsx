@@ -256,13 +256,19 @@ export default async function HomePage() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "Atooli",
-    url: "https://tooli.ai",
+    url: "https://attooli.com",
     potentialAction: {
       "@type": "SearchAction",
-      target: "https://tooli.ai/search?q={search_term_string}",
+      target: "https://attooli.com/search?q={search_term_string}",
       "query-input": "required name=search_term_string",
     },
   };
+
+  // CDN icon URL
+  const cdnFaviconUrl = "https://gyqld3z17j5o0ygm.private.blob.vercel-storage.com/brand/favicon.svg";
+  
+  // Get top 5 categories for Popular section
+  const popularCategories = categories.slice(0, 5);
 
   return (
     <>
@@ -275,11 +281,13 @@ export default async function HomePage() {
         
         <div className="relative max-w-6xl mx-auto px-4 pt-16 pb-12 md:pt-24 md:pb-16">
           <div className="max-w-2xl">
-            {/* Simple Logo */}
+            {/* Logo with CDN icon */}
             <div className="inline-flex items-center gap-2 mb-6 text-[var(--foreground-soft)]">
-              <span className="w-8 h-8 bg-gradient-to-br from-[var(--accent)] to-[var(--accent-soft)] rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                T
-              </span>
+              <img 
+                src={cdnFaviconUrl} 
+                alt="Atooli" 
+                className="w-8 h-8 rounded-lg"
+              />
               <span className="text-sm font-medium">Atooli</span>
             </div>
 
@@ -320,24 +328,26 @@ export default async function HomePage() {
               </Link>
             </div>
 
-            {/* Popular Tags - Inline text style */}
-            <div className="flex flex-wrap items-center gap-x-1 gap-y-2 text-sm text-[var(--foreground-muted)]">
-              <span>Popular:</span>
-              {['Writing', 'Image', 'Code', 'Chat', 'Video'].map((tag, i) => (
-                <span key={tag}>
-                  <Link
-                    href={`/tools?category=${tag.toLowerCase()}`}
-                    className="text-[var(--foreground-soft)] hover:text-[var(--accent)] transition-colors"
-                  >
-                    {tag}
-                  </Link>
-                  {i < 4 && <span className="text-[var(--border)]">,</span>}
-                </span>
-              ))}
-              <Link href="/tools" className="text-[var(--accent)] hover:underline ml-1">
-                all categories →
-              </Link>
-            </div>
+            {/* Popular Categories - From database */}
+            {popularCategories.length > 0 && (
+              <div className="flex flex-wrap items-center gap-x-1 gap-y-2 text-sm text-[var(--foreground-muted)]">
+                <span>Popular:</span>
+                {popularCategories.map((cat, i) => (
+                  <span key={cat.id}>
+                    <Link
+                      href={`/tools?category=${cat.slug}`}
+                      className="text-[var(--foreground-soft)] hover:text-[var(--accent)] transition-colors"
+                    >
+                      {cat.name}
+                    </Link>
+                    {i < popularCategories.length - 1 && <span className="text-[var(--border)]">,</span>}
+                  </span>
+                ))}
+                <Link href="/tools" className="text-[var(--accent)] hover:underline ml-1">
+                  all categories →
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </section>
